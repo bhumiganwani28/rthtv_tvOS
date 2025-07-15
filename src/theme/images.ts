@@ -13,6 +13,8 @@ export const IMAGES = {
   epi_1: require('../assets/images/epi_1.png'),
   epi_2: require('../assets/images/epi_2.png'),
   circle: require('../assets/images/circle.png'),
+  appBg: require('../assets/images/appBg.jpeg'),
+  // circle: require('../assets/images/circle.png'),
   subscriptionIcon : require('../assets/images/subscription_Icon.png'), // Update with the correct path
 };
 
