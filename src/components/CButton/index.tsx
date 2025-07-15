@@ -1,10 +1,10 @@
 import React from 'react';
 import {
-  TouchableOpacity,
   Text,
   StyleSheet,
   ActivityIndicator,
   View,
+  TouchableHighlight,
   ViewStyle,
   TextStyle,
   StyleProp,
@@ -24,6 +24,8 @@ interface CButtonProps {
   outline?: boolean;
   icon?: React.ReactNode;
   hasTVPreferredFocus?: boolean;
+  focusable?: boolean;
+  accessible?: boolean;
 }
 
 const CButton: React.FC<CButtonProps> = ({
@@ -37,10 +39,16 @@ const CButton: React.FC<CButtonProps> = ({
   outline = false,
   icon,
   hasTVPreferredFocus = false,
+  focusable = true,
+  accessible = true,
 }) => {
   return (
-    <TouchableOpacity
+    <TouchableHighlight
       onPress={onPress}
+      hasTVPreferredFocus={hasTVPreferredFocus}
+      focusable={focusable}
+      accessible={accessible}
+      underlayColor="rgba(255,255,255,0.2)"
       style={[
         styles.button,
         {
@@ -49,40 +57,42 @@ const CButton: React.FC<CButtonProps> = ({
         outline && styles.outlineButton,
         style,
       ]}
-      hasTVPreferredFocus={hasTVPreferredFocus}
-      disabled={loading}
     >
-      {loading ? (
-        <ActivityIndicator size="small" color={COLORS.white} />
-      ) : (
-        <View style={styles.contentContainer}>
-          {icon && <View style={styles.iconContainer}>{icon}</View>}
-          <Text
-            style={[
-              styles.buttonText,
-              outline && styles.outlineText,
-              {
-                color: textColor || (outline ? COLORS.white : COLORS.black),
-              },
-              textStyle,
-            ]}
-          >
-            {text}
-          </Text>
-        </View>
-      )}
-    </TouchableOpacity>
+      <View style={styles.contentContainer}>
+        {loading ? (
+          <ActivityIndicator size="small" color={COLORS.white} />
+        ) : (
+          <>
+            {icon && <View style={styles.iconContainer}>{icon}</View>}
+            <Text
+              style={[
+                styles.buttonText,
+                outline && styles.outlineText,
+                {
+                  color: textColor || (outline ? COLORS.white : COLORS.black),
+                },
+                textStyle,
+              ]}
+            >
+              {text}
+            </Text>
+          </>
+        )}
+      </View>
+    </TouchableHighlight>
   );
 };
 
 const styles = StyleSheet.create({
   button: {
-    height: scale(50), // Comfortable size for remote focus
+    height: scale(40),
     paddingHorizontal: scale(40),
     borderRadius: scale(6),
     justifyContent: 'center',
     alignItems: 'center',
     width: '100%',
+    borderColor: 'transparent',
+    borderWidth: 2,
   },
   contentContainer: {
     flexDirection: 'row',
