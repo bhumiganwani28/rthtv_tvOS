@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Image,
@@ -7,10 +7,13 @@ import {
   Platform,
   Dimensions,
   useTVEventHandler,
+  TouchableOpacity,
 } from 'react-native';
 import { IMAGES } from '../../theme/images';
 import { COLORS } from '../../theme/colors';
 import styles from './styles';
+
+import { navigationRef } from '../../App';
 import CButton from '../../components/CButton';
 
 const { width } = Dimensions.get('window');
@@ -19,11 +22,25 @@ const isTV = Platform.isTV;
 const OnBoarding = ({ navigation }) => {
   const logoSize = width * 0.3;
 
+  // ✅ State to show last remote event
+  const [lastEventType, setLastEventType] = useState('');
+
+  // ✅ Log tvOS remote events
+  useTVEventHandler((evt) => {
+    console.log('📺 TV Remote Event:', evt);
+    setLastEventType(evt.eventType);
+  });
+
   return (
     <>
       <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
       <View style={styles.container}>
-        <Image source={IMAGES.splash} style={styles.backgroundImage} resizeMode="cover" />
+        <Image
+          source={IMAGES.splash}
+          style={styles.backgroundImage}
+          resizeMode="cover"
+          pointerEvents="none" // ✅ Allow touch/focus to pass through
+        />
 
         <View style={styles.contentWrapper}>
           {/* Logo */}
@@ -37,20 +54,29 @@ const OnBoarding = ({ navigation }) => {
           <View style={styles.buttonGroup}>
             <CButton
               text="Create Free Account"
-              onPress={() => navigation.navigate('SignUp')}
+              onPress={() => {
+                // console.log('✅ Create Free Account pressed');
+                navigation.navigate('SignUp');
+              }}
               style={styles.primaryButton}
               textStyle={styles.primaryButtonText}
-              hasTVPreferredFocus={true} // ✅ Default focused button
-              focusable={true}            // ✅ Enable focus
+              hasTVPreferredFocus={true}
+              accessible={true}
+              focusable={true}
             />
+
             <CButton
               text="Already a Member? Sign In"
               onPress={() => navigation.navigate('Login')}
               style={styles.outlineButton}
               textStyle={styles.outlineButtonText}
               outline
-              focusable={true}            // ✅ Enable focus
+              focusable={true}
+              accessible={true}
+              hasTVPreferredFocus={false}
             />
+
+            
           </View>
 
           {/* Terms */}
@@ -68,12 +94,7 @@ const OnBoarding = ({ navigation }) => {
             </Text>
           </View>
 
-          {/* Optional Debug View */}
-          {/* {isTV && (
-            <Text style={{ color: 'white', textAlign: 'center', marginTop: 20 }}>
-              Last Remote Event: {lastEventType}
-            </Text>
-          )} */}
+          
         </View>
       </View>
     </>
