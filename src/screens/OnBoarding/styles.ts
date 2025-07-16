@@ -9,73 +9,102 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.black,
+    width: '100%',
+    height: '100%',
   },
   backgroundImage: {
-    position: 'absolute',
-    width,
-    height,
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
+  overlay: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   contentWrapper: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: isTV ? 80 : 20,
+    paddingHorizontal: isTV ? 40 : 20,
+    width: '100%',
   },
   logo: {
-    marginBottom: isTV ? 60 : 40,
+    width:  scale(300) ,
+    height: scale(150),
+    marginBottom: isTV ? 30 : 20,
   },
-  buttonGroup: {
-    width: isTV ? '60%' : '90%',
+  mainContent: {
     alignItems: 'center',
-    marginBottom: isTV ? 50 : 30,
-  },
-  primaryButton: {
-    backgroundColor: COLORS.white,
-    paddingVertical: isTV ? 20 : 14,
-    paddingHorizontal: isTV ? 60 : 30,
-    borderRadius: 12,
+    marginBottom: isTV ? 40 : 25,
     width: '100%',
-    alignItems: 'center',
-    marginBottom: 20,
+    maxWidth: isTV ? 600 : 400,
   },
-  primaryButtonText: {
-    color: COLORS.black,
-    fontSize: isTV ? 26 : 18,
-    fontFamily: FONTS.montBold,
+  title: {
+    color: COLORS.white,
+    fontSize: scale(35),
+    fontFamily: FONTS.montSemiBold,
+    textAlign: 'center',
+    marginBottom: isTV ? 12 : 8,
+  },
+  subtitle: {
+    color: COLORS.white,
+    fontSize: scale(20),
+    fontFamily: FONTS.montRegular,
     textAlign: 'center',
   },
-  outlineButton: {
-    borderWidth: 2,
-    borderColor: COLORS.white,
-    backgroundColor: 'transparent',
-    paddingVertical: isTV ? 20 : 14,
-    paddingHorizontal: isTV ? 60 : 30,
-    borderRadius: 12,
-    width: '100%',
+  buttonGroup: {
+    flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center',
+    width: '100%',
+    marginBottom: scale(20),
+    maxWidth: 400,
   },
-  outlineButtonText: {
+  signupButton: {
+    backgroundColor: COLORS.primary,
+    marginRight:scale(15),
+  },
+  signinButton: {
+    backgroundColor: 'transparent',
+    borderColor: COLORS.white,
+    borderWidth: 1,
+    marginLeft: scale(15),
+  },
+  buttonText: {
     color: COLORS.white,
-    fontSize: isTV ? 24 : 16,
-    fontFamily: FONTS.montRegular,
+    fontSize:  scale(20),
+    fontFamily: FONTS.montSemiBold,
     textAlign: 'center',
   },
   termsContainer: {
-    paddingHorizontal: isTV ? 80 : 20,
-    marginTop: isTV ? 20 : 10,
+    paddingHorizontal: 20,
+    marginTop: scale(20),
+    width: '100%',
+    maxWidth: 600,
   },
   termsText: {
-    color: COLORS.white,
-    fontSize: isTV ? 20 : 12,
+    color: COLORS.greyText,
+    fontSize: scale(20),
     fontFamily: FONTS.montRegular,
     textAlign: 'center',
-    lineHeight: isTV ? 28 : 20,
+    lineHeight:scale(35),
   },
   linkText: {
     textDecorationLine: 'underline',
     color: COLORS.white,
     fontFamily: FONTS.montSemiBold,
+    fontSize: scale(20),
+     lineHeight:30,
   },
 });
+
+// Helper function for scaling
+function scale(size: number): number {
+  return isTV ? size * 1.1 : size;
+}
 
 export default styles;

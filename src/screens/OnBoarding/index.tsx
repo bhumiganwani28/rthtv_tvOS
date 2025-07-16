@@ -7,97 +7,99 @@ import {
   Platform,
   Dimensions,
   useTVEventHandler,
-  TouchableOpacity,
+  ImageBackground,
+  SafeAreaView,
 } from 'react-native';
 import { IMAGES } from '../../theme/images';
 import { COLORS } from '../../theme/colors';
 import styles from './styles';
-
-import { navigationRef } from '../../App';
 import CButton from '../../components/CButton';
+import TVFocusGuide from '../../components/TVFocusGuide';
 
 const { width } = Dimensions.get('window');
 const isTV = Platform.isTV;
 
-const OnBoarding = ({ navigation }) => {
-  const logoSize = width * 0.3;
+interface OnBoardingProps {
+  navigation: any;
+}
 
-  // ✅ State to show last remote event
-  const [lastEventType, setLastEventType] = useState('');
+const OnBoarding: React.FC<OnBoardingProps> = ({ navigation }) => {
+  const [focusedButton, setFocusedButton] = useState<'signup' | 'signin'>('signup');
 
-  // ✅ Log tvOS remote events
+  // Handle TV remote events
   useTVEventHandler((evt) => {
-    console.log('📺 TV Remote Event:', evt);
-    setLastEventType(evt.eventType);
+    if (evt && evt.eventType) {
+      if (evt.eventType === 'left' || evt.eventType === 'right') {
+        setFocusedButton(focusedButton === 'signup' ? 'signin' : 'signup');
+      } else if (evt.eventType === 'select') {
+        if (focusedButton === 'signup') {
+          navigation.navigate('SignUp');
+        } else if (focusedButton === 'signin') {
+          navigation.navigate('Login');
+        }
+      }
+    }
   });
 
   return (
-    <>
+    <SafeAreaView style={styles.container}>
       <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
-      <View style={styles.container}>
-        <Image
-          source={IMAGES.splash}
-          style={styles.backgroundImage}
-          resizeMode="cover"
-          pointerEvents="none" // ✅ Allow touch/focus to pass through
-        />
-
-        <View style={styles.contentWrapper}>
+      <ImageBackground
+        source={IMAGES.splash}
+        style={styles.backgroundImage}
+        resizeMode="cover"
+      >
+        <View style={styles.overlay}>
           {/* Logo */}
-          <Image
-            source={IMAGES.logo}
-            style={[styles.logo, { width: logoSize, height: logoSize }]}
-            resizeMode="contain"
-          />
-
-          {/* Buttons */}
-          <View style={styles.buttonGroup}>
-            <CButton
-              text="Create Free Account"
-              onPress={() => {
-                // console.log('✅ Create Free Account pressed');
-                navigation.navigate('SignUp');
-              }}
-              style={styles.primaryButton}
-              textStyle={styles.primaryButtonText}
-              hasTVPreferredFocus={true}
-              accessible={true}
-              focusable={true}
+          <View style={styles.contentWrapper}>
+            <Image
+              source={IMAGES.logo}
+              style={styles.logo}
+              resizeMode="contain"
             />
 
-            <CButton
-              text="Already a Member? Sign In"
-              onPress={() => navigation.navigate('Login')}
-              style={styles.outlineButton}
-              textStyle={styles.outlineButtonText}
-              outline
-              focusable={true}
-              accessible={true}
-              hasTVPreferredFocus={false}
-            />
+            {/* Main content */}
+            <View style={styles.mainContent}>
+              <Text style={styles.title}>Unlimited TV Shows, Movies & More</Text>
+              <Text style={styles.subtitle}>Watch anywhere. Cancel anytime.</Text>
+            </View>
 
-            
-          </View>
+            {/* Buttons in a row for TV */}
+            <View style={styles.buttonGroup}>
+              <CButton
+                text="Sign Up"
+                onPress={() => navigation.navigate('SignUp')}
+                style={styles.signupButton}
+                textStyle={styles.buttonText}
+                hasTVPreferredFocus={focusedButton === 'signup'}
+                focusable={true}
+                // size={isTV ? "medium" : "small"}
+              />
 
-          {/* Terms */}
-          <View style={styles.termsContainer}>
-            <Text style={styles.termsText}>
-              By continuing, you agree to RTH.TV{' '}
-              <Text style={styles.linkText} onPress={() => navigation.navigate('TermsUse')}>
-                Terms & Conditions
-              </Text>{' '}
-              and{' '}
-              <Text style={styles.linkText} onPress={() => navigation.navigate('Privacypolicy')}>
-                Privacy Policy
+              <CButton
+                text="Sign In"
+                onPress={() => navigation.navigate('Login')}
+                style={styles.signinButton}
+                textStyle={styles.buttonText}
+                hasTVPreferredFocus={focusedButton === 'signin'}
+                focusable={true}
+                // size={isTV ? "medium" : "small"}
+                outline
+              />
+            </View>
+
+            {/* Terms */}
+            <View style={styles.termsContainer}>
+              <Text style={styles.termsText}>
+                By continuing, you agree to RTH.TV{' '}
+                <Text style={styles.linkText}>Terms & Conditions</Text> and{' '}
+                <Text style={styles.linkText}>Privacy Policy</Text>.
               </Text>
-              .
-            </Text>
+            </View>
           </View>
-
-          
         </View>
-      </View>
-    </>
+      </ImageBackground>
+    </SafeAreaView>
   );
 };
 
