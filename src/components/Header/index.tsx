@@ -1,149 +1,139 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image, ImageSourcePropType, Platform } from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome5';
-import AIcon from 'react-native-vector-icons/AntDesign';
-import MIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+  Platform,
+  Dimensions,
+} from 'react-native';
 import { scale } from 'react-native-size-matters';
 import { COLORS } from '../../theme/colors';
 import { FONTS } from '../../utils/fonts';
-import CStatusBar from '../CStatusBar';
-import FIcon from 'react-native-vector-icons/Feather';
-import store from '../../redux/store';
-import { Dimensions } from 'react-native';
+import { IMAGES } from '../../theme/images';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
+const { width, height } = Dimensions.get('window');
+const isTV = Platform.isTV;
 
-// Define the types for the props
 interface HeaderProps {
   title?: string;
-  showBackButton?: boolean;
+  showBack?: boolean;
+  showLogo?: boolean;
+  showSearch?: boolean;
+  showProfile?: boolean;
   onBackPress?: () => void;
-  logoSource?: ImageSourcePropType; // For the logo image
-  editIconPress?: () => void; // For the edit icon
-  showSearchIcon?: boolean;
   onSearchPress?: () => void;
-  rightButtons?: {
-    label: string;
-    color?: string;
-    onPress: () => void;
-  }[];
-  bgCOlor?: boolean;
+  onProfilePress?: () => void;
 }
 
 const Header: React.FC<HeaderProps> = ({
   title,
-  showBackButton = false,
+  showBack = false,
+  showLogo = true,
+  showSearch = false,
+  showProfile = false,
   onBackPress,
-  logoSource,
-  editIconPress,
-  showSearchIcon = false,
   onSearchPress,
-  rightButtons = [],
-  bgCOlor = false,
+  onProfilePress,
 }) => {
-  const { auth: { isTablet } } = store.getState();
-  // console.log("ISTab>",isTablet);
-  
-  const { width: screenWidth } = Dimensions.get('window');
-
   return (
-    <>
-      <CStatusBar translucent={true} statusBarColor={bgCOlor ? COLORS.greyBorder : "transparent"} />
-      <View style={[styles.container, {
-         backgroundColor: bgCOlor ? COLORS.greyBorder : COLORS.black,
-         paddingHorizontal: isTablet ? scale(10) : scale(15),
-         height:isTablet ? scale(28) : Platform.OS === 'ios' ? scale(60) : scale(50)
-         }]}>
-        {/* Left Section: Logo Only (No Back Button or Title if logo is passed) */}
-        <View style={styles.left}>
-          {logoSource && <Image source={logoSource} style={[styles.logo,{  
-            width: isTablet ? scale(40) : scale(80),
-            height:isTablet ?  scale(40) : scale(80),}]} />}
-          {!logoSource && showBackButton && (
-            <TouchableOpacity
-            hitSlop={{ top: 24, bottom: 24, left: 24, right: 24 }}
-            onPress={onBackPress} style={styles.iconWrapper}>
-              <AIcon name="arrowleft" size={isTablet ? 24 : 20} color={COLORS.white} /> 
-            </TouchableOpacity>
-          )}
-          {!logoSource && title && (
-            <Text numberOfLines={1} style={[styles.title,{
-              fontSize:isTablet ? scale(8) : scale(14),
-            }]}>
-              {title}
-            </Text>
-          )}
-        </View>
-
-        {/* Right Section: Edit Icon, Search Icon, and Other Buttons */}
-        <View style={styles.right}>
-          {showSearchIcon && (
-            <TouchableOpacity
-            hitSlop={{ top: 24, bottom: 24, left: 24, right: 24 }}
-            onPress={onSearchPress} style={styles.iconWrapper}>
-               <FIcon name="search" size={isTablet ?  scale(10) : scale(15)} color={COLORS.textColor} />
-              {/* <Icon name="search" size={scale(15)} color={COLORS.textColor} /> */}
-            </TouchableOpacity>
-          )}
-          {editIconPress && (
-            <TouchableOpacity 
-            hitSlop={{ top: 24, bottom: 24, left: 24, right: 24 }}
-            onPress={editIconPress} style={styles.iconWrapper}>
-              <MIcon name="pencil-outline" size={isTablet ?  scale(12) : scale(18)} color={COLORS.textColor} />
-            </TouchableOpacity>
-          )}
-          {rightButtons.map((btn, index) => (
-            <TouchableOpacity key={index} onPress={btn.onPress} style={styles.textButton}>
-              <Text style={[styles.textButtonLabel, { color: btn.color || COLORS.textColor, fontSize:isTablet ? scale(10) : scale(14), }]}>
-                {btn.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+    <View style={styles.container}>
+      <View style={styles.leftContainer}>
+        {showBack && (
+          <TouchableOpacity
+            onPress={onBackPress}
+            style={styles.backButton}
+            focusable
+          >
+            <Icon name="arrow-back" size={isTV ? scale(16) : scale(18)} color={COLORS.white} />
+          </TouchableOpacity>
+        )}
+        {showLogo && (
+          <Image
+            source={IMAGES.logo}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+        )}
+        {title && <Text style={styles.title}>{title}</Text>}
       </View>
-    </>
+      
+      <View style={styles.rightContainer}>
+        {showSearch && (
+          <TouchableOpacity
+            onPress={onSearchPress}
+            style={styles.iconButton}
+            focusable
+          >
+            <Icon name="search" size={isTV ? scale(16) : scale(18)} color={COLORS.white} />
+          </TouchableOpacity>
+        )}
+        {showProfile && (
+          <TouchableOpacity
+            onPress={onProfilePress}
+            style={styles.profileButton}
+            focusable
+          >
+            <Image
+              source={IMAGES.profile}
+              style={styles.profileImage}
+              resizeMode="cover"
+            />
+          </TouchableOpacity>
+        )}
+      </View>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    // height:isTablet ?  Platform.OS === 'ios' ? scale(60) : scale(50),
-    width:'100%',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.greyBorder,
-    
-    // marginTop: Platform.OS === 'ios' ? scale(10) : scale(0),
+    paddingHorizontal: scale(15),
+    paddingVertical: isTV ? scale(10) : scale(8),
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    width: '100%',
+    zIndex: 10,
   },
-  left: {
+  leftContainer: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  title: {
-   
-    fontFamily: FONTS.montMedium,
-    color: COLORS.textColor,
-    marginLeft: scale(10),
+  rightContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  backButton: {
+    marginRight: scale(12),
+    padding: scale(4),
   },
   logo: {
-    // width: scale(80),
-    // height: scale(80),
-    resizeMode: 'contain',
+    height: isTV ? scale(22) : scale(20),
+    width: isTV ? scale(70) : scale(65),
   },
-  right: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  iconWrapper: {
-
-  },
-  textButton: {
-    marginHorizontal: scale(5),
-  },
-  textButtonLabel: {
+  title: {
+    color: COLORS.white,
+    fontSize: isTV ? scale(14) : scale(13),
     fontFamily: FONTS.montSemiBold,
-    color: COLORS.textColor,
+    marginLeft: scale(8),
+  },
+  iconButton: {
+    marginLeft: scale(15),
+    padding: scale(4),
+  },
+  profileButton: {
+    marginLeft: scale(15),
+    borderRadius: scale(15),
+    overflow: 'hidden',
+  },
+  profileImage: {
+    width: isTV ? scale(26) : scale(24),
+    height: isTV ? scale(26) : scale(24),
+    borderRadius: isTV ? scale(13) : scale(12),
   },
 });
 
