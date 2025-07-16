@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   Text,
   StyleSheet,
@@ -8,10 +8,15 @@ import {
   ViewStyle,
   TextStyle,
   StyleProp,
+  Platform,
+  Dimensions,
 } from 'react-native';
 import { scale } from 'react-native-size-matters';
 import { COLORS } from '../../theme/colors';
 import { FONTS } from '../../utils/fonts';
+
+const { width, height } = Dimensions.get('window');
+const isTV = Platform.isTV;
 
 interface CButtonProps {
   text: string;
@@ -26,6 +31,7 @@ interface CButtonProps {
   hasTVPreferredFocus?: boolean;
   focusable?: boolean;
   accessible?: boolean;
+  size?: 'small' | 'medium' | 'large';
 }
 
 const CButton: React.FC<CButtonProps> = ({
@@ -41,6 +47,7 @@ const CButton: React.FC<CButtonProps> = ({
   hasTVPreferredFocus = false,
   focusable = true,
   accessible = true,
+  size = 'medium',
 }) => {
   return (
     <TouchableHighlight
@@ -51,10 +58,13 @@ const CButton: React.FC<CButtonProps> = ({
       underlayColor="rgba(255,255,255,0.2)"
       style={[
         styles.button,
+        styles[`${size}Button`],
         {
           backgroundColor: backgroundColor || (outline ? 'transparent' : COLORS.primary),
         },
         outline && styles.outlineButton,
+        isTV && styles.tvButton,
+        hasTVPreferredFocus && isTV && styles.tvFocusedButton,
         style,
       ]}
     >
@@ -67,10 +77,12 @@ const CButton: React.FC<CButtonProps> = ({
             <Text
               style={[
                 styles.buttonText,
+                styles[`${size}Text`],
                 outline && styles.outlineText,
                 {
-                  color: textColor || (outline ? COLORS.white : COLORS.black),
+                  color: textColor || (outline ? COLORS.white : COLORS.white),
                 },
+                isTV && styles.tvButtonText,
                 textStyle,
               ]}
             >
@@ -85,14 +97,24 @@ const CButton: React.FC<CButtonProps> = ({
 
 const styles = StyleSheet.create({
   button: {
-    height: scale(40),
-    paddingHorizontal: scale(40),
-    borderRadius: scale(6),
+    borderRadius: 4,
     justifyContent: 'center',
     alignItems: 'center',
     width: '100%',
     borderColor: 'transparent',
-    borderWidth: 2,
+    borderWidth: 0,
+  },
+  smallButton: {
+    height: scale(22),
+    paddingHorizontal: scale(10),
+  },
+  mediumButton: {
+    height: scale(22),
+    paddingHorizontal: scale(12),
+  },
+  largeButton: {
+      height: scale(22),
+    paddingHorizontal: scale(15),
   },
   contentContainer: {
     flexDirection: 'row',
@@ -100,20 +122,44 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   iconContainer: {
-    marginRight: scale(10),
+    marginRight: scale(6),
   },
   buttonText: {
-    fontSize: scale(18),
     fontFamily: FONTS.montSemiBold,
     textAlign: 'center',
   },
+  smallText: {
+    fontSize: scale(18),
+  },
+  mediumText: {
+    fontSize: scale(18),
+  },
+  largeText: {
+    fontSize: scale(18),
+  },
   outlineButton: {
-    borderWidth: 2,
+    borderWidth: 1,
     borderColor: COLORS.white,
     backgroundColor: 'transparent',
   },
   outlineText: {
     color: COLORS.white,
+  },
+  tvButton: {
+    height: scale(25),
+    borderRadius: 4,
+  },
+  tvFocusedButton: {
+    transform: [{ scale: 1.05 }],
+    // borderColor: COLORS.white,
+    borderWidth: 2,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 8,
+  },
+  tvButtonText: {
+    fontSize: scale(20),
   },
 });
 
