@@ -26,9 +26,8 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   tabItem: {
-    marginRight: scale(30),
     paddingVertical: verticalScale(5),
-    paddingHorizontal: scale(5),
+    paddingHorizontal: scale(10),
   },
   selectedTab: {
     borderBottomWidth: 2,
@@ -41,7 +40,7 @@ const styles = StyleSheet.create({
   },
   tabText: {
     color: COLORS.white,
-    fontSize: scale(14),
+    fontSize: scale(11),
     fontFamily: FONTS.montRegular,
   },
   selectedTabText: {

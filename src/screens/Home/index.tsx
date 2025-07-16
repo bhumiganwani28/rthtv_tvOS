@@ -34,12 +34,15 @@ import {
 import CTrendingVideos from "../../components/CTrendingVideos";
 import BackHandlerComponent from "../../components/BackHandlerComponent";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import moment from 'moment-timezone';
 import styles from './styles';
+import ProfileSelector from "../../components/ProfileSelector";
+import { loginSuccess, logout } from "../../redux/slices/authSlice";
 
 const { width, height } = Dimensions.get('window');
 const isTV = Platform.isTV;
+
 
 // Define navigation prop type
 type HomeScreenNavigationProp = StackNavigationProp<
@@ -56,6 +59,8 @@ type HomeScreenNavigationProp = StackNavigationProp<
     Channels: undefined;
     LatestSeason: undefined;
     SearchVideos: undefined;
+    Login: undefined;
+    WhosWatching: undefined;
   },
   "LiveNow"
 >;
@@ -74,6 +79,7 @@ interface RootState {
 
 const HomeScreen: React.FC = () => {
   const navigation = useNavigation<HomeScreenNavigationProp>();
+  const dispatch = useDispatch();
   // States for API data
   const [sliderData, setSliderData] = useState<any[]>([]);
   const [trendingVideos, setTrendingVideos] = useState<any[]>([]);
@@ -86,7 +92,7 @@ const HomeScreen: React.FC = () => {
   // Tab navigation
   const [tabs, setTabs] = useState<Tab[]>([
     { id: 'home', title: 'Home' },
-    { id: 'tvshows', title: 'TV Shows' },
+    { id: 'channels', title: 'Channels' },
     { id: 'movies', title: 'Movies' },
     { id: 'featured', title: 'Featured' },
     { id: 'mylist', title: 'My List' },
@@ -101,6 +107,31 @@ const HomeScreen: React.FC = () => {
   // Use ref to prevent multiple API calls
   const dataFetchedRef = useRef(false);
   const isTablet = useSelector((state: RootState) => state.auth.isTablet);
+
+  
+  const [currentProfile, setCurrentProfile] = useState<Profile | null>(null);
+
+useEffect(() => {
+  const loadSelectedProfile = async () => {
+    const stored = await AsyncStorage.getItem('selectedProfile');
+    if (stored) {
+      setCurrentProfile(JSON.parse(stored));
+    }
+  };
+
+  loadSelectedProfile();
+}, []);
+useEffect(() => {
+  const checkProfile = async () => {
+    await new Promise(resolve => setTimeout(resolve, 200));
+    const profile = await AsyncStorage.getItem('selectedProfile');
+    if (!profile) {
+      navigation.replace('WhosWatching');
+    }
+  };
+
+  checkProfile();
+}, []);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -254,6 +285,7 @@ const HomeScreen: React.FC = () => {
   };
 
   const handleBackPress = () => {
+    // On the home screen, pressing back should exit the app rather than going back to login
     BackHandler.exitApp();
     return true;
   };
@@ -268,6 +300,30 @@ const HomeScreen: React.FC = () => {
       fetchData();
     }, [navigation])
   );
+
+  // Handle logout
+  const handleLogout = async () => {
+    try {
+      // Clear auth data from AsyncStorage
+      await AsyncStorage.removeItem('accessToken');
+      await AsyncStorage.removeItem('user');
+      
+      // Also clear profile data
+      await AsyncStorage.removeItem('selectedProfile');
+      await AsyncStorage.removeItem('userProfiles');
+      
+      // Dispatch logout action to clear Redux state
+      dispatch(logout());
+      
+      // Navigate to Login screen
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Login' }],
+      });
+    } catch (error) {
+      console.error('Error during logout:', error);
+    }
+  };
 
   // Render tab bar
   const renderTabBar = () => (
@@ -284,9 +340,13 @@ const HomeScreen: React.FC = () => {
               selectedTab === item.id && styles.selectedTab,
               focusedTab === item.id && rowFocus === 'tabs' && styles.focusedTab,
             ]}
-            onPress={() => {
+             onPress={() => {
               setSelectedTab(item.id);
               setFocusedTab(item.id);
+
+              if (item.id === 'channels') {
+                navigation.navigate('Channels'); // assuming 'Channels' is registered in your stack navigator
+              }
             }}
             hasTVPreferredFocus={item.id === 'home'}
             focusable={true}
@@ -346,8 +406,8 @@ const HomeScreen: React.FC = () => {
               imageKey="banner"
               showViewAllText
               viewAllLink="AllVideosScreen"
-              itemHeight={scale(85)}
-              itemWidth={scale(150)}
+              itemHeight={scale(70)}
+              itemWidth={scale(100)}
               onViewAllPress={() => navigation.navigate('UpcomingShows')}
               bannerImg=""
             />
@@ -362,7 +422,7 @@ const HomeScreen: React.FC = () => {
               showViewAllText
               viewAllLink="AllVideosScreen"
               itemHeight={scale(160)}
-              itemWidth={scale(110)}
+              itemWidth={scale(100)}
               onImagePress={(item) => handleTvShowPress(item)}
               onViewAllPress={() => navigation.navigate('TrendingVideos')}
               bannerImg="true"
@@ -377,8 +437,8 @@ const HomeScreen: React.FC = () => {
               imageKey="coverImage"
               showViewAllText
               viewAllLink="AllVideosScreen"
-              itemHeight={scale(85)}
-              itemWidth={scale(150)}
+              itemHeight={scale(70)}
+              itemWidth={scale(100)}
               onImagePress={(item) => handleChannelPress(item)}
               onViewAllPress={() => navigation.navigate('Channels')}
               bannerImg=""
@@ -393,8 +453,8 @@ const HomeScreen: React.FC = () => {
               imageKey="mobileBanner"
               showViewAllText
               viewAllLink="AllVideosScreen"
-              itemHeight={scale(85)}
-              itemWidth={scale(150)}
+              itemHeight={scale(70)}
+              itemWidth={scale(100)}
               onImagePress={(item) => handleTvShowPress(item)}
               onViewAllPress={() => navigation.navigate('LatestSeason')}
               bannerImg=""
@@ -413,7 +473,18 @@ const HomeScreen: React.FC = () => {
         showLogo={true}
         showBack={false}
         showSearch={true}
+        showLogout={true}
         onSearchPress={() => navigation.navigate("SearchVideos")}
+        onLogoutPress={handleLogout}
+      />
+      
+      {/* Profile Selector */}
+      <ProfileSelector 
+        onProfileChange={(profile) => {
+          console.log('Profile changed:', profile.name);
+          // You could refresh content based on profile here
+          handleRefresh();
+        }}
       />
       
       {/* Tab Navigation */}

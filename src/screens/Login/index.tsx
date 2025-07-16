@@ -105,7 +105,7 @@ const LoginTV = ({ navigation }: { navigation: any }) => {
         // Navigate to Home after delay
         setTimeout(() => {
           setModalVisible(false);
-          navigation.navigate('Home');
+          navigation.navigate('WhosWatching');
         }, 1000);
       }
     } catch (error) {
