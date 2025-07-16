@@ -1,14 +1,32 @@
 import React, { useEffect } from 'react';
-import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
+import { NavigationContainer, createNavigationContainerRef, DefaultTheme } from '@react-navigation/native';
 import { Provider, useDispatch, useSelector } from 'react-redux';
-// import Orientation from 'react-native-orientation-locker';
 import store, { RootState, AppDispatch } from './redux/store';
 import StackNavigator from './navigation/AppNavigator';
-// import DeviceInfo from 'react-native-device-info';
 import { setIsTablet } from './redux/slices/authSlice';
-import { Platform, useTVEventHandler } from 'react-native';
+import { Platform, useTVEventHandler, StatusBar, LogBox, Dimensions } from 'react-native';
+import { COLORS } from './theme/colors';
+
+// Ignore specific warnings
+LogBox.ignoreLogs([
+  'ViewPropTypes will be removed',
+  'ColorPropType will be removed',
+]);
 
 export const navigationRef = createNavigationContainerRef();
+
+// Custom theme for navigation
+const AppTheme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    background: 'transparent',
+    card: 'transparent',
+    border: 'transparent',
+    text: COLORS.white,
+    primary: COLORS.tvFocus,
+  },
+};
 
 const linking = {
   prefixes: ['rth://tv', 'https://yourdomain.com'],
@@ -20,19 +38,36 @@ const linking = {
 };
 
 const AppInner: React.FC = () => {
- useTVEventHandler((evt) => {
-    // if (evt.eventType === 'menu') {
-    // }
+  const dispatch = useDispatch();
+  
+  useEffect(() => {
+    // Check if device is a tablet or TV
+    const { width, height } = Dimensions.get('window');
+    const isTablet = Platform.isTV || (width >= 768 && height >= 768);
+    dispatch(setIsTablet(isTablet));
+  }, [dispatch]);
+
+  // Add global TV focus handling
+  useTVEventHandler((evt) => {
+    // Handle TV-specific events
+    if (evt && evt.eventType === 'menu') {
+      // Handle menu button press
+      console.log('TV menu button pressed');
+    }
   });
 
   return (
-    <NavigationContainer
-      ref={navigationRef}
-      linking={linking}
-      fallback={<></>}
-    >
-      <StackNavigator />
-    </NavigationContainer>
+    <>
+      <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
+      <NavigationContainer
+        ref={navigationRef}
+        linking={linking}
+        fallback={<></>}
+        theme={AppTheme}
+      >
+        <StackNavigator />
+      </NavigationContainer>
+    </>
   );
 };
 

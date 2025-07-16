@@ -1564,6 +1564,27 @@ PODS:
     - React-logger (= 0.77.0-0)
     - React-perflogger (= 0.77.0-0)
     - React-utils (= 0.77.0-0)
+  - RNCAsyncStorage (2.2.0):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.11.18.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - RNCMaskedView (0.1.11):
     - React
   - RNGestureHandler (2.27.1):
@@ -1839,6 +1860,7 @@ DEPENDENCIES:
   - ReactAppDependencyProvider (from `build/generated/ios`)
   - ReactCodegen (from `build/generated/ios`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
+  - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
   - "RNCMaskedView (from `../node_modules/@react-native-community/masked-view`)"
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
@@ -1984,6 +2006,8 @@ EXTERNAL SOURCES:
     :path: build/generated/ios
   ReactCommon:
     :path: "../node_modules/react-native/ReactCommon"
+  RNCAsyncStorage:
+    :path: "../node_modules/@react-native-async-storage/async-storage"
   RNCMaskedView:
     :path: "../node_modules/@react-native-community/masked-view"
   RNGestureHandler:
@@ -2064,6 +2088,7 @@ SPEC CHECKSUMS:
   ReactAppDependencyProvider: be4ae5b0ab2fcc7a26f9d1f3112b361649564fc7
   ReactCodegen: d92b8ace8f895b98583e4c8e435598f3b36d6df4
   ReactCommon: 6f652903c0e2db5459f031d2d2a65f3943cfb6c3
+  RNCAsyncStorage: 79cfba789fca205b204f3ce7948b874500129eb4
   RNCMaskedView: 4c5ee1c8667d56077246cc6d1977f77393923560
   RNGestureHandler: 3ab8e53e9d405a340ea6612d5c2ef42e6e8477e3
   RNReanimated: d5e1a007f2ce58d94585ffb3b0f63dd2af6da14c

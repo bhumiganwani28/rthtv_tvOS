@@ -17,21 +17,106 @@ import CButton from '../../components/CButton';
 import { IMAGES } from '../../theme/images';
 import styles from './styles';
 import { COLORS } from '../../theme/colors';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { validateEmail, validatePassword } from '../../utils/validation';
+import apiHelper from '../../config/apiHelper';
+import { LOGIN_URL } from '../../config/apiEndpoints';
+import CAlertModal from '../../components/CAlertModal';
+import { useDispatch } from 'react-redux';
+import { loginSuccess } from '../../redux/slices/authSlice';
 
 const { width, height } = Dimensions.get('window');
 const isTV = Platform.isTV;
 
 const LoginTV = ({ navigation }: { navigation: any }) => {
-  const [email, setEmail] = useState<string>('');
-  const [password, setPassword] = useState<string>('');
+  const [email, setEmail] = useState<string>(__DEV__ ? 'ruhi28@mailinator.com' : '');
+  const [password, setPassword] = useState<string>(__DEV__ ? 'Ruhi@2811' : '');
   const [focusedField, setFocusedField] = useState<'email' | 'password' | 'submit' | 'signup' | 'forgot'>('email');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [showKeyboard, setShowKeyboard] = useState(false);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [emailError, setEmailError] = useState<string>('');
+  const [passwordError, setPasswordError] = useState<string>('');
+  const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const [modalType, setModalType] = useState<'success' | 'error'>('success');
+  const [modalMessage, setModalMessage] = useState<string>('');
+  const dispatch = useDispatch();
 
-  const handleLogin = () => {
-    console.log('Login clicked', email, password);
-    // Navigate to Home screen
-    navigation.navigate('Home');
+  // Validate inputs before submitting
+  const validateInputs = () => {
+    let isValid = true;
+    
+    // Email validation
+    if (!email.trim()) {
+      setEmailError('Email is required');
+      isValid = false;
+    } else if (!validateEmail(email.trim())) {
+      setEmailError('Please enter a valid email');
+      isValid = false;
+    } else {
+      setEmailError('');
+    }
+    
+    // Password validation
+    if (!password.trim()) {
+      setPasswordError('Password is required');
+      isValid = false;
+    } else {
+      setPasswordError('');
+    }
+    
+    return isValid;
+  };
+
+  const handleLogin = async () => {
+    if (!validateInputs()) return;
+    
+    setLoading(true);
+    try {
+      // Get FCM token if available
+      const fcmToken = await AsyncStorage.getItem('fcmToken') || '';
+      
+      // Make API call
+      const response = await apiHelper.post(LOGIN_URL, {
+        email: email.trim(),
+        password: password.trim(),
+        fcmToken,
+      });
+      console.log('Login response:', response);
+      
+      if (response?.status === 200) {
+        // Store user data
+        await AsyncStorage.setItem('accessToken', response?.data?.token);
+        await AsyncStorage.setItem('user', JSON.stringify(response?.data?.user));
+        
+        // Dispatch login success action
+        dispatch(
+          loginSuccess({
+            accessToken: response?.data?.token,
+            user: response?.data?.user,
+          })
+        );
+        
+        // Show success message
+        setModalType('success');
+        setModalMessage('Login successful!');
+        setModalVisible(true);
+        
+        // Navigate to Home after delay
+        setTimeout(() => {
+          setModalVisible(false);
+          navigation.navigate('Home');
+        }, 1000);
+      }
+    } catch (error) {
+      console.error('Login failed:', error);
+      // Show error message
+      setModalType('error');
+      setModalMessage(error instanceof Error ? error.message : 'Login failed. Please try again.');
+      setModalVisible(true);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const togglePasswordVisibility = () => {
@@ -124,7 +209,10 @@ const LoginTV = ({ navigation }: { navigation: any }) => {
                 <CInput
                   placeholder="Enter your email"
                   value={email}
-                  onChangeText={setEmail}
+                  onChangeText={(text) => {
+                    setEmail(text.replace(/\s/g, '').toLowerCase());
+                    if (emailError) validateInputs();
+                  }}
                   onPress={() => setFocusedField('email')}
                   hasTVPreferredFocus={focusedField === 'email'}
                   focusable
@@ -132,13 +220,19 @@ const LoginTV = ({ navigation }: { navigation: any }) => {
                   textStyle={styles.inputText}
                   onKeyboardShow={() => handleKeyboardVisibility(true)}
                   onKeyboardHide={() => handleKeyboardVisibility(false)}
+                  errorShow={!!emailError}
+                  errorText={emailError}
+                  keyboardType="email-address"
                 />
                 
                 <Text style={styles.inputLabel}>Password</Text>
                 <CInput
                   placeholder="Enter your password"
                   value={password}
-                  onChangeText={setPassword}
+                  onChangeText={(text) => {
+                    setPassword(text.replace(/\s/g, ''));
+                    if (passwordError) validateInputs();
+                  }}
                   secureTextEntry={!isPasswordVisible}
                   isPasswordVisible={isPasswordVisible}
                   togglePassword={togglePasswordVisibility}
@@ -149,6 +243,8 @@ const LoginTV = ({ navigation }: { navigation: any }) => {
                   textStyle={styles.inputText}
                   onKeyboardShow={() => handleKeyboardVisibility(true)}
                   onKeyboardHide={() => handleKeyboardVisibility(false)}
+                  errorShow={!!passwordError}
+                  errorText={passwordError}
                 />
 
                 <TouchableOpacity 
@@ -168,14 +264,15 @@ const LoginTV = ({ navigation }: { navigation: any }) => {
                   hasTVPreferredFocus={focusedField === 'submit'}
                   focusable
                   backgroundColor={COLORS.primary}
-                  size="small"
+                  loading={loading}
                 />
 
                 <View style={styles.bottom}>
                   <View style={styles.signupContainer}>
                     <Text style={styles.signupText}>New to RTH.TV?</Text>
                     <TouchableOpacity 
-                      onPress={() => navigation.navigate('SignUp')}
+                      onPress={() => handleLogin()}
+                      // onPress={() => navigation.navigate('SignUp')}
                       focusable={isTV}
                       hasTVPreferredFocus={focusedField === 'signup'}
                     >
@@ -188,6 +285,15 @@ const LoginTV = ({ navigation }: { navigation: any }) => {
           </View>
         </View>
       </ImageBackground>
+      
+      {/* Alert Modal */}
+      <CAlertModal
+        visible={modalVisible}
+        btnTitle="OK"
+        type={modalType}
+        message={modalMessage}
+        onOkPress={() => setModalVisible(false)}
+      />
     </SafeAreaView>
   );
 };
