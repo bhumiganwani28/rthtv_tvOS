@@ -361,7 +361,7 @@ const CInput: React.FC<CInputProps> = ({
           >
             <FIcon
               name={isPasswordVisible ? 'eye' : 'eye-off'}
-              size={isTV ? scale(18) : scale(14)}
+              size={scale(12)}
               color={COLORS.greyText}
             />
           </TouchableOpacity>
@@ -383,34 +383,34 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 6,
+    borderRadius: 4,
     borderWidth: 1,
-    paddingHorizontal: scale(15),
-    height: scale(35),
+    paddingHorizontal: scale(10),
+    height: scale(25),
     width: '100%',
   },
   focusedContainer: {
     borderColor: COLORS.primary,
-    borderWidth: 2,
+    borderWidth: 1,
   },
   leftComponent: {
-    marginRight: scale(10),
+    marginRight: scale(8),
   },
   textInput: {
     flex: 1,
     color: COLORS.white,
-    fontSize: isTV ? scale(18) : scale(14),
+    fontSize: scale(11),
     fontFamily: FONTS.montRegular,
     padding: 0,
     height: '100%',
   },
   eyeIcon: {
-    padding: scale(6),
+    padding: scale(4),
   },
   errorText: {
     color: COLORS.red,
-    fontSize: isTV ? scale(14) : scale(12),
-    marginTop: scale(4),
+    fontSize: scale(10),
+    marginTop: scale(2),
     fontFamily: FONTS.montRegular,
   },
   // TV Keyboard styles
@@ -421,32 +421,32 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   keyboardContainer: {
-    width: width * 0.6,
-    backgroundColor: COLORS.darkGrey,
-    borderRadius: 10,
-    padding: scale(20),
+    width: width * 0.5,
+    backgroundColor: '#333333',
+    borderRadius: 8,
+    padding: scale(15),
     alignItems: 'center',
   },
   inputPreview: {
     width: '100%',
     backgroundColor: 'rgba(0,0,0,0.3)',
-    padding: scale(12),
-    borderRadius: 6,
-    marginBottom: scale(20),
+    padding: scale(8),
+    borderRadius: 4,
+    marginBottom: scale(15),
   },
   inputPreviewText: {
     color: COLORS.white,
-    fontSize: scale(18),
+    fontSize: scale(12),
     fontFamily: FONTS.montRegular,
   },
   keyboardTabsContainer: {
     flexDirection: 'row',
     width: '100%',
-    marginBottom: scale(15),
+    marginBottom: scale(10),
   },
   keyboardTab: {
     flex: 1,
-    padding: scale(10),
+    padding: scale(8),
     alignItems: 'center',
     borderBottomWidth: 2,
     borderBottomColor: 'transparent',
@@ -456,63 +456,63 @@ const styles = StyleSheet.create({
   },
   keyboardTabText: {
     color: COLORS.white,
-    fontSize: scale(16),
+    fontSize: scale(12),
     fontFamily: FONTS.montSemiBold,
   },
   keyboardContent: {
     width: '100%',
-    marginBottom: scale(15),
+    marginBottom: scale(10),
   },
   keyboardScrollContainer: {
     width: '100%',
   },
   keyboardSectionTitle: {
     color: COLORS.white,
-    fontSize: scale(16),
+    fontSize: scale(12),
     fontFamily: FONTS.montSemiBold,
     alignSelf: 'flex-start',
-    marginBottom: scale(8),
-    marginTop: scale(8),
+    marginBottom: scale(5),
+    marginTop: scale(5),
   },
   keyRow: {
     flexDirection: 'row',
     justifyContent: 'center',
     flexWrap: 'wrap',
-    marginBottom: scale(8),
+    marginBottom: scale(5),
     width: '100%',
   },
   key: {
-    width: scale(40),
-    height: scale(40),
+    width: scale(30),
+    height: scale(30),
     backgroundColor: 'rgba(255,255,255,0.1)',
-    borderRadius: 6,
+    borderRadius: 4,
     justifyContent: 'center',
     alignItems: 'center',
-    margin: scale(4),
+    margin: scale(2),
   },
   keyText: {
     color: COLORS.white,
-    fontSize: scale(16),
+    fontSize: scale(12),
     fontFamily: FONTS.montRegular,
   },
   specialKeysRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: '100%',
-    marginTop: scale(15),
+    marginTop: scale(10),
   },
   specialKey: {
-    height: scale(40),
-    paddingHorizontal: scale(15),
+    height: scale(30),
+    paddingHorizontal: scale(10),
     backgroundColor: 'rgba(255,255,255,0.1)',
-    borderRadius: 6,
+    borderRadius: 4,
     justifyContent: 'center',
     alignItems: 'center',
-    margin: scale(4),
+    margin: scale(2),
   },
   doneKey: {
     backgroundColor: COLORS.primary,
-    paddingHorizontal: scale(20),
+    paddingHorizontal: scale(15),
   },
   doneKeyText: {
     fontFamily: FONTS.montSemiBold,

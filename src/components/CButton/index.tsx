@@ -105,15 +105,15 @@ const styles = StyleSheet.create({
     borderWidth: 0,
   },
   smallButton: {
-    height: scale(22),
+    height: scale(20),
     paddingHorizontal: scale(10),
   },
   mediumButton: {
-    height: scale(22),
+    height: scale(36),
     paddingHorizontal: scale(12),
   },
   largeButton: {
-      height: scale(22),
+    height: scale(40),
     paddingHorizontal: scale(15),
   },
   contentContainer: {
@@ -129,13 +129,13 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   smallText: {
-    fontSize: scale(18),
+    fontSize: scale(12),
   },
   mediumText: {
-    fontSize: scale(18),
+    fontSize: scale(14),
   },
   largeText: {
-    fontSize: scale(18),
+    fontSize: scale(16),
   },
   outlineButton: {
     borderWidth: 1,
@@ -146,20 +146,20 @@ const styles = StyleSheet.create({
     color: COLORS.white,
   },
   tvButton: {
-    height: scale(25),
+ height: scale(25),
     borderRadius: 4,
   },
   tvFocusedButton: {
-    transform: [{ scale: 1.05 }],
-    // borderColor: COLORS.white,
-    borderWidth: 2,
+    transform: [{ scale: 1.02 }],
+    borderColor: COLORS.white,
+    borderWidth: 1,
     shadowColor: COLORS.primary,
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.5,
-    shadowRadius: 8,
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
   },
   tvButtonText: {
-    fontSize: scale(20),
+    fontSize: scale(12),
   },
 });
 

@@ -1,12 +1,17 @@
-import { StyleSheet, Platform } from 'react-native';
+import { StyleSheet, Platform, Dimensions } from 'react-native';
 import { scale, verticalScale } from 'react-native-size-matters';
 import { COLORS } from '../../theme/colors';
 import { FONTS } from '../../utils/fonts';
+
+const { width, height } = Dimensions.get('window');
+const isTV = Platform.isTV;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.black,
+    width: '100%',
+    height: '100%',
   },
   background: {
     flex: 1,
@@ -15,62 +20,115 @@ const styles = StyleSheet.create({
   },
   overlay: {
     flex: 1,
-
+    width: '100%',
+    height: '100%',
     backgroundColor: 'rgba(0,0,0,0.6)',
     justifyContent: 'center',
     alignItems: 'center',
   },
+  contentContainer: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  logoContainer: {
+    position: 'absolute',
+    top: scale(25),
+    left: scale(25),
+    zIndex: 10,
+  },
+  logo: {
+    width: scale(70),
+    height: scale(25),
+  },
   loginBox: {
-    width: scale(500),
+    width:scale(300),
     padding: scale(20),
-    backgroundColor: 'rgba(0,0,0,0.85)',
-        borderWidth:0.8,
-        borderColor:COLORS.greyBorder,
-    // borderRadius: scale(8),
+    backgroundColor: 'rgba(0,0,0,0.75)',
+    borderWidth: 0,
+    alignItems: 'center',
+    borderRadius: 4,
+  },
+  formContainer: {
+    width: '100%',
     alignItems: 'center',
   },
   heading: {
-    fontSize: scale(20),
+    fontSize: scale(16),
     color: COLORS.white,
     fontFamily: FONTS.montSemiBold,
-    marginBottom: verticalScale(20),
+    marginBottom: verticalScale(15),
+    textAlign: 'center',
+  },
+  inputLabel: {
+    fontSize: scale(12),
+    color: COLORS.white,
+    fontFamily: FONTS.montRegular,
+    marginBottom: scale(5),
+    alignSelf: 'flex-start',
   },
   input: {
     width: '100%',
-    backgroundColor: COLORS.darkGrey,
-    borderRadius: scale(4),
+    backgroundColor: 'rgba(51, 51, 51, 0.8)',
+    borderRadius: 4,
     paddingHorizontal: scale(10),
-    paddingVertical: verticalScale(10),
-    marginBottom: verticalScale(12),
+    height: scale(25),
+    borderWidth: 0,
+    marginBottom: scale(5),
   },
   inputText: {
     color: COLORS.white,
     fontSize: scale(11),
     fontFamily: FONTS.montRegular,
   },
+  forgotContainer: {
+    alignSelf: 'flex-end',
+    marginBottom: scale(15),
+  },
+  forgotText: {
+    color: COLORS.greyText,
+    fontSize: scale(10),
+    fontFamily: FONTS.montRegular,
+  },
   signInButton: {
     width: '100%',
     backgroundColor: COLORS.primary,
-    paddingVertical: verticalScale(12),
-    borderRadius: scale(4),
-    marginTop: verticalScale(12),
+    paddingVertical: verticalScale(2),
+    borderRadius: 4,
     alignItems: 'center',
+     height: scale(25),
   },
   signInButtonText: {
     color: COLORS.white,
-    fontSize: scale(13),
+    fontSize: scale(10),
     fontFamily: FONTS.montSemiBold,
   },
   bottom: {
-    marginTop: verticalScale(20),
+    marginTop: verticalScale(15),
+    width: '100%',
+    alignItems: 'center',
   },
-  newText: {
+  signupContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  signupText: {
+    color: COLORS.greyText,
+    fontSize: scale(10),
+    fontFamily: FONTS.montRegular,
+  },
+  signupLink: {
     color: COLORS.white,
-    fontSize: scale(11),
-  },
-  signUpText: {
-    color: COLORS.primary,
-    fontWeight: 'bold',
+    fontSize: scale(10),
+    fontFamily: FONTS.montSemiBold,
+    marginLeft: scale(5),
     textDecorationLine: 'underline',
   },
 });
