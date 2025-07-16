@@ -23,9 +23,11 @@ interface HeaderProps {
   showLogo?: boolean;
   showSearch?: boolean;
   showProfile?: boolean;
+  showLogout?: boolean;
   onBackPress?: () => void;
   onSearchPress?: () => void;
   onProfilePress?: () => void;
+  onLogoutPress?: () => void;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -34,9 +36,11 @@ const Header: React.FC<HeaderProps> = ({
   showLogo = true,
   showSearch = false,
   showProfile = false,
+  showLogout = false,
   onBackPress,
   onSearchPress,
   onProfilePress,
+  onLogoutPress,
 }) => {
   return (
     <View style={styles.container}>
@@ -57,9 +61,11 @@ const Header: React.FC<HeaderProps> = ({
             resizeMode="contain"
           />
         )}
-        {title && <Text style={styles.title}>{title}</Text>}
+          {/* {title &&  <View style={styles.titleView} >
+                 <Text style={styles.title}>{title}</Text>
+      </View>} */}
       </View>
-      
+  
       <View style={styles.rightContainer}>
         {showSearch && (
           <TouchableOpacity
@@ -83,6 +89,15 @@ const Header: React.FC<HeaderProps> = ({
             />
           </TouchableOpacity>
         )}
+        {showLogout && (
+          <TouchableOpacity
+            onPress={onLogoutPress}
+            style={styles.iconButton}
+            focusable
+          >
+            <Icon name="logout" size={isTV ? scale(16) : scale(18)} color={COLORS.white} />
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
@@ -99,8 +114,11 @@ const styles = StyleSheet.create({
     width: '100%',
     zIndex: 10,
   },
+  titleView:{
+marginTop: scale(15),
+  },
   leftContainer: {
-    flexDirection: 'row',
+    // flexDirection: 'row',
     alignItems: 'center',
   },
   rightContainer: {
@@ -112,14 +130,14 @@ const styles = StyleSheet.create({
     padding: scale(4),
   },
   logo: {
-    height: isTV ? scale(22) : scale(20),
-    width: isTV ? scale(70) : scale(65),
+    height: scale(22) ,
+    width: scale(70),
   },
   title: {
     color: COLORS.white,
-    fontSize: isTV ? scale(14) : scale(13),
+    fontSize:scale(13),
     fontFamily: FONTS.montSemiBold,
-    marginLeft: scale(8),
+    // marginLeft: scale(8),
   },
   iconButton: {
     marginLeft: scale(15),
