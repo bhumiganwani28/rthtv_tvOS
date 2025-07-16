@@ -10,6 +10,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.black,
+     paddingTop: scale(10),
+  },
+  profileSelectorContainer: {
+    position: 'absolute',
+    top: scale(40),
+    right: scale(50),
+    zIndex: 1000,
   },
   loaderContainer: {
     flex: 1,
@@ -19,11 +26,11 @@ const styles = StyleSheet.create({
   scrollViewStyle: {
     flex: 1,
   },
-  tabBarContainer: {
-    paddingVertical: verticalScale(10),
-    paddingHorizontal: scale(20),
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    zIndex: 10,
+  tabBarContainer:{
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  paddingHorizontal: scale(16),
   },
   tabItem: {
     paddingVertical: verticalScale(5),

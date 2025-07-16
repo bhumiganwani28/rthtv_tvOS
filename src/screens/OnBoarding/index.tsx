@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Image,
@@ -10,6 +10,7 @@ import {
   ImageBackground,
   SafeAreaView,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { IMAGES } from '../../theme/images';
 import { COLORS } from '../../theme/colors';
 import styles from './styles';
@@ -26,6 +27,31 @@ interface OnBoardingProps {
 const OnBoarding: React.FC<OnBoardingProps> = ({ navigation }) => {
   const [focusedButton, setFocusedButton] = useState<'signup' | 'signin'>('signup');
 
+  // Mark that the user has seen onboarding
+  useEffect(() => {
+    const markOnboardingSeen = async () => {
+      try {
+        await AsyncStorage.setItem('hasSeenOnboarding', 'true');
+      } catch (error) {
+        console.error('Error saving onboarding flag:', error);
+      }
+    };
+    
+    markOnboardingSeen();
+  }, []);
+
+  // Handle navigation to signup
+  const handleSignUp = async () => {
+    await AsyncStorage.setItem('hasSeenOnboarding', 'true');
+    navigation.navigate('SignUp');
+  };
+
+  // Handle navigation to signin
+  const handleSignIn = async () => {
+    await AsyncStorage.setItem('hasSeenOnboarding', 'true');
+    navigation.navigate('Login');
+  };
+
   // Handle TV remote events
   useTVEventHandler((evt) => {
     if (evt && evt.eventType) {
@@ -33,9 +59,9 @@ const OnBoarding: React.FC<OnBoardingProps> = ({ navigation }) => {
         setFocusedButton(focusedButton === 'signup' ? 'signin' : 'signup');
       } else if (evt.eventType === 'select') {
         if (focusedButton === 'signup') {
-          navigation.navigate('SignUp');
+          handleSignUp();
         } else if (focusedButton === 'signin') {
-          navigation.navigate('Login');
+          handleSignIn();
         }
       }
     }
@@ -68,7 +94,7 @@ const OnBoarding: React.FC<OnBoardingProps> = ({ navigation }) => {
             <View style={styles.buttonGroup}>
               <CButton
                 text="Sign Up"
-                onPress={() => navigation.navigate('SignUp')}
+                onPress={handleSignUp}
                 style={styles.signupButton}
                 textStyle={styles.buttonText}
                 hasTVPreferredFocus={focusedButton === 'signup'}
@@ -78,7 +104,7 @@ const OnBoarding: React.FC<OnBoardingProps> = ({ navigation }) => {
 
               <CButton
                 text="Sign In"
-                onPress={() => navigation.navigate('Login')}
+                onPress={handleSignIn}
                 style={styles.signinButton}
                 textStyle={styles.buttonText}
                 hasTVPreferredFocus={focusedButton === 'signin'}

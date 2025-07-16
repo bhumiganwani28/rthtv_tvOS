@@ -39,6 +39,7 @@ import moment from 'moment-timezone';
 import styles from './styles';
 import ProfileSelector from "../../components/ProfileSelector";
 import { loginSuccess, logout } from "../../redux/slices/authSlice";
+import TabMenuBar from "../../components/TabMenuBar";
 
 const { width, height } = Dimensions.get('window');
 const isTV = Platform.isTV;
@@ -89,14 +90,14 @@ const HomeScreen: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   
-  // Tab navigation
-  const [tabs, setTabs] = useState<Tab[]>([
-    { id: 'home', title: 'Home' },
-    { id: 'channels', title: 'Channels' },
-    { id: 'movies', title: 'Movies' },
-    { id: 'featured', title: 'Featured' },
-    { id: 'mylist', title: 'My List' },
-  ]);
+    // 🟦 Tab menu state
+    const [tabs] = useState<Tab[]>([
+      { id: 'home', title: 'Home' },
+      { id: 'channels', title: 'Channels' },
+      { id: 'movies', title: 'Movies' },
+      { id: 'featured', title: 'Featured' },
+      { id: 'mylist', title: 'My List' },
+    ]);
   const [selectedTab, setSelectedTab] = useState<string>('home');
   const [focusedTab, setFocusedTab] = useState<string>('home');
   
@@ -109,18 +110,18 @@ const HomeScreen: React.FC = () => {
   const isTablet = useSelector((state: RootState) => state.auth.isTablet);
 
   
-  const [currentProfile, setCurrentProfile] = useState<Profile | null>(null);
+  // const [currentProfile, setCurrentProfile] = useState<Profile | null>(null);
 
-useEffect(() => {
-  const loadSelectedProfile = async () => {
-    const stored = await AsyncStorage.getItem('selectedProfile');
-    if (stored) {
-      setCurrentProfile(JSON.parse(stored));
-    }
-  };
+// useEffect(() => {
+//   const loadSelectedProfile = async () => {
+//     const stored = await AsyncStorage.getItem('selectedProfile');
+//     if (stored) {
+//       setCurrentProfile(JSON.parse(stored));
+//     }
+//   };
 
-  loadSelectedProfile();
-}, []);
+//   loadSelectedProfile();
+// }, []);
 useEffect(() => {
   const checkProfile = async () => {
     await new Promise(resolve => setTimeout(resolve, 200));
@@ -139,6 +140,31 @@ useEffect(() => {
     }, [])
   );
 
+    // ✅ Tab Navigation Handler
+  const handleTabPress = (tabId: string) => {
+    setSelectedTab(tabId);
+    setFocusedTab(tabId);
+
+    switch (tabId) {
+      case 'home':
+        navigation.navigate('Home');
+        break;
+      case 'channels':
+         navigation.navigate('Channels'); 
+        break;
+      case 'movies':
+        // navigation.navigate('Channels'); // Change as per your route names
+        break;
+      case 'featured':
+        // navigation.navigate('LatestSeason');
+        break;
+      case 'mylist':
+        // navigation.navigate('AllVideosScreen');
+        break;
+      default:
+        break;
+    }
+  };
   // TV remote navigation handler
   useTVEventHandler((evt) => {
     if (evt && evt.eventType) {
@@ -325,47 +351,6 @@ useEffect(() => {
     }
   };
 
-  // Render tab bar
-  const renderTabBar = () => (
-    <View style={styles.tabBarContainer}>
-      <FlatList
-        horizontal
-        data={tabs}
-        showsHorizontalScrollIndicator={false}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={[
-              styles.tabItem,
-              selectedTab === item.id && styles.selectedTab,
-              focusedTab === item.id && rowFocus === 'tabs' && styles.focusedTab,
-            ]}
-             onPress={() => {
-              setSelectedTab(item.id);
-              setFocusedTab(item.id);
-
-              if (item.id === 'channels') {
-                navigation.navigate('Channels'); // assuming 'Channels' is registered in your stack navigator
-              }
-            }}
-            hasTVPreferredFocus={item.id === 'home'}
-            focusable={true}
-          >
-            <Text
-              style={[
-                styles.tabText,
-                selectedTab === item.id && styles.selectedTabText,
-                focusedTab === item.id && rowFocus === 'tabs' && styles.focusedTabText,
-              ]}
-            >
-              {item.title}
-            </Text>
-          </TouchableOpacity>
-        )}
-      />
-    </View>
-  );
-
   // Content based on selected tab
   const renderContent = () => {
     // For this example, all tabs show the same content but in a real app,
@@ -406,7 +391,7 @@ useEffect(() => {
               imageKey="banner"
               showViewAllText
               viewAllLink="AllVideosScreen"
-              itemHeight={scale(70)}
+              itemHeight={scale(60)}
               itemWidth={scale(100)}
               onViewAllPress={() => navigation.navigate('UpcomingShows')}
               bannerImg=""
@@ -437,7 +422,7 @@ useEffect(() => {
               imageKey="coverImage"
               showViewAllText
               viewAllLink="AllVideosScreen"
-              itemHeight={scale(70)}
+              itemHeight={scale(60)}
               itemWidth={scale(100)}
               onImagePress={(item) => handleChannelPress(item)}
               onViewAllPress={() => navigation.navigate('Channels')}
@@ -453,7 +438,7 @@ useEffect(() => {
               imageKey="mobileBanner"
               showViewAllText
               viewAllLink="AllVideosScreen"
-              itemHeight={scale(70)}
+              itemHeight={scale(60)}
               itemWidth={scale(100)}
               onImagePress={(item) => handleTvShowPress(item)}
               onViewAllPress={() => navigation.navigate('LatestSeason')}
@@ -477,18 +462,26 @@ useEffect(() => {
         onSearchPress={() => navigation.navigate("SearchVideos")}
         onLogoutPress={handleLogout}
       />
-      
-      {/* Profile Selector */}
-      <ProfileSelector 
+
+         {/* ✅ Tab Bar at the top */}
+      <View style={styles.tabBarContainer}>
+        <TabMenuBar
+          tabs={tabs}
+          selectedTab={selectedTab}
+          focusedTab={focusedTab}
+          rowFocus={rowFocus}
+        onTabPress={handleTabPress}
+        onTabFocus={setFocusedTab}
+      />
+      <ProfileSelector
         onProfileChange={(profile) => {
           console.log('Profile changed:', profile.name);
           // You could refresh content based on profile here
           handleRefresh();
         }}
       />
+      </View>
       
-      {/* Tab Navigation */}
-      {renderTabBar()}
       
       {loading ? (
         <View style={styles.loaderContainer}>

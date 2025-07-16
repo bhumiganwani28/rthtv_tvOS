@@ -169,100 +169,100 @@ const SignUpScreen = ({ navigation }: { navigation: any }) => {
               </View>
             )}
             
-            <View style={styles.formWrapper}>
-              <Text style={styles.title}>Create Your Account</Text>
-              
+              <View style={styles.formWrapper}>
+                <Text style={styles.title}>Create Your Account</Text>
+                
               <View style={styles.formContainer}>
-                <CInput
-                  placeholder="First Name"
-                  value={firstName}
+                  <CInput
+                    placeholder="First Name"
+                    value={firstName}
                   onChangeText={(text) => {
                     setFirstName(text);
                     if (firstNameError) validateInputs();
                   }}
-                  onPress={() => setFocusedField('firstName')}
-                  hasTVPreferredFocus={focusedField === 'firstName'}
-                  focusable
-                  containerStyle={styles.input}
-                  textStyle={styles.inputText}
+                    onPress={() => setFocusedField('firstName')}
+                    hasTVPreferredFocus={focusedField === 'firstName'}
+                    focusable
+                    containerStyle={styles.input}
+                    textStyle={styles.inputText}
                   errorShow={!!firstNameError}
                   errorText={firstNameError}
-                />
-                
-                <CInput
-                  placeholder="Last Name"
-                  value={lastName}
+                  />
+                  
+                  <CInput
+                    placeholder="Last Name"
+                    value={lastName}
                   onChangeText={(text) => {
                     setLastName(text);
                     if (lastNameError) validateInputs();
                   }}
-                  onPress={() => setFocusedField('lastName')}
-                  hasTVPreferredFocus={focusedField === 'lastName'}
-                  focusable
-                  containerStyle={styles.input}
-                  textStyle={styles.inputText}
+                    onPress={() => setFocusedField('lastName')}
+                    hasTVPreferredFocus={focusedField === 'lastName'}
+                    focusable
+                    containerStyle={styles.input}
+                    textStyle={styles.inputText}
                   errorShow={!!lastNameError}
                   errorText={lastNameError}
-                />
-                
-                <CInput
-                  placeholder="Email"
-                  value={email}
+                  />
+                  
+                  <CInput
+                    placeholder="Email"
+                    value={email}
                   onChangeText={(text) => {
                     setEmail(text.replace(/\s/g, '').toLowerCase());
                     if (emailError) validateInputs();
                   }}
-                  keyboardType="email-address"
-                  onPress={() => setFocusedField('email')}
-                  hasTVPreferredFocus={focusedField === 'email'}
-                  focusable
-                  containerStyle={styles.input}
-                  textStyle={styles.inputText}
+                    keyboardType="email-address"
+                    onPress={() => setFocusedField('email')}
+                    hasTVPreferredFocus={focusedField === 'email'}
+                    focusable
+                    containerStyle={styles.input}
+                    textStyle={styles.inputText}
                   errorShow={!!emailError}
                   errorText={emailError}
-                />
-                
-                <CInput
-                  placeholder="Password"
-                  value={password}
+                  />
+                  
+                  <CInput
+                    placeholder="Password"
+                    value={password}
                   onChangeText={(text) => {
                     setPassword(text.replace(/\s/g, ''));
                     if (passwordError) validateInputs();
                   }}
-                  secureTextEntry={!isPasswordVisible}
-                  isPasswordVisible={isPasswordVisible}
-                  togglePassword={togglePasswordVisibility}
-                  onPress={() => setFocusedField('password')}
-                  hasTVPreferredFocus={focusedField === 'password'}
-                  focusable
-                  containerStyle={styles.input}
-                  textStyle={styles.inputText}
+                    secureTextEntry={!isPasswordVisible}
+                    isPasswordVisible={isPasswordVisible}
+                    togglePassword={togglePasswordVisibility}
+                    onPress={() => setFocusedField('password')}
+                    hasTVPreferredFocus={focusedField === 'password'}
+                    focusable
+                    containerStyle={styles.input}
+                    textStyle={styles.inputText}
                   errorShow={!!passwordError}
                   errorText={passwordError}
-                />
-                
-                <CButton
-                  text="Sign Up"
-                  onPress={handleSignUp}
-                  style={styles.button}
-                  textStyle={styles.buttonText}
-                  hasTVPreferredFocus={focusedField === 'signup'}
-                  focusable
+                  />
+                  
+                  <CButton
+                    text="Sign Up"
+                    onPress={handleSignUp}
+                    style={styles.button}
+                    textStyle={styles.buttonText}
+                    hasTVPreferredFocus={focusedField === 'signup'}
+                    focusable
                   backgroundColor={COLORS.primary}
                   loading={loading}
-                />
-                
-                <View style={styles.footerContainer}>
+                  />
+                  
+                  <View style={styles.footerContainer}>
                   <TouchableOpacity 
-                    onPress={() => navigation.navigate('Login')}
+                      onPress={() => navigation.navigate('Login')}
                     style={{ flexDirection: 'row' }}
-                    hasTVPreferredFocus={focusedField === 'login'}
-                    focusable
+                      hasTVPreferredFocus={focusedField === 'login'}
+                      focusable
                   >
                     <Text style={styles.footerText}>Already a member?</Text>
                     <Text style={styles.linkText}> Sign In</Text>
                   </TouchableOpacity>
-                </View>
+                  </View>
               </View>
             </View>
           </View>

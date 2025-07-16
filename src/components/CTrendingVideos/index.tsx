@@ -134,15 +134,10 @@ export default function CTrendingVideos(props: TrendingVideoProps) {
         <Text
           numberOfLines={1}
           adjustsFontSizeToFit={true}
-          style={[styles.title, customStyles.title,{fontSize: isTablet ? scale(8) : scale(14),
-                lineHeight:isTablet ? scale(15) : scale(22),
-          }]}>{title}</Text>
+          style={[styles.title, customStyles.title]}>{title}</Text>
           {viewAllLink && (
           <TouchableOpacity onPress={handleViewAllPress} style={styles.link}>
-            {showViewAllText && <Text style={[styles.viewAllText,{fontSize: isTablet ? scale(6) : scale(11),
-                  lineHeight:isTablet ? scale(15) : scale(22),
-
-            }]}>{viewText}</Text>}
+            {showViewAllText && <Text style={[styles.viewAllText]}>{viewText}</Text>}
             <FFIcon name="chevron-right" size={20} color={COLORS.white} />
           </TouchableOpacity>
         )}
@@ -227,6 +222,8 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: FONTS.montSemiBold,
     color: COLORS.white,
+    fontSize:scale(9),
+    lineHeight:scale(15),
   },
   link: {
     flexDirection: "row",
@@ -236,6 +233,8 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.montSemiBold,
     color: COLORS.white,
     marginRight: scale(4),
+    fontSize:scale(8),
+     lineHeight:scale(15),
   },
  itemContainer: {
   justifyContent: 'flex-start',

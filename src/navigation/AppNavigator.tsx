@@ -7,14 +7,16 @@ import OnBoarding from '../screens/OnBoarding';
 import LoginTV from '../screens/Login';
 import SignUpScreen from '../screens/Signup';
 import Home from '../screens/Home';
+import WhosWatchingScreen from '../screens/WhosWatching';
 import { COLORS } from '../theme/colors';
+import Channels from '../screens/Channels';
 
 const Stack = createNativeStackNavigator();
 
 const AppNavigator = () => {
   return (
     <Stack.Navigator 
-      initialRouteName="Splash" 
+      initialRouteName="OnBoarding" 
       screenOptions={{ 
         headerShown: false,
         animation: Platform.isTV ? 'fade' : 'default',
@@ -30,7 +32,9 @@ const AppNavigator = () => {
       <Stack.Screen name="OnBoarding" component={OnBoarding} />
       <Stack.Screen name="Login" component={LoginTV} /> 
       <Stack.Screen name="SignUp" component={SignUpScreen} />
+      <Stack.Screen name="WhosWatching" component={WhosWatchingScreen} />
       <Stack.Screen name="Home" component={Home} />
+      <Stack.Screen name="Channels" component={Channels} />
     </Stack.Navigator>
   );
 };
