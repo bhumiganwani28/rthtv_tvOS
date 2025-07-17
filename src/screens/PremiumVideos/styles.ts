@@ -1,0 +1,86 @@
+import { StyleSheet, Platform } from 'react-native';
+import { scale, verticalScale } from 'react-native-size-matters';
+import { COLORS } from '../../theme/colors';
+import { FONTS } from '../../utils/fonts';
+
+const isTV = Platform.isTV;
+
+export default StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.black,
+    paddingTop: verticalScale(16),
+  },
+ tabBarContainer:{
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  paddingHorizontal: scale(16),
+  },
+    contentContainer:{
+    paddingTop: scale(10),
+  },
+  contentTitleContainer:{
+    paddingVertical: scale(5),
+  },
+    contentTitle:{
+    color: COLORS.white,
+    fontSize:scale(13),
+    fontFamily: FONTS.montSemiBold,
+    marginLeft: scale(20),
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  noDataContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  noDataText: {
+    color: COLORS.white,
+    fontFamily: FONTS.montSemiBold,
+    fontSize: isTV ? scale(18) : scale(16),
+    textAlign: 'center',
+  },
+
+  itemContainer: {
+    borderRadius: scale(10),
+    overflow: 'hidden',
+    borderWidth: scale(2),
+    borderColor: 'transparent',
+    backgroundColor: COLORS.black,
+  },
+
+  focusedItemContainer: {
+    borderColor: COLORS.white,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+  },
+
+  image: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+    borderRadius: scale(10),
+    backgroundColor: COLORS.black,
+  },
+
+  subscriptionContainer: {
+    position: 'absolute',
+    top: scale(6),
+    right: scale(6),
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    borderRadius: scale(4),
+    padding: scale(5),
+    zIndex: 10,
+  },
+
+  subscriptionIcon: {
+    color: COLORS.yellow,
+  },
+
+});

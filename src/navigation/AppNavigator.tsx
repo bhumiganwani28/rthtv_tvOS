@@ -10,13 +10,14 @@ import Home from '../screens/Home';
 import WhosWatchingScreen from '../screens/WhosWatching';
 import { COLORS } from '../theme/colors';
 import Channels from '../screens/Channels';
+import PremiumVideos from '../screens/PremiumVideos';
 
 const Stack = createNativeStackNavigator();
 
 const AppNavigator = () => {
   return (
     <Stack.Navigator 
-      initialRouteName="OnBoarding" 
+      initialRouteName="Home" 
       screenOptions={{ 
         headerShown: false,
         animation: Platform.isTV ? 'fade' : 'default',
@@ -35,6 +36,7 @@ const AppNavigator = () => {
       <Stack.Screen name="WhosWatching" component={WhosWatchingScreen} />
       <Stack.Screen name="Home" component={Home} />
       <Stack.Screen name="Channels" component={Channels} />
+      <Stack.Screen name="PremiumVideos" component={PremiumVideos} />
     </Stack.Navigator>
   );
 };

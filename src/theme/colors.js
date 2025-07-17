@@ -19,4 +19,6 @@ export const COLORS = {
   green: '#4BAE4F',
   lightGrey: "#1E1E1E",
   yellow:'#F2BE75',
+  focusItem: '##232323',
+  itemContainer: '#1a1a1a',
 };

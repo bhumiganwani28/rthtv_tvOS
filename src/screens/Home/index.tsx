@@ -94,7 +94,7 @@ const HomeScreen: React.FC = () => {
     const [tabs] = useState<Tab[]>([
       { id: 'home', title: 'Home' },
       { id: 'channels', title: 'Channels' },
-      { id: 'movies', title: 'Movies' },
+      { id: 'premium', title: 'Premium' },
       { id: 'featured', title: 'Featured' },
       { id: 'mylist', title: 'My List' },
     ]);
@@ -110,18 +110,6 @@ const HomeScreen: React.FC = () => {
   const isTablet = useSelector((state: RootState) => state.auth.isTablet);
 
   
-  // const [currentProfile, setCurrentProfile] = useState<Profile | null>(null);
-
-// useEffect(() => {
-//   const loadSelectedProfile = async () => {
-//     const stored = await AsyncStorage.getItem('selectedProfile');
-//     if (stored) {
-//       setCurrentProfile(JSON.parse(stored));
-//     }
-//   };
-
-//   loadSelectedProfile();
-// }, []);
 useEffect(() => {
   const checkProfile = async () => {
     await new Promise(resolve => setTimeout(resolve, 200));
@@ -152,8 +140,8 @@ useEffect(() => {
       case 'channels':
          navigation.navigate('Channels'); 
         break;
-      case 'movies':
-        // navigation.navigate('Channels'); // Change as per your route names
+      case 'premium':
+        navigation.navigate('PremiumVideos'); // Change as per your route names
         break;
       case 'featured':
         // navigation.navigate('LatestSeason');
