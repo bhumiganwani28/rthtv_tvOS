@@ -1,7 +1,9 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
+import { scale, verticalScale } from 'react-native-size-matters';
 import { COLORS } from '../../theme/colors';
 import { FONTS } from '../../utils/fonts';
-import { scale } from 'react-native-size-matters';
+
+const isTV = Platform.isTV;
 
 export default StyleSheet.create({
   container: {
@@ -9,20 +11,20 @@ export default StyleSheet.create({
     backgroundColor: COLORS.black,
     paddingTop: scale(10),
   },
-  tabBarContainer:{
+ tabBarContainer:{
   flexDirection: 'row',
   justifyContent: 'space-between',
   alignItems: 'center',
   paddingHorizontal: scale(16),
   },
-  contentContainer:{
-     flex:1,
+    contentContainer:{
+      flex:1,
     paddingTop: scale(10),
   },
   contentTitleContainer:{
     paddingVertical: scale(5),
   },
-  contentTitle:{
+    contentTitle:{
     color: COLORS.white,
     fontSize:scale(12),
     fontFamily: FONTS.montSemiBold,
@@ -33,11 +35,13 @@ export default StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+
   noDataContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
+
   noDataText: {
     color: COLORS.white,
     fontFamily: FONTS.montSemiBold,
@@ -51,28 +55,33 @@ export default StyleSheet.create({
     borderColor: 'transparent',
     backgroundColor: COLORS.itemContainer,
   },
+
   focusedItemContainer: {
     borderColor: COLORS.white,
-    backgroundColor: COLORS.focusItem,
-    elevation: 8,
+    backgroundColor: 'rgba(255,255,255,0.12)',
   },
+
   image: {
     width: '100%',
     height: '100%',
-    // borderRadius: scale(10),
     resizeMode: 'cover',
-    backgroundColor: COLORS.black, // fallback to hide loading gaps
+    // borderRadius: scale(10),
+    backgroundColor: COLORS.black,
   },
+
   subscriptionContainer: {
     position: 'absolute',
-    top: scale(6),
-    right: scale(6),
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    borderRadius: scale(4),
-    padding: scale(5),
-    zIndex: 10,
+    padding: scale(3),
+    borderRadius: scale(3),
+    top: scale(5),
+    right: scale(5),
+    backgroundColor: 'rgba(0, 0, 0, 0.7)', // Background for better visibility
+    alignItems: 'center',
+    justifyContent: 'center',
   },
+
   subscriptionIcon: {
     color: COLORS.yellow,
   },
+
 });

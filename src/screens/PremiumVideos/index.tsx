@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   Dimensions,
   Platform,
+  useTVEventHandler,
 } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -41,39 +42,127 @@ type Tab = {
 const PremiumVideos: React.FC = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
-  const premiumVideosData = useSelector((state: any) => state.premiumVideos?.data);
+  const premiumVideosData = useSelector((state: any) => state.premiumVideos?.data ?? []);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [subscriptionData, setSubscriptionData] = useState<any>(null);
-
-const [rowFocus, setRowFocus] = useState<'tabs' | 'content'>('tabs');
-const [focusedTab, setFocusedTab] = useState<string>('premium');
-const [selectedTab, setSelectedTab] = useState<string>('premium');
-const [focusedIndex, setFocusedIndex] = useState<number>(0);
   const dataFetchedRef = useRef(false);
 
-  // Grid Config
+  // Grid config
   const NUM_COLUMNS = 5;
   const screenWidth = Dimensions.get('window').width;
-  const ITEM_SPACING = scale(24);
+  const ITEM_SPACING = scale(26);
   const totalSpacing = ITEM_SPACING * (NUM_COLUMNS + 1);
   const cardWidth = (screenWidth - totalSpacing) / NUM_COLUMNS;
-  const cardHeight = cardWidth * 1.35;
+  const cardHeight = cardWidth * 1.25;
+
   const itemMargin = ITEM_SPACING / 2;
 
-  // Tab Bar Config
-  const [tabs] = useState<Tab[]>([
+  // Tabs
+  const tabs: Tab[] = [
     { id: 'home', title: 'Home' },
     { id: 'channels', title: 'Channels' },
     { id: 'premium', title: 'Premium' },
     { id: 'featured', title: 'Featured' },
     { id: 'mylist', title: 'My List' },
-  ]);
+  ];
 
+  // Focus states
+  const [rowFocus, setRowFocus] = useState<'tabs' | 'content'>('tabs');
+  const [focusedTab, setFocusedTab] = useState<string>('premium');
+  const [selectedTab, setSelectedTab] = useState<string>('premium');
+  const [focusedIndex, setFocusedIndex] = useState<number>(0);
 
-  // Navigation
+  // FlatList ref for scrolling
+  const flatListRef = useRef<FlatList>(null);
+
+  // Scroll FlatList when focusedIndex changes
+  useEffect(() => {
+    if (rowFocus === 'content' && flatListRef.current && premiumVideosData.length > 0) {
+      try {
+        flatListRef.current.scrollToIndex({
+          animated: true,
+          index: focusedIndex,
+          viewPosition: 0.5, // Center the item vertically when scrolling
+        });
+      } catch (e) {
+        // Ignore error if index may not be rendered yet
+      }
+    }
+  }, [focusedIndex, rowFocus, premiumVideosData]);
+
+  // TV remote event handler
+  useTVEventHandler((evt) => {
+    if (!evt?.eventType) return;
+
+    switch (evt.eventType) {
+      case 'down':
+        if (rowFocus === 'tabs') {
+          setRowFocus('content');
+          setFocusedIndex(0);
+        } else if (rowFocus === 'content') {
+          const nextIndex = focusedIndex + NUM_COLUMNS;
+          if (nextIndex < premiumVideosData.length) {
+            setFocusedIndex(nextIndex);
+          }
+        }
+        break;
+
+      case 'up':
+        if (rowFocus === 'content') {
+          const prevIndex = focusedIndex - NUM_COLUMNS;
+          if (prevIndex >= 0) {
+            setFocusedIndex(prevIndex);
+          } else {
+            setRowFocus('tabs');
+          }
+        }
+        break;
+
+      case 'right':
+        if (rowFocus === 'tabs') {
+          const currentIndex = tabs.findIndex((t) => t.id === focusedTab);
+          if (currentIndex < tabs.length - 1) {
+            setFocusedTab(tabs[currentIndex + 1].id);
+          }
+        } else if (rowFocus === 'content') {
+          const next = focusedIndex + 1;
+          if ((next % NUM_COLUMNS !== 0) && next < premiumVideosData.length) {
+            setFocusedIndex(next);
+          }
+        }
+        break;
+
+      case 'left':
+        if (rowFocus === 'tabs') {
+          const currentIndex = tabs.findIndex((t) => t.id === focusedTab);
+          if (currentIndex > 0) {
+            setFocusedTab(tabs[currentIndex - 1].id);
+          }
+        } else if (rowFocus === 'content') {
+          const prev = focusedIndex - 1;
+          if (focusedIndex % NUM_COLUMNS !== 0 && prev >= 0) {
+            setFocusedIndex(prev);
+          }
+        }
+        break;
+
+      case 'select':
+        if (rowFocus === 'tabs') {
+          setSelectedTab(focusedTab);
+          handleTabPress(focusedTab);
+        } else if (rowFocus === 'content') {
+          const item = premiumVideosData[focusedIndex];
+          if (item) {
+            handleTvShowPress(item);
+          }
+        }
+        break;
+    }
+  });
+
   const handleTabPress = (tabId: string) => {
     setSelectedTab(tabId);
     setFocusedTab(tabId);
@@ -148,13 +237,17 @@ const [focusedIndex, setFocusedIndex] = useState<number>(0);
   }, [page, totalPages, loading]);
 
   const renderItem = ({ item, index }: { item: any; index: number }) => {
-    const isFocused = index === focusedIndex;
+    const isFocused = rowFocus === 'content' && index === focusedIndex;
+
     return (
       <TouchableOpacity
         focusable={Platform.isTV}
         onPress={() => handleTvShowPress(item)}
-        onFocus={() => setFocusedIndex(index)}
-        hasTVPreferredFocus={index === 0}
+        onFocus={() => {
+          setFocusedIndex(index);
+          setRowFocus('content');
+        }}
+        hasTVPreferredFocus={rowFocus === 'content' && index === focusedIndex}
         style={{
           width: cardWidth,
           height: cardHeight,
@@ -175,7 +268,7 @@ const [focusedIndex, setFocusedIndex] = useState<number>(0);
           />
           {!subscriptionData && (
             <View style={styles.subscriptionContainer}>
-              <FIcon name="crown" size={scale(16)} style={styles.subscriptionIcon} />
+              <FIcon name="crown" size={scale(8)} style={styles.subscriptionIcon} />
             </View>
           )}
         </View>
@@ -194,6 +287,8 @@ const [focusedIndex, setFocusedIndex] = useState<number>(0);
         showLogout
         onSearchPress={() => navigation.navigate('SearchVideos')}
       />
+        
+        {/* ✅ Tab Bar at the top */}
       <View style={styles.tabBarContainer}>
         <TabMenuBar
           tabs={tabs}
@@ -207,20 +302,22 @@ const [focusedIndex, setFocusedIndex] = useState<number>(0);
       </View>
 
       {/* Heading */}
-      <View style={styles.contentTitleContainer}>
-        <Text style={styles.contentTitle}>Premium Videos</Text>
-      </View>
+<View style={styles.contentContainer}>
+  <View style={styles.contentTitleContainer}>
+    <Text style={styles.contentTitle}>Premium Videos</Text>
+  </View>
 
       {loading && page === 1 ? (
         <View style={styles.loaderContainer}>
           <ActivityIndicator size="large" color={COLORS.primary} />
         </View>
-      ) : premiumVideosData?.length === 0 ? (
+      ) : premiumVideosData.length === 0 ? (
         <View style={styles.noDataContainer}>
           <Text style={styles.noDataText}>No Premium Videos Found</Text>
         </View>
       ) : (
         <FlatList
+          ref={flatListRef}
           data={premiumVideosData}
           renderItem={renderItem}
           keyExtractor={(item, index) => `${item.id}-${index}`}
@@ -228,11 +325,16 @@ const [focusedIndex, setFocusedIndex] = useState<number>(0);
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{
             paddingHorizontal: itemMargin,
-             paddingBottom: scale(40),
+            paddingBottom: scale(60),
             alignSelf: 'center',
           }}
           onEndReached={loadMore}
           onEndReachedThreshold={0.7}
+          getItemLayout={(_, index) => ({
+            length: cardHeight + itemMargin,
+            offset: (cardHeight + itemMargin) * index,
+            index,
+          })}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
@@ -247,6 +349,7 @@ const [focusedIndex, setFocusedIndex] = useState<number>(0);
           }
         />
       )}
+      </View>
     </View>
   );
 };

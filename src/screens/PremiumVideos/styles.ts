@@ -9,7 +9,7 @@ export default StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.black,
-    paddingTop: verticalScale(16),
+    paddingTop: scale(10),
   },
  tabBarContainer:{
   flexDirection: 'row',
@@ -18,6 +18,7 @@ export default StyleSheet.create({
   paddingHorizontal: scale(16),
   },
     contentContainer:{
+      flex:1,
     paddingTop: scale(10),
   },
   contentTitleContainer:{
@@ -25,7 +26,7 @@ export default StyleSheet.create({
   },
     contentTitle:{
     color: COLORS.white,
-    fontSize:scale(13),
+    fontSize:scale(12),
     fontFamily: FONTS.montSemiBold,
     marginLeft: scale(20),
   },
@@ -44,16 +45,15 @@ export default StyleSheet.create({
   noDataText: {
     color: COLORS.white,
     fontFamily: FONTS.montSemiBold,
-    fontSize: isTV ? scale(18) : scale(16),
+    fontSize: scale(12),
     textAlign: 'center',
   },
-
   itemContainer: {
-    borderRadius: scale(10),
+    //  borderRadius: scale(10),
     overflow: 'hidden',
-    borderWidth: scale(2),
+    borderWidth: 3,
     borderColor: 'transparent',
-    backgroundColor: COLORS.black,
+    backgroundColor: COLORS.itemContainer,
   },
 
   focusedItemContainer: {
@@ -65,7 +65,7 @@ export default StyleSheet.create({
     width: '100%',
     height: '100%',
     resizeMode: 'cover',
-    borderRadius: scale(10),
+    // borderRadius: scale(10),
     backgroundColor: COLORS.black,
   },
 

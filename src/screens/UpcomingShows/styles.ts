@@ -65,11 +65,11 @@ export default StyleSheet.create({
   },
   subscriptionContainer: {
     position: 'absolute',
-    top: scale(6),
-    right: scale(6),
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    borderRadius: scale(4),
-    padding: scale(5),
+    top: 12,
+    right: 12,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    borderRadius: 8,
+    padding: 4,
     zIndex: 10,
   },
   subscriptionIcon: {

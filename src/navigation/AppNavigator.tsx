@@ -11,6 +11,9 @@ import WhosWatchingScreen from '../screens/WhosWatching';
 import { COLORS } from '../theme/colors';
 import Channels from '../screens/Channels';
 import PremiumVideos from '../screens/PremiumVideos';
+import UpcomingShows from '../screens/UpcomingShows';
+import TrendingVideos from '../screens/TrendingVideos';
+import LatestSeason from '../screens/LatestSeason';
 
 const Stack = createNativeStackNavigator();
 
@@ -37,6 +40,9 @@ const AppNavigator = () => {
       <Stack.Screen name="Home" component={Home} />
       <Stack.Screen name="Channels" component={Channels} />
       <Stack.Screen name="PremiumVideos" component={PremiumVideos} />
+      <Stack.Screen name="UpcomingShows" component={UpcomingShows} />
+      <Stack.Screen name="TrendingVideos" component={TrendingVideos} />
+      <Stack.Screen name="LatestSeason" component={LatestSeason} />
     </Stack.Navigator>
   );
 };

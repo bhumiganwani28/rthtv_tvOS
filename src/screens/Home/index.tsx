@@ -372,6 +372,7 @@ useEffect(() => {
         {/* Content Rows */}
         <View style={styles.contentContainer}>
           {/* Upcoming Shows */}
+          <View style={styles.topSpaceShowsContainer}>
           {upcomingShows && upcomingShows.length > 0 && (
             <CTrendingVideos
               trendingVideosData={upcomingShows}
@@ -385,8 +386,11 @@ useEffect(() => {
               bannerImg=""
             />
           )}
+            </View>
+
 
           {/* Featured Seasons */}
+          <View style={styles.topSpaceShowsContainer}>
           {featuredSeasons && featuredSeasons.length > 0 && (
             <CTrendingVideos
               trendingVideosData={featuredSeasons}
@@ -394,15 +398,17 @@ useEffect(() => {
               imageKey="mobilePosterImage"
               showViewAllText
               viewAllLink="AllVideosScreen"
-              itemHeight={scale(160)}
-              itemWidth={scale(100)}
+              itemHeight={scale(100)}
+              itemWidth={scale(80)}
               onImagePress={(item) => handleTvShowPress(item)}
               onViewAllPress={() => navigation.navigate('TrendingVideos')}
               bannerImg="true"
             />
           )}
+          </View>
 
           {/* Channels */}
+        <View style={styles.topSpaceShowsContainer}>
           {channelsVideos && channelsVideos.length > 0 && (
             <CTrendingVideos
               trendingVideosData={channelsVideos}
@@ -410,15 +416,17 @@ useEffect(() => {
               imageKey="coverImage"
               showViewAllText
               viewAllLink="AllVideosScreen"
-              itemHeight={scale(60)}
+                itemHeight={scale(60)}
               itemWidth={scale(100)}
               onImagePress={(item) => handleChannelPress(item)}
               onViewAllPress={() => navigation.navigate('Channels')}
               bannerImg=""
             />
           )}
+          </View>
 
           {/* Latest Seasons */}
+           <View style={styles.topSpaceShowsContainer}>
           {trendingVideos && trendingVideos.length > 0 && (
             <CTrendingVideos
               trendingVideosData={trendingVideos}
@@ -426,13 +434,14 @@ useEffect(() => {
               imageKey="mobileBanner"
               showViewAllText
               viewAllLink="AllVideosScreen"
-              itemHeight={scale(60)}
+                 itemHeight={scale(60)}
               itemWidth={scale(100)}
               onImagePress={(item) => handleTvShowPress(item)}
               onViewAllPress={() => navigation.navigate('LatestSeason')}
               bannerImg=""
             />
           )}
+          </View>
         </View>
       </ScrollView>
     );

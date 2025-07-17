@@ -61,6 +61,9 @@ const styles = StyleSheet.create({
     width: '100%',
     backgroundColor: 'rgba(0, 0, 0, 0.4)',
   },
+  topSpaceShowsContainer:{
+    marginBottom: verticalScale(10),
+  },
   contentContainer: {
     paddingTop: verticalScale(10),
   },
