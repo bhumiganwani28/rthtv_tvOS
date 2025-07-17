@@ -43,24 +43,21 @@ const SignUpScreen = ({ navigation }: { navigation: any }) => {
   // Validate inputs before submitting
   const validateInputs = () => {
     let isValid = true;
-    
-    // First name validation
+
     if (!firstName.trim()) {
       setFirstNameError('First name is required');
       isValid = false;
     } else {
       setFirstNameError('');
     }
-    
-    // Last name validation
+
     if (!lastName.trim()) {
       setLastNameError('Last name is required');
       isValid = false;
     } else {
       setLastNameError('');
     }
-    
-    // Email validation
+
     if (!email.trim()) {
       setEmailError('Email is required');
       isValid = false;
@@ -70,30 +67,29 @@ const SignUpScreen = ({ navigation }: { navigation: any }) => {
     } else {
       setEmailError('');
     }
-    
-    // Password validation
+
     if (!password.trim()) {
       setPasswordError('Password is required');
       isValid = false;
     } else if (!validatePassword(password.trim())) {
-      setPasswordError('Password must be at least 6 characters with at least one lowercase, one uppercase, one number, and one special character');
+      setPasswordError(
+        'Password must be at least 6 characters with at least one lowercase, one uppercase, one number, and one special character',
+      );
       isValid = false;
     } else {
       setPasswordError('');
     }
-    
+
     return isValid;
   };
 
   const handleSignUp = async () => {
     if (!validateInputs()) return;
-    
+
     setLoading(true);
     try {
-      // Get FCM token if available
-      const fcmToken = await AsyncStorage.getItem('fcmToken') || '';
-      
-      // Make API call
+      const fcmToken = (await AsyncStorage.getItem('fcmToken')) || '';
+
       const response = await apiHelper.post(SIGNUP_URL, {
         firstName: firstName.trim(),
         lastName: lastName.trim(),
@@ -101,14 +97,11 @@ const SignUpScreen = ({ navigation }: { navigation: any }) => {
         password: password.trim(),
         fcmToken,
       });
-      
+
       if (response?.status === 200 || response?.status === 201) {
-        // Show success message
         setModalType('success');
         setModalMessage('Account created successfully! Please login.');
         setModalVisible(true);
-        
-        // Navigate to Login after delay
         setTimeout(() => {
           setModalVisible(false);
           navigation.navigate('Login');
@@ -116,7 +109,6 @@ const SignUpScreen = ({ navigation }: { navigation: any }) => {
       }
     } catch (error) {
       console.error('Signup failed:', error);
-      // Show error message
       setModalType('error');
       setModalMessage(error instanceof Error ? error.message : 'Signup failed. Please try again.');
       setModalVisible(true);
@@ -152,83 +144,89 @@ const SignUpScreen = ({ navigation }: { navigation: any }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ImageBackground 
-        source={IMAGES.appBg} 
-        style={styles.background} 
-        resizeMode="cover"
-      >
+      <ImageBackground source={IMAGES.splash} style={styles.background} resizeMode="cover">
         <View style={styles.overlay}>
           <View style={styles.contentContainer}>
             {Platform.isTV && (
               <View style={styles.logoContainer}>
-                <Image 
-                  source={IMAGES.logo} 
-                  style={styles.logo}
-                  resizeMode="contain"
-                />
+                <Image source={IMAGES.logo} style={styles.logo} resizeMode="contain" />
               </View>
             )}
-            
-              <View style={styles.formWrapper}>
-                <Text style={styles.title}>Create Your Account</Text>
-                
+
+            <View style={styles.formWrapper}>
+              <Text style={styles.title}>Create Your Account</Text>
+
               <View style={styles.formContainer}>
-                  <CInput
-                    placeholder="First Name"
-                    value={firstName}
-                  onChangeText={(text) => {
-                    setFirstName(text);
-                    if (firstNameError) validateInputs();
-                  }}
-                    onPress={() => setFocusedField('firstName')}
-                    hasTVPreferredFocus={focusedField === 'firstName'}
-                    focusable
-                    containerStyle={styles.input}
-                    textStyle={styles.inputText}
-                  errorShow={!!firstNameError}
-                  errorText={firstNameError}
-                  />
-                  
-                  <CInput
-                    placeholder="Last Name"
-                    value={lastName}
-                  onChangeText={(text) => {
-                    setLastName(text);
-                    if (lastNameError) validateInputs();
-                  }}
-                    onPress={() => setFocusedField('lastName')}
-                    hasTVPreferredFocus={focusedField === 'lastName'}
-                    focusable
-                    containerStyle={styles.input}
-                    textStyle={styles.inputText}
-                  errorShow={!!lastNameError}
-                  errorText={lastNameError}
-                  />
-                  
+                {/* First and Last Name row */}
+                <View style={styles.row}>
+                  <View style={styles.halfInputWrapper}>
+                    <Text style={styles.inputLabel}>First Name</Text>
+                    <CInput
+                      placeholder="First Name"
+                      value={firstName}
+                      onChangeText={(text) => {
+                        setFirstName(text);
+                        if (firstNameError) validateInputs();
+                      }}
+                      onPress={() => setFocusedField('firstName')}
+                      hasTVPreferredFocus={focusedField === 'firstName'}
+                      focusable
+                      containerStyle={styles.input}
+                      errorShow={!!firstNameError}
+                      errorText={firstNameError}
+                    />
+                  </View>
+
+                  <View style={styles.halfInputWrapper}>
+                    <Text style={styles.inputLabel}>Last Name</Text>
+                    <CInput
+                      placeholder="Last Name"
+                      value={lastName}
+                      onChangeText={(text) => {
+                        setLastName(text);
+                        if (lastNameError) validateInputs();
+                      }}
+                      onPress={() => setFocusedField('lastName')}
+                      hasTVPreferredFocus={focusedField === 'lastName'}
+                      focusable
+                      containerStyle={styles.input}
+                      errorShow={!!lastNameError}
+                      errorText={lastNameError}
+                    />
+                  </View>
+                </View>
+
+                {/* Email */}
+
+                <View style={styles.singleInputWrapper}>
+                  <Text style={styles.inputLabel}>Email</Text>
                   <CInput
                     placeholder="Email"
                     value={email}
-                  onChangeText={(text) => {
-                    setEmail(text.replace(/\s/g, '').toLowerCase());
-                    if (emailError) validateInputs();
-                  }}
+                    onChangeText={(text) => {
+                      setEmail(text.replace(/\s/g, '').toLowerCase());
+                      if (emailError) validateInputs();
+                    }}
                     keyboardType="email-address"
                     onPress={() => setFocusedField('email')}
                     hasTVPreferredFocus={focusedField === 'email'}
                     focusable
                     containerStyle={styles.input}
-                    textStyle={styles.inputText}
-                  errorShow={!!emailError}
-                  errorText={emailError}
+                    errorShow={!!emailError}
+                    errorText={emailError}
                   />
-                  
+                </View>
+
+                {/* Password */}
+                <View style={styles.singleInputWrapper}>
+                  <Text style={styles.inputLabel}>Password</Text>
                   <CInput
                     placeholder="Password"
                     value={password}
-                  onChangeText={(text) => {
-                    setPassword(text.replace(/\s/g, ''));
-                    if (passwordError) validateInputs();
-                  }}
+                    onChangeText={(text) => {
+                      setPassword(text.replace(/\s/g, ''));
+                      if (passwordError) validateInputs();
+                    }}
                     secureTextEntry={!isPasswordVisible}
                     isPasswordVisible={isPasswordVisible}
                     togglePassword={togglePasswordVisibility}
@@ -236,47 +234,41 @@ const SignUpScreen = ({ navigation }: { navigation: any }) => {
                     hasTVPreferredFocus={focusedField === 'password'}
                     focusable
                     containerStyle={styles.input}
-                    textStyle={styles.inputText}
-                  errorShow={!!passwordError}
-                  errorText={passwordError}
+                    errorShow={!!passwordError}
+                    errorText={passwordError}
                   />
-                  
-                  <CButton
-                    text="Sign Up"
-                    onPress={handleSignUp}
-                    style={styles.button}
-                    textStyle={styles.buttonText}
-                    hasTVPreferredFocus={focusedField === 'signup'}
-                    focusable
+                </View>
+
+                <CButton
+                  text="Sign Up"
+                  onPress={() => handleSignUp()}
+                  style={styles.button}
+                  textStyle={styles.buttonText}
+                  hasTVPreferredFocus={focusedField === 'submit'}
+                  focusable
                   backgroundColor={COLORS.primary}
                   loading={loading}
-                  />
-                  
-                  <View style={styles.footerContainer}>
-                  <TouchableOpacity 
-                      onPress={() => navigation.navigate('Login')}
+                />
+
+                <View style={styles.footerContainer}>
+                  <TouchableOpacity
+                    onPress={() => navigation.navigate('Login')}
                     style={{ flexDirection: 'row' }}
-                      hasTVPreferredFocus={focusedField === 'login'}
-                      focusable
+                    hasTVPreferredFocus={focusedField === 'login'}
+                    focusable
                   >
                     <Text style={styles.footerText}>Already a member?</Text>
                     <Text style={styles.linkText}> Sign In</Text>
                   </TouchableOpacity>
-                  </View>
+                </View>
               </View>
             </View>
           </View>
         </View>
       </ImageBackground>
-      
+
       {/* Alert Modal */}
-      <CAlertModal
-        visible={modalVisible}
-        btnTitle="OK"
-        type={modalType}
-        message={modalMessage}
-        onOkPress={() => setModalVisible(false)}
-      />
+      <CAlertModal visible={modalVisible} btnTitle="OK" type={modalType} message={modalMessage} onOkPress={() => setModalVisible(false)} />
     </SafeAreaView>
   );
 };

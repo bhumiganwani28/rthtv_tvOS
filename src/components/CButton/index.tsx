@@ -146,7 +146,7 @@ const styles = StyleSheet.create({
     color: COLORS.white,
   },
   tvButton: {
- height: scale(25),
+ height: scale(22),
     borderRadius: 4,
   },
   tvFocusedButton: {

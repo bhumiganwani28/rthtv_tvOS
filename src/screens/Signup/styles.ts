@@ -23,7 +23,7 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
     height: '100%',
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    // backgroundColor: 'rgba(0,0,0,0.6)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
     paddingVertical: scale(8),
   },
   formWrapper: {
-    width: scale(300),
+    width: scale(280),
     backgroundColor: 'rgba(0,0,0,0.75)',
     padding: scale(20),
     borderWidth: 0,
@@ -66,33 +66,48 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    fontSize: scale(16),
+    fontSize: scale(14),
     fontFamily: FONTS.montSemiBold,
     color: COLORS.white,
     marginBottom: verticalScale(15),
     textAlign: 'center',
   },
+
+  // Row container for first and last name side by side
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    // marginBottom: verticalScale(10),
+  },
+  halfInputWrapper: {
+    width: '48%',
+    marginBottom:scale(10),
+  },
+  singleInputWrapper: {
+    width: '100%',
+    marginBottom:scale(12),
+  },
+
+  // Label above inputs
+  inputLabel: {
+    fontSize: scale(10),
+    color: COLORS.white,
+    fontFamily: FONTS.montRegular,
+    marginBottom: scale(5),
+    alignSelf: 'flex-start',
+  },
   input: {
     width: '100%',
-    backgroundColor: 'rgba(51, 51, 51, 0.8)',
-    borderRadius: 4,
-    paddingHorizontal: scale(10),
-    height: scale(25),
-    borderWidth: 0,
-    marginBottom: scale(5),
   },
-  inputText: {
-    color: COLORS.white,
-    fontSize: scale(11),
-    fontFamily: FONTS.montRegular,
-  },
+
   button: {
     width: '100%',
     backgroundColor: COLORS.primary,
     borderRadius: 4,
-    marginTop: verticalScale(12),
+    marginTop: verticalScale(15),
     alignItems: 'center',
-    height: scale(25),
+    height: scale(22), // increased height for button
     justifyContent: 'center',
     paddingVertical: verticalScale(2),
   },

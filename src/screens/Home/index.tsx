@@ -380,8 +380,8 @@ useEffect(() => {
               imageKey="banner"
               showViewAllText
               viewAllLink="AllVideosScreen"
-              itemHeight={scale(60)}
-              itemWidth={scale(100)}
+              itemHeight={scale(70)}
+              itemWidth={scale(120)}
               onViewAllPress={() => navigation.navigate('UpcomingShows')}
               bannerImg=""
             />
@@ -398,8 +398,8 @@ useEffect(() => {
               imageKey="mobilePosterImage"
               showViewAllText
               viewAllLink="AllVideosScreen"
-              itemHeight={scale(100)}
-              itemWidth={scale(80)}
+              itemHeight={scale(120)}
+              itemWidth={scale(90)}
               onImagePress={(item) => handleTvShowPress(item)}
               onViewAllPress={() => navigation.navigate('TrendingVideos')}
               bannerImg="true"
@@ -416,8 +416,8 @@ useEffect(() => {
               imageKey="coverImage"
               showViewAllText
               viewAllLink="AllVideosScreen"
-                itemHeight={scale(60)}
-              itemWidth={scale(100)}
+               itemHeight={scale(70)}
+              itemWidth={scale(120)}
               onImagePress={(item) => handleChannelPress(item)}
               onViewAllPress={() => navigation.navigate('Channels')}
               bannerImg=""
@@ -434,8 +434,8 @@ useEffect(() => {
               imageKey="mobileBanner"
               showViewAllText
               viewAllLink="AllVideosScreen"
-                 itemHeight={scale(60)}
-              itemWidth={scale(100)}
+                itemHeight={scale(70)}
+              itemWidth={scale(120)}
               onImagePress={(item) => handleTvShowPress(item)}
               onViewAllPress={() => navigation.navigate('LatestSeason')}
               bannerImg=""

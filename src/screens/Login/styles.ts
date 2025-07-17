@@ -22,7 +22,7 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
     height: '100%',
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    // backgroundColor: 'rgba(0,0,0,0.6)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
     height: scale(25),
   },
   loginBox: {
-    width:scale(300),
+    width:scale(280),
     padding: scale(20),
     backgroundColor: 'rgba(0,0,0,0.75)',
     borderWidth: 0,
@@ -66,8 +66,11 @@ const styles = StyleSheet.create({
     marginBottom: verticalScale(15),
     textAlign: 'center',
   },
+  inputView:{
+marginBottom:scale(12),
+  },
   inputLabel: {
-    fontSize: scale(12),
+    fontSize: scale(10),
     color: COLORS.white,
     fontFamily: FONTS.montRegular,
     marginBottom: scale(5),
@@ -75,18 +78,13 @@ const styles = StyleSheet.create({
   },
   input: {
     width: '100%',
-    backgroundColor: 'rgba(51, 51, 51, 0.8)',
-    borderRadius: 4,
-    paddingHorizontal: scale(10),
-    height: scale(25),
-    borderWidth: 0,
-    marginBottom: scale(5),
+
   },
-  inputText: {
-    color: COLORS.white,
-    fontSize: scale(11),
-    fontFamily: FONTS.montRegular,
-  },
+  // inputText: {
+  //   color: COLORS.white,
+  //   fontSize: scale(11),
+  //   fontFamily: FONTS.montRegular,
+  // },
   forgotContainer: {
     alignSelf: 'flex-end',
     marginBottom: scale(15),
@@ -102,7 +100,7 @@ const styles = StyleSheet.create({
     paddingVertical: verticalScale(2),
     borderRadius: 4,
     alignItems: 'center',
-     height: scale(25),
+  
   },
   signInButtonText: {
     color: COLORS.white,
