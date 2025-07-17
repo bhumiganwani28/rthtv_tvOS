@@ -48,11 +48,11 @@ export default StyleSheet.create({
     overflow: 'hidden',
     borderWidth: 3,
     borderColor: 'transparent',
-    backgroundColor: '#1a1a1a',
+    backgroundColor: COLORS.itemContainer,
   },
   focusedItemContainer: {
     borderColor: COLORS.white,
-    backgroundColor: '#232323',
+    backgroundColor: COLORS.focusItem,
     elevation: 8,
   },
   image: {
@@ -60,7 +60,7 @@ export default StyleSheet.create({
     height: '100%',
     borderRadius: 12,
     resizeMode: 'cover',
-    backgroundColor: '#222',
+    backgroundColor: COLORS.black, // fallback to hide loading gaps
   },
   subscriptionContainer: {
     position: 'absolute',
