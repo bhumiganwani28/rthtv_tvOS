@@ -5,67 +5,47 @@ import {
   Animated,
   Dimensions,
   StatusBar,
-  Platform,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useDispatch } from 'react-redux';
 import { loginSuccess } from '../../redux/slices/authSlice';
+
 import styles from './styles';
 import { IMAGES } from '../../theme/images';
 
 interface SplashProps {
   navigation: {
     replace: (screen: string) => void;
+    navigate: (screen: string, params?: any) => void;
   };
 }
 
 const Splash: React.FC<SplashProps> = ({ navigation }) => {
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const dispatch = useDispatch();
   const { width } = Dimensions.get('window');
   const logoSize = width * 0.5;
-  const dispatch = useDispatch();
 
-  // Check authentication status and navigate accordingly
-  const checkAuthStatus = async () => {
+  const checkLoginStatus = async () => {
     try {
-      const accessToken = await AsyncStorage.getItem('accessToken');
-      const userData = await AsyncStorage.getItem('user');
-      
-      if (accessToken && userData) {
-        // User is logged in, dispatch login success
-        dispatch(
-          loginSuccess({
-            accessToken,
-            user: JSON.parse(userData),
-          })
-        );
-        
-        // Check if the user has selected a profile before
-        const selectedProfile = await AsyncStorage.getItem('selectedProfile');
-        
-        // if (selectedProfile) {
-        //   // User has selected a profile before, go directly to Home
-        //   navigation.replace('Home');
-        // } else {
-          // User is logged in but hasn't selected a profile, go to WhosWatching
-          navigation.replace('WhosWatching');
-        // }
+      const token = await AsyncStorage.getItem('accessToken');
+      const user = await AsyncStorage.getItem('user');
+      const isFirstTime = await AsyncStorage.getItem('isFirstTime');
+
+      if (token && user) {
+        dispatch(loginSuccess({ accessToken: token, user: JSON.parse(user) }));
+        navigation.replace('WhosWatching');
       } else {
-        // User is not logged in, show onboarding
-        const hasSeenOnboarding = await AsyncStorage.getItem('hasSeenOnboarding');
-        
-        if (hasSeenOnboarding === 'true') {
-          // User has seen onboarding before, go directly to login
-          navigation.replace('Login');
+        if (isFirstTime === null) {
+          await AsyncStorage.setItem('isFirstTime', 'false');
+          navigation.replace('Intro'); // Show Intro on first launch
         } else {
-          // First time user, show onboarding
-          navigation.replace('OnBoarding');
+          navigation.replace('OnBoarding'); // Show onboarding for subsequent launches
         }
       }
     } catch (error) {
-      console.error('Error checking auth status:', error);
-      // Default to onboarding in case of error
-      navigation.replace('OnBoarding');
+      console.error('Error during login check:', error);
+      navigation.replace('Intro'); // Default fallback
     }
   };
 
@@ -75,17 +55,19 @@ const Splash: React.FC<SplashProps> = ({ navigation }) => {
       duration: 1000,
       useNativeDriver: true,
     }).start(() => {
-      setTimeout(() => {
-        checkAuthStatus();
-      }, 1500);
+      setTimeout(checkLoginStatus, 1500);
     });
-  }, []);
+  }, [fadeAnim, dispatch, navigation]);
 
   return (
     <>
       <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
       <View style={styles.container}>
-        <Image source={IMAGES.splash} style={styles.backgroundImage} />
+        <Image
+          source={IMAGES.splash}
+          style={styles.backgroundImage}
+          resizeMode="cover"
+        />
         <Animated.View style={{ ...styles.logoContainer, opacity: fadeAnim }}>
           <Image
             source={IMAGES.logo}

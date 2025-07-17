@@ -14,13 +14,14 @@ import PremiumVideos from '../screens/PremiumVideos';
 import UpcomingShows from '../screens/UpcomingShows';
 import TrendingVideos from '../screens/TrendingVideos';
 import LatestSeason from '../screens/LatestSeason';
+import IntroSlider from '../screens/IntroScreen';
 
 const Stack = createNativeStackNavigator();
 
 const AppNavigator = () => {
   return (
     <Stack.Navigator 
-      initialRouteName="Home" 
+      initialRouteName="Splash" 
       screenOptions={{ 
         headerShown: false,
         animation: Platform.isTV ? 'fade' : 'default',
@@ -43,6 +44,8 @@ const AppNavigator = () => {
       <Stack.Screen name="UpcomingShows" component={UpcomingShows} />
       <Stack.Screen name="TrendingVideos" component={TrendingVideos} />
       <Stack.Screen name="LatestSeason" component={LatestSeason} />
+      <Stack.Screen name="Intro" component={IntroSlider} />
+
     </Stack.Navigator>
   );
 };
