@@ -51,7 +51,7 @@ type HomeScreenNavigationProp = StackNavigationProp<
     SeriesDetails: undefined;
     StreamDetails: undefined;
     VideoPlayerScreen: {videoUri: string | undefined; streamName: string};
-    ChannelDetails: {channelId: string};
+    ChannelDetailsTV: {channelId: string};
     VODScreen: {seasonID: string};
     AllVideosScreen: undefined;
     TrendingVideos: undefined;
@@ -208,7 +208,7 @@ const HomeScreen: React.FC = () => {
 
   // channels
   const handleChannelPress = (item: any) => {
-    navigation.navigate('ChannelDetails', {channelId: item?.id});
+    navigation.navigate('ChannelDetailsTV', {channelId: item?.id});
   };
 
   // navigate to particluar image press in VOD screen with seasonID

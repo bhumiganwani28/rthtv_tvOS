@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   heading: {
-    fontSize: scale(16),
+    fontSize: scale(15),
     color: COLORS.white,
     fontFamily: FONTS.montSemiBold,
     marginBottom: verticalScale(10),

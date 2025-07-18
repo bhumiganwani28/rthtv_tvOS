@@ -81,7 +81,7 @@ const ProfileMenuTV: React.FC<ProfileMenuTVProps> = ({ onProfileChange }) => {
         // navigation.navigate('SubscriptionScreen');
         break;
       case 'changePassword':
-        // navigation.navigate('ChangePassword');
+        navigation.navigate('ChangePasswordTV');
         break;
       case 'signout':
         await AsyncStorage.removeItem('selectedProfile'); // clear profile

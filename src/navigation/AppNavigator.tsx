@@ -16,6 +16,8 @@ import TrendingVideos from '../screens/TrendingVideos';
 import LatestSeason from '../screens/LatestSeason';
 import IntroSlider from '../screens/IntroScreen';
 import ForgotPasswordTV from '../screens/ForgotPasswordTV';
+import ChangePasswordTV from '../screens/ChangePasswordTV';
+import ChannelDetailsTV from '../screens/ChannelDetailsTV';
 
 const Stack = createNativeStackNavigator();
 
@@ -40,16 +42,19 @@ const AppNavigator = () => {
       <Stack.Screen name="LoginTV" component={LoginTV} />
      <Stack.Screen name="SignUp" component={SignUpScreen} />
      <Stack.Screen name="ForgotPasswordTV" component={ForgotPasswordTV} />
+      <Stack.Screen name="ChangePasswordTV" component={ChangePasswordTV} />
 
     
       <Stack.Screen name="WhosWatching" component={WhosWatchingScreen} />
       <Stack.Screen name="Home" component={Home} />
-      <Stack.Screen name="Channels" component={Channels} />
+      <Stack.Screen name="ChannelDetailsTV" component={ChannelDetailsTV} />
+      <Stack.Screen name="ChannelDE" component={Channels} />
       <Stack.Screen name="PremiumVideos" component={PremiumVideos} />
       <Stack.Screen name="UpcomingShows" component={UpcomingShows} />
       <Stack.Screen name="TrendingVideos" component={TrendingVideos} />
       <Stack.Screen name="LatestSeason" component={LatestSeason} />
       <Stack.Screen name="Intro" component={IntroSlider} />
+      
     </Stack.Navigator>
   );
 };

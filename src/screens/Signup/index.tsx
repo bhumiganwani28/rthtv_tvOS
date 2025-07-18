@@ -164,7 +164,7 @@ const SignUpScreen = ({ navigation }: { navigation: any }) => {
             )}
 
             <View style={styles.formWrapper}>
-              <Text style={styles.title}>Create Your Account</Text>
+              <Text style={styles.heading}>Create Your Account</Text>
 
               <View style={styles.formContainer}>
                 {/* First and Last Name row */}

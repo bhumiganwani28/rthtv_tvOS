@@ -277,7 +277,9 @@ const LoginTV = ({navigation}: {navigation: any}) => {
 
                 <CButton
                   text="Sign in"
-                  onPress={handleLogin}
+                  onPress={()=>{
+                    handleLogin();
+                  }}
                   style={styles.signInButton}
                   textStyle={styles.signInButtonText}
                   hasTVPreferredFocus={focusedField === 'submit'}

@@ -65,8 +65,8 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
   },
-  title: {
-    fontSize: scale(14),
+  heading: {
+    fontSize: scale(15),
     fontFamily: FONTS.montSemiBold,
     color: COLORS.white,
     marginBottom: verticalScale(15),
