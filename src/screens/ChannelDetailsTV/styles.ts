@@ -9,6 +9,7 @@ export default StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.black,
+    marginHorizontal:scale(5),
   },
   loaderContainer: {
     flex: 1,
@@ -52,15 +53,15 @@ export default StyleSheet.create({
   },
   sectionTitle: {
     color: COLORS.white,
-    fontSize: scale(18),
-    marginLeft: scale(16),
-    marginBottom: scale(10),
+    fontSize: scale(10),
+    marginTop:scale(15),
+    marginHorizontal:scale(5),
+    marginBottom: scale(5),
     fontFamily: FONTS.montBold,
   },
   gridImage: {
     width: '100%',
     height: '100%',
     resizeMode: 'cover',
-    borderRadius: scale(8),
   },
 });

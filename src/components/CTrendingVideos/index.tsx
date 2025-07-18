@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {
   Dimensions,
   Image,
@@ -11,15 +11,15 @@ import {
   useTVEventHandler,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { scale } from 'react-native-size-matters';
-import { useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
+import {scale} from 'react-native-size-matters';
+import {useNavigation} from '@react-navigation/native';
+import {useSelector} from 'react-redux';
 import FIcon from 'react-native-vector-icons/FontAwesome6';
 import FFIcon from 'react-native-vector-icons/Feather';
 
-import { FONTS } from '../../utils/fonts';
-import { COLORS } from '../../theme/colors';
-import { NEXT_PUBLIC_API_CDN_ENDPOINT } from '../../config/apiEndpoints';
+import {FONTS} from '../../utils/fonts';
+import {COLORS} from '../../theme/colors';
+import {NEXT_PUBLIC_API_CDN_ENDPOINT} from '../../config/apiEndpoints';
 
 interface TrendingVideoItem {
   _id: string;
@@ -67,6 +67,7 @@ export default function CTrendingVideos(props: TrendingVideoProps) {
   const navigation = useNavigation();
   const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
   const [subscriptionData, setSubscriptionData] = useState<any>(null);
+  const viewAllRef = useRef(null);
 
   const {
     trendingVideosData,
@@ -90,35 +91,51 @@ export default function CTrendingVideos(props: TrendingVideoProps) {
 
   const isRowFocused = rowFocus === 'content' && contentRowFocus === rowIndex;
 
-useTVEventHandler((evt) => {
-  if (!isRowFocused) return;
+  useTVEventHandler(evt => {
+    if (!isRowFocused) return;
 
-  if (evt.eventType === 'down') {
-    setFocusedIndex(null); // reset focus to View All when changing row
-  }
+    switch (evt.eventType) {
+      case 'down':
+        setFocusedIndex(null); // Focus back to View All
+        break;
 
-  if (evt.eventType === 'up') {
-    if (focusedIndex === null) {
-      // prevent jumping to the row above
-      return;
+      case 'up':
+        setFocusedIndex(null); // Prevent from going above
+        break;
+
+      case 'left':
+        if (focusedIndex === 0 || focusedIndex === null) {
+          setFocusedIndex(null); // Keep focus on View All
+        } else {
+          setFocusedIndex(prev => (prev ?? 0) - 1);
+        }
+        break;
+
+      case 'right':
+        if (focusedIndex === null) {
+          setFocusedIndex(0); // From View All to first item
+        } else if (focusedIndex < trendingVideosData.length - 1) {
+          setFocusedIndex(prev => (prev ?? 0) + 1); // Move to next
+        }
+        break;
+
+      case 'select': {
+        if (focusedIndex === null) {
+          handleViewAllPress();
+        } else {
+          const item = trendingVideosData?.[focusedIndex];
+          if (item) onImagePress?.(item);
+        }
+        break;
+      }
     }
-  }
+  });
 
-  if (evt.eventType === 'select') {
-    if (focusedIndex === null) {
-      handleViewAllPress();
+  useEffect(() => {
+    if (isRowFocused) {
+      setFocusedIndex(null); // View All will be focused
     }
-  }
-});
-
-
-
-useEffect(() => {
-  if (isRowFocused) {
-    setFocusedIndex(null); // auto-focus View All button
-  }
-}, [isRowFocused]);
-
+  }, [isRowFocused]);
 
   useEffect(() => {
     const fetchSubscriptionData = async () => {
@@ -135,35 +152,59 @@ useEffect(() => {
   }, []);
 
   const handleViewAllPress = () => {
-    if (onViewAllPress) {
-      onViewAllPress();
-    } else if (viewAllLink) {
-      navigation.navigate(viewAllLink);
-    }
+    console.log('View All Pressed!');
+    if (onViewAllPress) return onViewAllPress();
+    if (viewAllLink) navigation.navigate(viewAllLink);
   };
 
   return (
     <View style={[styles.container, customStyles.container]}>
       {/* 🔹 Section Header Title */}
-      <View style={[styles.header, customStyles.header, { marginVertical: scale(8), marginHorizontal: scale(5) }]}>
+      <View
+        style={[
+          styles.header,
+          customStyles.header,
+          {marginVertical: scale(8), marginHorizontal: scale(5)},
+        ]}>
         <Text numberOfLines={1} style={[styles.title, customStyles.title]}>
           {title}
         </Text>
         {viewAllLink && (
+          <TouchableOpacity
+            ref={viewAllRef}
+            onPress={handleViewAllPress}
+            focusable={Platform.isTV && isRowFocused}
+            hasTVPreferredFocus={
+              Platform.isTV && isRowFocused && focusedIndex === null
+            }
+            onFocus={() => {
+              if (isRowFocused) {
+                setFocusedIndex(null);
+              }
+            }}
+            style={[
+              styles.link,
+              isRowFocused && focusedIndex === null && styles.focusedLink,
+            ]}>
+            {showViewAllText && (
+              <Text style={styles.viewAllText}>{viewText}</Text>
+            )}
+            <FFIcon name="chevron-right" size={20} color={'#fff'} />
+          </TouchableOpacity>
 
-        <TouchableOpacity
-    onPress={handleViewAllPress}
-    focusable={Platform.isTV && isRowFocused}
-    onFocus={() => isRowFocused && setFocusedIndex(null)}
-    hasTVPreferredFocus={Platform.isTV && isRowFocused && focusedIndex === null}
-    style={[
-      styles.link,
-      isRowFocused && focusedIndex === null && styles.focusedLink,
-    ]}
-  >
-    {showViewAllText && <Text style={styles.viewAllText}>{viewText}</Text>}
-    <FFIcon name="chevron-right" size={20} color={COLORS.white} />
-  </TouchableOpacity>
+          //       <TouchableOpacity
+          //   onPress={handleViewAllPress}
+          //   focusable={Platform.isTV && isRowFocused}
+          //   onFocus={() => isRowFocused && setFocusedIndex(null)}
+          //   hasTVPreferredFocus={Platform.isTV && isRowFocused && focusedIndex === null}
+          //   style={[
+          //     styles.link,
+          //     isRowFocused && focusedIndex === null && styles.focusedLink,
+          //   ]}
+          // >
+          //   {showViewAllText && <Text style={styles.viewAllText}>{viewText}</Text>}
+          //   <FFIcon name="chevron-right" size={20} color={COLORS.white} />
+          // </TouchableOpacity>
         )}
       </View>
 
@@ -174,8 +215,7 @@ useEffect(() => {
         contentContainerStyle={{
           flexGrow: 1,
           marginHorizontal: isTablet ? scale(2) : scale(8),
-        }}
-      >
+        }}>
         {trendingVideosData?.slice(0, 10).map((item, index) => {
           const isFocused = isRowFocused && focusedIndex === index;
           return (
@@ -187,24 +227,29 @@ useEffect(() => {
               hasTVPreferredFocus={Platform.isTV && isRowFocused && index === 0}
               style={[
                 styles.itemContainer,
+                isFocused && styles.focusedImageWrapper,
+
                 //  isFocused && styles.highlighted,
                 {
                   width: itemWidth,
                   height: itemHeight + (showStreamName ? scale(20) : 0),
-                  marginHorizontal: isTablet ? scale(3) : scale(6),
+                  marginHorizontal: scale(5),
+                  borderWidth: isFocused ? scale(2) : 0,
+                  borderColor: isFocused ? COLORS.white : 'transparent',
+                  overflow: 'hidden',
                 },
                 customStyles.itemContainer,
-              ]}
-            >
+              ]}>
               <View
                 style={[
                   styles.imageWrapper,
-                  isFocused && styles.focusedImageWrapper,
-                  { width: itemWidth, height: itemHeight },
-                ]}
-              >
+                  //
+                  {width: itemWidth, height: itemHeight},
+                ]}>
                 <Image
-                  source={{ uri: `${NEXT_PUBLIC_API_CDN_ENDPOINT}${item?.[imageKey]}` }}
+                  source={{
+                    uri: `${NEXT_PUBLIC_API_CDN_ENDPOINT}${item?.[imageKey]}`,
+                  }}
                   style={[styles.image, customStyles.image]}
                   resizeMode="cover"
                 />
@@ -212,14 +257,26 @@ useEffect(() => {
 
               {!subscriptionData && item?.access === 'Paid' && (
                 <View style={styles.subscriptionContainer}>
-                  <FIcon name="crown" size={scale(8)} style={styles.subscriptionIcon} />
+                  <FIcon
+                    name="crown"
+                    size={scale(8)}
+                    style={styles.subscriptionIcon}
+                  />
                 </View>
               )}
 
-              {showStreamName && <Text style={[styles.streamName, customStyles.streamName]}>{item.streamName}</Text>}
+              {showStreamName && (
+                <Text style={[styles.streamName, customStyles.streamName]}>
+                  {item.streamName}
+                </Text>
+              )}
 
               {showStreamDescription && item.streamDescription && (
-                <Text style={[styles.streamDescription, customStyles.streamDescription]}>
+                <Text
+                  style={[
+                    styles.streamDescription,
+                    customStyles.streamDescription,
+                  ]}>
                   {item.streamDescription}
                 </Text>
               )}
@@ -241,7 +298,7 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: FONTS.montSemiBold,
     color: COLORS.white,
-    fontSize: scale(9),
+    fontSize: scale(10),
     lineHeight: scale(15),
   },
   // link: {
@@ -249,18 +306,19 @@ const styles = StyleSheet.create({
   //   alignItems: 'center',
   // },
   link: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  padding: scale(4),
-},
-focusedLink: {
-  borderWidth: 1,
-  borderColor: COLORS.white,
-  backgroundColor: COLORS.focusItem, // your highlight color
-  borderRadius: 4,
-  padding: scale(4),
-},
-
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: scale(4),
+  },
+  focusedLink: {
+    padding: scale(4),
+    borderWidth: scale(2),
+    borderColor: COLORS.white,
+    borderRadius: 6,
+    backgroundColor: COLORS.focusItem,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
 
   viewAllText: {
     fontFamily: FONTS.montSemiBold,
@@ -273,17 +331,7 @@ focusedLink: {
     justifyContent: 'flex-start',
     alignItems: 'center',
   },
-  imageWrapper: {
-    // borderRadius: scale(6),
-    overflow: 'hidden',
-  },
-  focusedImageWrapper: {
-    borderWidth: scale(1),
-    borderColor: COLORS.white,
-    // borderRadius: scale(6),
-    // transform: [{ scale: 1.05 }],
-    backgroundColor: COLORS.focusItem,
-  },
+
   image: {
     width: '100%',
     height: '100%',
@@ -314,18 +362,5 @@ focusedLink: {
   subscriptionIcon: {
     color: COLORS.yellow,
   },
-//   highlighted: {
-//   borderWidth: 3,
-//   borderColor: '#fff',
-//   borderRadius: 8,
-//   transform: [{ scale: 1.05 }],
-//   backgroundColor: '#212121', // (optional, for dark highlight)
-//   // Optionally, add shadow for more depth
-//   shadowColor: '#000',
-//   shadowOffset: { width: 0, height: 4 },
-//   shadowOpacity: 0.3,
-//   shadowRadius: 6,
-//   elevation: 5
-// }
 
 });
