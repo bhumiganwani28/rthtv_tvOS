@@ -192,19 +192,7 @@ export default function CTrendingVideos(props: TrendingVideoProps) {
             <FFIcon name="chevron-right" size={20} color={'#fff'} />
           </TouchableOpacity>
 
-          //       <TouchableOpacity
-          //   onPress={handleViewAllPress}
-          //   focusable={Platform.isTV && isRowFocused}
-          //   onFocus={() => isRowFocused && setFocusedIndex(null)}
-          //   hasTVPreferredFocus={Platform.isTV && isRowFocused && focusedIndex === null}
-          //   style={[
-          //     styles.link,
-          //     isRowFocused && focusedIndex === null && styles.focusedLink,
-          //   ]}
-          // >
-          //   {showViewAllText && <Text style={styles.viewAllText}>{viewText}</Text>}
-          //   <FFIcon name="chevron-right" size={20} color={COLORS.white} />
-          // </TouchableOpacity>
+
         )}
       </View>
 
@@ -234,9 +222,8 @@ export default function CTrendingVideos(props: TrendingVideoProps) {
                   width: itemWidth,
                   height: itemHeight + (showStreamName ? scale(20) : 0),
                   marginHorizontal: scale(5),
-                  borderWidth: isFocused ? scale(2) : 0,
-                  borderColor: isFocused ? COLORS.white : 'transparent',
-                  overflow: 'hidden',
+                 
+                  // overflow: 'hidden',
                 },
                 customStyles.itemContainer,
               ]}>
@@ -244,7 +231,10 @@ export default function CTrendingVideos(props: TrendingVideoProps) {
                 style={[
                   styles.imageWrapper,
                   //
-                  {width: itemWidth, height: itemHeight},
+                  {width: itemWidth,
+                     height: itemHeight,
+                     borderWidth: isFocused ? scale(1) : 0,
+                  borderColor: isFocused ? COLORS.white : 'transparent',},
                 ]}>
                 <Image
                   source={{

@@ -88,6 +88,7 @@ const HomeScreen: React.FC = () => {
   const [featuredSeasons, setFeaturedSeasons] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [refreshing, setRefreshing] = useState<boolean>(false);
+// const screenKey  = 'homeScreen'; // or 'channelScreen', etc.
 
   // 🟦 Tab menu state
   const [tabs] = useState<Tab[]>([
@@ -208,12 +209,16 @@ const HomeScreen: React.FC = () => {
 
   // channels
   const handleChannelPress = (item: any) => {
+      // console.log("handleChannelPress>",item);
+    
     navigation.navigate('ChannelDetailsTV', {channelId: item?.id});
   };
 
   // navigate to particluar image press in VOD screen with seasonID
   const handleTvShowPress = (item: any) => {
-    navigation.navigate('VODScreen', {seasonID: item?._id});
+    console.log("item>",item);
+    
+    // navigation.navigate('VODScreen', {seasonID: item?._id});
   };
 
   const fetchData = async () => {
@@ -369,6 +374,8 @@ const HomeScreen: React.FC = () => {
           <View style={styles.topSpaceShowsContainer}>
             {upcomingShows && upcomingShows.length > 0 && (
               <CTrendingVideos
+              // screenKey={screenKey}
+              // currentScreenKey={screenKey} 
               rowIndex={0}
               rowFocus={rowFocus}
               contentRowFocus={contentRowFocus}
@@ -389,6 +396,8 @@ const HomeScreen: React.FC = () => {
           <View style={styles.topSpaceShowsContainer}>
             {featuredSeasons && featuredSeasons.length > 0 && (
               <CTrendingVideos
+              // screenKey={screenKey}
+              // currentScreenKey={screenKey} 
                rowIndex={1}
               rowFocus={rowFocus}
               contentRowFocus={contentRowFocus}
@@ -410,6 +419,8 @@ const HomeScreen: React.FC = () => {
           <View style={styles.topSpaceShowsContainer}>
             {channelsVideos && channelsVideos.length > 0 && (
               <CTrendingVideos
+              // screenKey={screenKey}
+              // currentScreenKey={screenKey} 
                rowIndex={2}
               rowFocus={rowFocus}
               contentRowFocus={contentRowFocus}
@@ -431,6 +442,7 @@ const HomeScreen: React.FC = () => {
           <View style={styles.topSpaceShowsContainer}>
             {trendingVideos && trendingVideos.length > 0 && (
               <CTrendingVideos
+              // screenKey={screenKey}
                rowIndex={3}
               rowFocus={rowFocus}
               contentRowFocus={contentRowFocus}

@@ -11,6 +11,7 @@ import {
   TouchableOpacity,
   useTVEventHandler,
   Platform,
+  ScrollView,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {useSelector} from 'react-redux';
@@ -34,6 +35,8 @@ import {scale} from 'react-native-size-matters';
 
 const ChannelDetailsTV = ({route}) => {
   const {channelId} = route.params || {};
+  console.log('channelId>', channelId);
+
   const navigation = useNavigation();
   const isTablet = useSelector(state => state.auth?.isTablet);
 
@@ -67,7 +70,12 @@ const ChannelDetailsTV = ({route}) => {
     fetchShowDetails();
     animateLiveDot();
   }, []);
+  // navigate to particluar image press in VOD screen with seasonID
+  const handleTvShowPress = (item: any) => {
+    console.log('item>', item);
 
+    // navigation.navigate('VODScreen', {seasonID: item?._id});
+  };
   const animateLiveDot = () => {
     Animated.loop(
       Animated.sequence([
@@ -222,9 +230,14 @@ const ChannelDetailsTV = ({route}) => {
         bannerImg
         itemHeight={isTablet ? scale(140) : scale(120)}
         itemWidth={isTablet ? scale(100) : scale(90)}
-        // onImagePress={(item) =>
-        //   navigation.navigate('VODScreen', { seasonID: item?._id })
-        // }
+        //  onViewAllPress={() => navigation.navigate('ChannelDetailsTV', {channelId: channelId})}
+        onImagePress={item => handleTvShowPress(item)}
+        onViewAllPress={() =>
+          navigation.navigate('AllSeasons', {
+            channelId,
+            popularName: popularName,
+          })
+        }
       />
     );
   };
@@ -264,20 +277,22 @@ const ChannelDetailsTV = ({route}) => {
           <ActivityIndicator size="large" color={COLORS.primary} />
         </View>
       ) : (
-        <>
+        <ScrollView
+          contentContainerStyle={{paddingBottom: scale(40)}}
+          showsVerticalScrollIndicator={false}>
           {renderLiveBanner()}
           {renderFeaturedSections()}
 
           <Text style={styles.sectionTitle}>All Seasons</Text>
+
           <FlatList
             data={featureList}
             renderItem={renderSeasonItem}
             keyExtractor={keyExtractor}
             numColumns={NUM_COLUMNS}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{paddingBottom: scale(40)}}
+            scrollEnabled={false} // Disable internal scroll, controlled by ScrollView
           />
-        </>
+        </ScrollView>
       )}
 
       <CAlertModal

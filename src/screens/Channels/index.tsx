@@ -40,8 +40,6 @@ type Tab = {
   title: string;
 };
 
-const NUM_COLUMNS = 5;
-const CARD_ASPECT_RATIO = 16 / 9;
 
 const Channels: React.FC = () => {
   const navigation = useNavigation();
@@ -70,19 +68,23 @@ const Channels: React.FC = () => {
 
 
 
-const itemHorizontalSpacing = 24; // space between cards
+const NUM_COLUMNS = 5;
+const CARD_ASPECT_RATIO = 16 / 9;
+const itemHorizontalSpacing = scale(12); // space between cards
 const windowWidth = Dimensions.get('window').width;
 const totalSpacing = itemHorizontalSpacing * (NUM_COLUMNS + 1);
 const cardWidth = (windowWidth - totalSpacing) / NUM_COLUMNS;
 const cardHeight = cardWidth / CARD_ASPECT_RATIO;
-  const itemMargin = itemHorizontalSpacing / 2;
+  const itemMargin = itemHorizontalSpacing / 1.5;
   const handleBackPress = useCallback(() => {
     navigation.goBack();
     return true;
   }, [navigation]);
 
   const handleChannelPress = (item: any) => {
-    navigation.navigate('ChannelDetails', { channelId: item?.id });
+    // console.log(">channelId>",item);
+    
+    navigation.navigate('ChannelDetailsTV', { channelId: item?.id });
   };
 
   useEffect(() => {
@@ -151,18 +153,22 @@ const cardHeight = cardWidth / CARD_ASPECT_RATIO;
         onFocus={() => setFocusedIndex(index)}
         hasTVPreferredFocus={index === 0}
         focusable
-        style={{
-          width: cardWidth,
-          height: cardHeight,
-          marginLeft: itemMargin,
-          marginTop: itemMargin,
-        }}
+       style={{
+        width: cardWidth,
+        height: cardHeight,
+        marginLeft: itemMargin,
+        marginTop: itemMargin,
+       
+      }}
       >
         <View
           style={[
             styles.itemContainer,
             isFocused && styles.focusedItemContainer,
-            { width: cardWidth, height: cardHeight },
+            { width: cardWidth, height: cardHeight ,
+               borderWidth: isFocused ? scale(1) : 0,
+        borderColor: isFocused ? COLORS.white : 'transparent',
+            },
           ]}
         >
           <Image

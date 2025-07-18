@@ -9,12 +9,6 @@ export default StyleSheet.create({
     backgroundColor: COLORS.black,
     paddingTop: scale(10),
   },
-  tabBarContainer:{
-  flexDirection: 'row',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  paddingHorizontal: scale(16),
-  },
   contentContainer:{
      flex:1,
     paddingTop: scale(10),
@@ -40,11 +34,10 @@ export default StyleSheet.create({
   },
   noDataText: {
     color: COLORS.white,
-    fontFamily: FONTS.montSemiBold,
     fontSize: scale(12),
-    textAlign: 'center',
+    fontFamily: FONTS.montSemiBold,
   },
-  itemContainer: {
+ itemContainer: {
     // borderWidth: 3,
     // borderColor: 'transparent',
     // backgroundColor: COLORS.itemContainer,
@@ -54,21 +47,10 @@ export default StyleSheet.create({
     backgroundColor: COLORS.focusItem,
     elevation: 5,
   },
-image: {
-     width: '100%',
+  image: {
+    width: '100%',
     height: '100%',
     resizeMode: 'cover',
-},
-  subscriptionContainer: {
-    position: 'absolute',
-    top: scale(6),
-    right: scale(6),
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    borderRadius: scale(4),
-    padding: scale(5),
-    zIndex: 10,
-  },
-  subscriptionIcon: {
-    color: COLORS.yellow,
+    backgroundColor: COLORS.black, // fallback to hide loading gaps
   },
 });
