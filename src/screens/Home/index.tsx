@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback } from "react";
+import React, {useEffect, useState, useRef, useCallback} from 'react';
 import {
   ScrollView,
   View,
@@ -12,38 +12,37 @@ import {
   BackHandler,
   RefreshControl,
   useTVEventHandler,
-} from "react-native";
-import { useFocusEffect, useNavigation } from "@react-navigation/native";
-import { StackNavigationProp } from "@react-navigation/stack";
-import { scale, verticalScale } from "react-native-size-matters";
-import Header from "../../components/Header";
-import Slider from "../../components/Slider";
-import { COLORS } from "../../theme/colors";
-import { IMAGES } from "../../theme/images";
-import apiHelper from "../../config/apiHelper";
-import { 
-  CHANNELS, 
-  HOME_PAGE_API, 
-  HOME_SLIDER, 
-  NEXT_PUBLIC_API_CDN_ENDPOINT, 
-  PAGE_LIMIT, 
-  SEASON_LIST, 
-  TRENDING_VIDEOS, 
-  UPCOMING_SHOWS 
-} from "../../config/apiEndpoints";
-import CTrendingVideos from "../../components/CTrendingVideos";
-import BackHandlerComponent from "../../components/BackHandlerComponent";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useSelector, useDispatch } from "react-redux";
+} from 'react-native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import {StackNavigationProp} from '@react-navigation/stack';
+import {scale, verticalScale} from 'react-native-size-matters';
+import Header from '../../components/Header';
+import Slider from '../../components/Slider';
+import {COLORS} from '../../theme/colors';
+import {IMAGES} from '../../theme/images';
+import apiHelper from '../../config/apiHelper';
+import {
+  CHANNELS,
+  HOME_PAGE_API,
+  HOME_SLIDER,
+  NEXT_PUBLIC_API_CDN_ENDPOINT,
+  PAGE_LIMIT,
+  SEASON_LIST,
+  TRENDING_VIDEOS,
+  UPCOMING_SHOWS,
+} from '../../config/apiEndpoints';
+import CTrendingVideos from '../../components/CTrendingVideos';
+import BackHandlerComponent from '../../components/BackHandlerComponent';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {useSelector, useDispatch} from 'react-redux';
 import moment from 'moment-timezone';
 import styles from './styles';
-import ProfileSelector from "../../components/ProfileSelector";
-import { loginSuccess, logout } from "../../redux/slices/authSlice";
-import TabMenuBar from "../../components/TabMenuBar";
+import ProfileSelector from '../../components/ProfileSelector';
+import {loginSuccess, logout} from '../../redux/slices/authSlice';
+import TabMenuBar from '../../components/TabMenuBar';
 
-const { width, height } = Dimensions.get('window');
+const {width, height} = Dimensions.get('window');
 const isTV = Platform.isTV;
-
 
 // Define navigation prop type
 type HomeScreenNavigationProp = StackNavigationProp<
@@ -51,9 +50,9 @@ type HomeScreenNavigationProp = StackNavigationProp<
     LiveNow: undefined;
     SeriesDetails: undefined;
     StreamDetails: undefined;
-    VideoPlayerScreen: { videoUri: string | undefined; streamName: string };
-    ChannelDetails: { channelId: string };
-    VODScreen: { seasonID: string };
+    VideoPlayerScreen: {videoUri: string | undefined; streamName: string};
+    ChannelDetails: {channelId: string};
+    VODScreen: {seasonID: string};
     AllVideosScreen: undefined;
     TrendingVideos: undefined;
     UpcomingShows: undefined;
@@ -63,7 +62,7 @@ type HomeScreenNavigationProp = StackNavigationProp<
     Login: undefined;
     WhosWatching: undefined;
   },
-  "LiveNow"
+  'LiveNow'
 >;
 
 // Tab interface
@@ -89,46 +88,47 @@ const HomeScreen: React.FC = () => {
   const [featuredSeasons, setFeaturedSeasons] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [refreshing, setRefreshing] = useState<boolean>(false);
-  
-    // 🟦 Tab menu state
-    const [tabs] = useState<Tab[]>([
-      { id: 'home', title: 'Home' },
-      { id: 'channels', title: 'Channels' },
-      { id: 'premium', title: 'Premium' },
-      { id: 'featured', title: 'Featured' },
-      { id: 'mylist', title: 'My List' },
-    ]);
+
+  // 🟦 Tab menu state
+  const [tabs] = useState<Tab[]>([
+    {id: 'home', title: 'Home'},
+    {id: 'channels', title: 'Channels'},
+    {id: 'premium', title: 'Premium'},
+    {id: 'featured', title: 'Featured'},
+    {id: 'mylist', title: 'My List'},
+  ]);
   const [selectedTab, setSelectedTab] = useState<string>('home');
   const [focusedTab, setFocusedTab] = useState<string>('home');
-  
+
   // Focus management for TV remote
-  const [rowFocus, setRowFocus] = useState<'tabs' | 'slider' | 'content'>('tabs');
+  const [rowFocus, setRowFocus] = useState<'tabs' | 'slider' | 'content'>(
+    'tabs',
+  );
   const [contentRowFocus, setContentRowFocus] = useState<number>(0);
-  
+
   // Use ref to prevent multiple API calls
   const dataFetchedRef = useRef(false);
   const isTablet = useSelector((state: RootState) => state.auth.isTablet);
 
-  
-useEffect(() => {
-  const checkProfile = async () => {
-    await new Promise(resolve => setTimeout(resolve, 200));
-    const profile = await AsyncStorage.getItem('selectedProfile');
-    if (!profile) {
-      navigation.replace('WhosWatching');
-    }
-  };
+  useEffect(() => {
+    const checkProfile = async () => {
+      await new Promise(resolve => setTimeout(resolve, 200));
+      const profile = await AsyncStorage.getItem('selectedProfile');
+      if (!profile) {
+        navigation.replace('WhosWatching');
+      }
+    };
 
-  checkProfile();
-}, []);
+    checkProfile();
+  }, []);
 
   useFocusEffect(
     React.useCallback(() => {
       fetchData(); // Refetch profiles when screen gains focus
-    }, [])
+    }, []),
   );
 
-    // ✅ Tab Navigation Handler
+  // ✅ Tab Navigation Handler
   const handleTabPress = (tabId: string) => {
     setSelectedTab(tabId);
     setFocusedTab(tabId);
@@ -138,7 +138,7 @@ useEffect(() => {
         navigation.navigate('Home');
         break;
       case 'channels':
-         navigation.navigate('Channels'); 
+        navigation.navigate('Channels');
         break;
       case 'premium':
         navigation.navigate('PremiumVideos'); // Change as per your route names
@@ -154,7 +154,7 @@ useEffect(() => {
     }
   };
   // TV remote navigation handler
-  useTVEventHandler((evt) => {
+  useTVEventHandler(evt => {
     if (evt && evt.eventType) {
       switch (evt.eventType) {
         case 'down':
@@ -164,7 +164,8 @@ useEffect(() => {
             setRowFocus('content');
             setContentRowFocus(0);
           } else if (rowFocus === 'content') {
-            if (contentRowFocus < 3) { // Assuming 4 content rows
+            if (contentRowFocus < 3) {
+              // Assuming 4 content rows
               setContentRowFocus(contentRowFocus + 1);
             }
           }
@@ -207,12 +208,12 @@ useEffect(() => {
 
   // channels
   const handleChannelPress = (item: any) => {
-    navigation.navigate('ChannelDetails', { channelId: item?.id });
+    navigation.navigate('ChannelDetails', {channelId: item?.id});
   };
 
   // navigate to particluar image press in VOD screen with seasonID
   const handleTvShowPress = (item: any) => {
-    navigation.navigate("VODScreen", { seasonID: item?._id });
+    navigation.navigate('VODScreen', {seasonID: item?._id});
   };
 
   const fetchData = async () => {
@@ -226,11 +227,13 @@ useEffect(() => {
       const responses = await Promise.allSettled([
         apiHelper.get(HOME_SLIDER),
         apiHelper.get(CHANNELS),
-        apiHelper.get(`${SEASON_LIST}?page=${1}&limit=${PAGE_LIMIT}&trending=true`),
+        apiHelper.get(
+          `${SEASON_LIST}?page=${1}&limit=${PAGE_LIMIT}&trending=true`,
+        ),
         apiHelper.get(SEASON_LIST),
-        apiHelper.get(UPCOMING_SHOWS, { headers: { timezone: timezone } })
+        apiHelper.get(UPCOMING_SHOWS, {headers: {timezone: timezone}}),
       ]);
-      
+
       const handlers = [
         (response: any) => setSliderData(response.value.data || []),
         (response: any) => setChannelsVideos(response.value.data?.data || []),
@@ -240,14 +243,14 @@ useEffect(() => {
       ];
 
       responses.forEach((response, index) => {
-        if (response.status === "fulfilled") {
+        if (response.status === 'fulfilled') {
           handlers[index](response);
         } else {
           console.error(`Request ${index + 1} failed:`, response.reason);
         }
       });
     } catch (error) {
-      console.error("Unexpected error:", error);
+      console.error('Unexpected error:', error);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -257,16 +260,17 @@ useEffect(() => {
   const handleShowPress = async (item: any) => {
     try {
       setLoading(true);
-      const showId = item?.type === "vod" ? item?.episode?._id : item?.tvShow?.id;
-      
+      const showId =
+        item?.type === 'vod' ? item?.episode?._id : item?.tvShow?.id;
+
       if (!showId) {
-        console.error("No valid show ID found.");
+        console.error('No valid show ID found.');
         return;
       }
       const response = await apiHelper.get(`${TRENDING_VIDEOS}/${showId}`);
 
       if (response?.status !== 200 || !response?.data) {
-        console.error("Failed to fetch video details.");
+        console.error('Failed to fetch video details.');
         return;
       }
 
@@ -274,45 +278,38 @@ useEffect(() => {
 
       let videoUri: string | undefined;
 
-      if (data.type === "VOD" && data?.episode?.video) {
+      if (data.type === 'VOD' && data?.episode?.video) {
         videoUri = `${NEXT_PUBLIC_API_CDN_ENDPOINT}/${data.episode.video}`;
       } else if (data.rtmp?.primary) {
         videoUri = data.rtmp.primary;
       }
 
-      navigation.navigate("VideoPlayerScreen", {
+      navigation.navigate('VideoPlayerScreen', {
         videoUri,
-        streamName: data?.name || "Untitled Stream",
+        streamName: data?.name || 'Untitled Stream',
       });
     } catch (error) {
-      console.error("Error fetching video URL:", error);
+      console.error('Error fetching video URL:', error);
     } finally {
       setLoading(false);
     }
   };
-  
+
   const handleRefresh = async () => {
     setRefreshing(true);
     dataFetchedRef.current = false;
     await fetchData();
     setRefreshing(false);
   };
-
-  const handleBackPress = () => {
-    // On the home screen, pressing back should exit the app rather than going back to login
-    BackHandler.exitApp();
-    return true;
-  };
-
   useEffect(() => {
     fetchData();
   }, []);
 
-  // for back also calling api 
+  // for back also calling api
   useFocusEffect(
     useCallback(() => {
       fetchData();
-    }, [navigation])
+    }, [navigation]),
   );
 
   // Handle logout
@@ -321,18 +318,18 @@ useEffect(() => {
       // Clear auth data from AsyncStorage
       await AsyncStorage.removeItem('accessToken');
       await AsyncStorage.removeItem('user');
-      
+
       // Also clear profile data
       await AsyncStorage.removeItem('selectedProfile');
       await AsyncStorage.removeItem('userProfiles');
-      
+
       // Dispatch logout action to clear Redux state
       dispatch(logout());
-      
+
       // Navigate to Login screen
       navigation.reset({
         index: 0,
-        routes: [{ name: 'Login' }],
+        routes: [{name: 'Login'}],
       });
     } catch (error) {
       console.error('Error during logout:', error);
@@ -341,13 +338,11 @@ useEffect(() => {
 
   // Content based on selected tab
   const renderContent = () => {
-    // For this example, all tabs show the same content but in a real app,
-    // you would show different content based on the selected tab
     return (
       <ScrollView
         showsVerticalScrollIndicator={false}
         style={styles.scrollViewStyle}
-        contentContainerStyle={{ paddingBottom: scale(50) }}
+        contentContainerStyle={{paddingBottom: scale(50)}}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -355,8 +350,7 @@ useEffect(() => {
             colors={[COLORS.primary]}
             tintColor={COLORS.primary}
           />
-        }
-      >
+        }>
         {/* Slider Section - Featured Content */}
         {sliderData.length > 0 && (
           <View style={styles.sliderContainer}>
@@ -364,7 +358,7 @@ useEffect(() => {
               topbtn
               sliderData={sliderData}
               bottomLiveBtn={true}
-              onImagePress={(item) => handleShowPress(item)}
+              onImagePress={item => handleShowPress(item)}
             />
           </View>
         )}
@@ -373,74 +367,85 @@ useEffect(() => {
         <View style={styles.contentContainer}>
           {/* Upcoming Shows */}
           <View style={styles.topSpaceShowsContainer}>
-          {upcomingShows && upcomingShows.length > 0 && (
-            <CTrendingVideos
-              trendingVideosData={upcomingShows}
-              title="Live & Upcoming Shows"
-              imageKey="banner"
-              showViewAllText
-              viewAllLink="AllVideosScreen"
-              itemHeight={scale(70)}
-              itemWidth={scale(120)}
-              onViewAllPress={() => navigation.navigate('UpcomingShows')}
-              bannerImg=""
-            />
-          )}
-            </View>
-
+            {upcomingShows && upcomingShows.length > 0 && (
+              <CTrendingVideos
+              rowIndex={0}
+              rowFocus={rowFocus}
+              contentRowFocus={contentRowFocus}
+                trendingVideosData={upcomingShows}
+                title="Live & Upcoming Shows"
+                imageKey="banner"
+                showViewAllText
+                viewAllLink="AllVideosScreen"
+                itemHeight={scale(70)}
+                itemWidth={scale(120)}
+                onViewAllPress={() => navigation.navigate('UpcomingShows')}
+                bannerImg=""
+              />
+            )}
+          </View>
 
           {/* Featured Seasons */}
           <View style={styles.topSpaceShowsContainer}>
-          {featuredSeasons && featuredSeasons.length > 0 && (
-            <CTrendingVideos
-              trendingVideosData={featuredSeasons}
-              title="Featured Seasons"
-              imageKey="mobilePosterImage"
-              showViewAllText
-              viewAllLink="AllVideosScreen"
-              itemHeight={scale(120)}
-              itemWidth={scale(90)}
-              onImagePress={(item) => handleTvShowPress(item)}
-              onViewAllPress={() => navigation.navigate('TrendingVideos')}
-              bannerImg="true"
-            />
-          )}
+            {featuredSeasons && featuredSeasons.length > 0 && (
+              <CTrendingVideos
+               rowIndex={1}
+              rowFocus={rowFocus}
+              contentRowFocus={contentRowFocus}
+                trendingVideosData={featuredSeasons}
+                title="Featured Seasons"
+                imageKey="mobilePosterImage"
+                showViewAllText
+                viewAllLink="AllVideosScreen"
+                itemHeight={scale(120)}
+                itemWidth={scale(90)}
+                onImagePress={item => handleTvShowPress(item)}
+                onViewAllPress={() => navigation.navigate('TrendingVideos')}
+                bannerImg="true"
+              />
+            )}
           </View>
 
           {/* Channels */}
-        <View style={styles.topSpaceShowsContainer}>
-          {channelsVideos && channelsVideos.length > 0 && (
-            <CTrendingVideos
-              trendingVideosData={channelsVideos}
-              title="Channels"
-              imageKey="coverImage"
-              showViewAllText
-              viewAllLink="AllVideosScreen"
-               itemHeight={scale(70)}
-              itemWidth={scale(120)}
-              onImagePress={(item) => handleChannelPress(item)}
-              onViewAllPress={() => navigation.navigate('Channels')}
-              bannerImg=""
-            />
-          )}
+          <View style={styles.topSpaceShowsContainer}>
+            {channelsVideos && channelsVideos.length > 0 && (
+              <CTrendingVideos
+               rowIndex={2}
+              rowFocus={rowFocus}
+              contentRowFocus={contentRowFocus}
+                trendingVideosData={channelsVideos}
+                title="Channels"
+                imageKey="coverImage"
+                showViewAllText
+                viewAllLink="AllVideosScreen"
+                itemHeight={scale(70)}
+                itemWidth={scale(120)}
+                onImagePress={item => handleChannelPress(item)}
+                onViewAllPress={() => navigation.navigate('Channels')}
+                bannerImg=""
+              />
+            )}
           </View>
 
           {/* Latest Seasons */}
-           <View style={styles.topSpaceShowsContainer}>
-          {trendingVideos && trendingVideos.length > 0 && (
-            <CTrendingVideos
-              trendingVideosData={trendingVideos}
-              title="Latest Seasons"
-              imageKey="mobileBanner"
-              showViewAllText
-              viewAllLink="AllVideosScreen"
+          <View style={styles.topSpaceShowsContainer}>
+            {trendingVideos && trendingVideos.length > 0 && (
+              <CTrendingVideos
+               rowIndex={3}
+              rowFocus={rowFocus}
+              contentRowFocus={contentRowFocus}
+                trendingVideosData={trendingVideos}
+                title="Latest Seasons"
+                imageKey="mobileBanner"
+                showViewAllText
+                viewAllLink="AllVideosScreen"
                 itemHeight={scale(70)}
-              itemWidth={scale(120)}
-              onImagePress={(item) => handleTvShowPress(item)}
-              onViewAllPress={() => navigation.navigate('LatestSeason')}
-              bannerImg=""
-            />
-          )}
+                itemWidth={scale(120)}
+                onImagePress={item => handleTvShowPress(item)}
+                onViewAllPress={() => navigation.navigate('LatestSeason')}
+                bannerImg=""
+              />
+            )}
           </View>
         </View>
       </ScrollView>
@@ -449,37 +454,42 @@ useEffect(() => {
 
   return (
     <View style={styles.container}>
-      <BackHandlerComponent onBackPress={handleBackPress} />
+      <BackHandlerComponent
+        onBackPress={() => {
+          BackHandler.exitApp();
+          return true;
+        }}
+      />
+
       <Header
         title=""
         showLogo={true}
         showBack={false}
         showSearch={true}
         showLogout={true}
-        onSearchPress={() => navigation.navigate("SearchVideos")}
+        onSearchPress={() => navigation.navigate('SearchVideos')}
         onLogoutPress={handleLogout}
       />
 
-         {/* ✅ Tab Bar at the top */}
+      {/* ✅ Tab Bar at the top */}
       <View style={styles.tabBarContainer}>
         <TabMenuBar
           tabs={tabs}
           selectedTab={selectedTab}
           focusedTab={focusedTab}
           rowFocus={rowFocus}
-        onTabPress={handleTabPress}
-        onTabFocus={setFocusedTab}
-      />
-      <ProfileSelector
-        onProfileChange={(profile) => {
-          console.log('Profile changed:', profile.name);
-          // You could refresh content based on profile here
-          handleRefresh();
-        }}
-      />
+          onTabPress={handleTabPress}
+          onTabFocus={setFocusedTab}
+        />
+        <ProfileSelector
+          onProfileChange={profile => {
+            console.log('Profile changed:', profile.name);
+            // You could refresh content based on profile here
+            handleRefresh();
+          }}
+        />
       </View>
-      
-      
+
       {loading ? (
         <View style={styles.loaderContainer}>
           <ActivityIndicator size="large" color={COLORS.primary} />
@@ -491,4 +501,4 @@ useEffect(() => {
   );
 };
 
-export default HomeScreen; 
+export default HomeScreen;

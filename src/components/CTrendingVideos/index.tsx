@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Dimensions,
   Image,
@@ -7,67 +7,67 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Platform,
+  useTVEventHandler,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {s, scale, ScaledSheet} from 'react-native-size-matters';
-import Icon from 'react-native-vector-icons/MaterialIcons';
-import {useNavigation} from '@react-navigation/native';
-import {IMAGES} from '../../theme/images';
-import {FONTS} from '../../utils/fonts';
-import {NEXT_PUBLIC_API_CDN_ENDPOINT} from '../../config/apiEndpoints';
-import {COLORS} from '../../theme/colors';
+import { scale } from 'react-native-size-matters';
+import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import FIcon from 'react-native-vector-icons/FontAwesome6';
 import FFIcon from 'react-native-vector-icons/Feather';
-import store from '../../redux/store';
-import {useSelector} from 'react-redux';
 
-interface Episode {
-  episodeThumbnail: any;
-  episodeNo: string;
-  episodeDuration: string;
-  episodeDescription: string;
-}
+import { FONTS } from '../../utils/fonts';
+import { COLORS } from '../../theme/colors';
+import { NEXT_PUBLIC_API_CDN_ENDPOINT } from '../../config/apiEndpoints';
 
 interface TrendingVideoItem {
   _id: string;
   banner: string;
   streamName: string;
-  showStreamName?: boolean;
   streamDescription?: string;
   isSeries?: boolean;
-  showViewAllText?: boolean;
+  access?: 'Free' | 'Paid';
   bannerImg: string;
 }
 
 interface TrendingVideoProps {
   trendingVideosData: TrendingVideoItem[];
   showSubscriptionIcon?: boolean;
-  title: string; // Dynamic section title
-  viewAllLink?: string; // Optional navigation for "View All"
-  viewText?: string; // Optional custom "View All" text
+  title: string;
+  viewAllLink?: string;
+  viewText?: string;
   bannerImg: string;
   showViewAllText?: boolean;
   showStreamName?: boolean;
-  onViewAllPress?: () => void; // Custom handler for "View All"
+  onViewAllPress?: () => void;
   customStyles?: {
-    container?: object; // Custom styles for the container
-    header?: object; // Custom styles for the header
-    title?: object; // Custom styles for the title
-    itemContainer?: object; // Custom styles for item containers
-    image?: object; // Custom styles for images
-    streamName?: object; // Custom styles for the stream name
-    streamDescription?: object; // Custom styles for the stream description
+    container?: object;
+    header?: object;
+    title?: object;
+    itemContainer?: object;
+    image?: object;
+    streamName?: object;
+    streamDescription?: object;
   };
-  showStreamDescription?: boolean; // Whether to display descriptions under images
-  onImagePress?: (item: TrendingVideoItem) => void; // Custom handler for image press
-  itemHeight?: number; // Custom image height
-  itemWidth?: number; // Custom image width
+  showStreamDescription?: boolean;
+  onImagePress?: (item: TrendingVideoItem) => void;
+  itemHeight?: number;
+  itemWidth?: number;
   imageKey?: string;
+
+  // 🚨 Added for TV focus tracking
+  rowFocus?: 'tabs' | 'slider' | 'content';
+  rowIndex?: number;
+  contentRowFocus?: number;
 }
 
-// export default function CTrendingVideos({
 export default function CTrendingVideos(props: TrendingVideoProps) {
-  const isTablet = useSelector((state: RootState) => state.auth.isTablet);
+  const isTablet = useSelector((state: any) => state.auth.isTablet);
+  const navigation = useNavigation();
+  const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
+  const [subscriptionData, setSubscriptionData] = useState<any>(null);
+
   const {
     trendingVideosData,
     title,
@@ -82,20 +82,43 @@ export default function CTrendingVideos(props: TrendingVideoProps) {
     onImagePress,
     itemHeight,
     itemWidth,
-    //  itemHeight=isTablet ? 280 : 240,
-    //   itemWidth=isTablet ? 180 : 160,
-    //    itemHeight = isTablet ? scale(80) : scale(100),
-    // itemWidth = isTablet ? scale(100) : scale(70),
-    // itemHeight = scale(120), // Default height
-    // itemWidth = Dimensions.get("window").width / 3 - scale(10), // Default width
     imageKey = 'banner',
+    rowFocus,
+    contentRowFocus,
+    rowIndex,
   } = props;
 
-  // }: TrendingVideoProps) {
-  const navigation = useNavigation();
-  const [subscriptionData, setSubscriptionData] = useState<any>(null);
-  // const {auth: {isTablet},} = store.getState();
-  // console.log("isTablet>",isTablet);
+  const isRowFocused = rowFocus === 'content' && contentRowFocus === rowIndex;
+
+useTVEventHandler((evt) => {
+  if (!isRowFocused) return;
+
+  if (evt.eventType === 'down') {
+    setFocusedIndex(null); // reset focus to View All when changing row
+  }
+
+  if (evt.eventType === 'up') {
+    if (focusedIndex === null) {
+      // prevent jumping to the row above
+      return;
+    }
+  }
+
+  if (evt.eventType === 'select') {
+    if (focusedIndex === null) {
+      handleViewAllPress();
+    }
+  }
+});
+
+
+
+useEffect(() => {
+  if (isRowFocused) {
+    setFocusedIndex(null); // auto-focus View All button
+  }
+}, [isRowFocused]);
+
 
   useEffect(() => {
     const fetchSubscriptionData = async () => {
@@ -106,123 +129,103 @@ export default function CTrendingVideos(props: TrendingVideoProps) {
         }
       } catch (error) {
         console.error('Error fetching subscription data:', error);
-      } finally {
-        // setLoading(false);
       }
     };
-
     fetchSubscriptionData();
   }, []);
 
   const handleViewAllPress = () => {
     if (onViewAllPress) {
-      onViewAllPress(); // Use custom "View All" handler if provided
+      onViewAllPress();
     } else if (viewAllLink) {
-      navigation.navigate(viewAllLink); // Default navigation
+      navigation.navigate(viewAllLink);
     }
   };
 
   return (
-    <View
-      style={[
-        styles.container,
-        customStyles.container,
-        {
-          // marginTop:isTablet ? scale(2) : scale(5),
-        },
-      ]}>
-      {/* Section Header */}
-      <View
-        style={[
-          styles.header,
-          customStyles.header,
-          {
-            marginVertical: scale(8),
-            marginHorizontal: scale(5),
-          },
-        ]}>
-        <Text
-          numberOfLines={1}
-          adjustsFontSizeToFit={true}
-          style={[styles.title, customStyles.title]}>
+    <View style={[styles.container, customStyles.container]}>
+      {/* 🔹 Section Header Title */}
+      <View style={[styles.header, customStyles.header, { marginVertical: scale(8), marginHorizontal: scale(5) }]}>
+        <Text numberOfLines={1} style={[styles.title, customStyles.title]}>
           {title}
         </Text>
         {viewAllLink && (
-          <TouchableOpacity onPress={handleViewAllPress} style={styles.link}>
-            {showViewAllText && (
-              <Text style={[styles.viewAllText]}>{viewText}</Text>
-            )}
-            <FFIcon name="chevron-right" size={20} color={COLORS.white} />
-          </TouchableOpacity>
+
+        <TouchableOpacity
+    onPress={handleViewAllPress}
+    focusable={Platform.isTV && isRowFocused}
+    onFocus={() => isRowFocused && setFocusedIndex(null)}
+    hasTVPreferredFocus={Platform.isTV && isRowFocused && focusedIndex === null}
+    style={[
+      styles.link,
+      isRowFocused && focusedIndex === null && styles.focusedLink,
+    ]}
+  >
+    {showViewAllText && <Text style={styles.viewAllText}>{viewText}</Text>}
+    <FFIcon name="chevron-right" size={20} color={COLORS.white} />
+  </TouchableOpacity>
         )}
       </View>
 
-      {/* Horizontally Scrollable List */}
+      {/* 🔹 Horizontal Scroll List */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{
           flexGrow: 1,
           marginHorizontal: isTablet ? scale(2) : scale(8),
-        }}>
-        {/* {trendingVideosData.map((item, index) => ( */}
-        {trendingVideosData?.slice(0, 10).map((item, index) => (
-          <TouchableOpacity
-            key={item._id || `item-${index}`}
-            onPress={() => onImagePress?.(item)}
-            style={[
-              styles.itemContainer,
-              {
-                width: itemWidth,
-                height: itemHeight + (showStreamName ? scale(20) : 0),
-                marginHorizontal: isTablet ? scale(3) : scale(6),
-              },
-              customStyles.itemContainer,
-            ]}
-            // style={[styles.itemContainer, customStyles.itemContainer,{ marginHorizontal:isTablet ? scale(3) : scale(6),}]}
-          >
-            <Image
-              source={{
-                uri: `${NEXT_PUBLIC_API_CDN_ENDPOINT}${
-                  item?.[imageKey] || item?.banner
-                }`,
-              }}
+        }}
+      >
+        {trendingVideosData?.slice(0, 10).map((item, index) => {
+          const isFocused = isRowFocused && focusedIndex === index;
+          return (
+            <TouchableOpacity
+              key={item._id || `item-${index}`}
+              onPress={() => onImagePress?.(item)}
+              onFocus={() => isRowFocused && setFocusedIndex(index)}
+              focusable={Platform.isTV && isRowFocused}
+              hasTVPreferredFocus={Platform.isTV && isRowFocused && index === 0}
               style={[
+                styles.itemContainer,
+                //  isFocused && styles.highlighted,
                 {
                   width: itemWidth,
-                  height: itemHeight,
+                  height: itemHeight + (showStreamName ? scale(20) : 0),
+                  marginHorizontal: isTablet ? scale(3) : scale(6),
                 },
-                customStyles.image,
+                customStyles.itemContainer,
               ]}
-              resizeMode="cover"
-            />
-
-            {!subscriptionData && item?.access === 'Paid' && (
-              <View style={[styles.subscriptionContainer]}>
-                <FIcon
-                  name="crown"
-                  size={scale(8)} 
-                  style={styles.subscriptionIcon}
+            >
+              <View
+                style={[
+                  styles.imageWrapper,
+                  isFocused && styles.focusedImageWrapper,
+                  { width: itemWidth, height: itemHeight },
+                ]}
+              >
+                <Image
+                  source={{ uri: `${NEXT_PUBLIC_API_CDN_ENDPOINT}${item?.[imageKey]}` }}
+                  style={[styles.image, customStyles.image]}
+                  resizeMode="cover"
                 />
               </View>
-            )}
 
-            {showStreamName && (
-              <Text style={[styles.streamName, customStyles.streamName]}>
-                {item.streamName}
-              </Text>
-            )}
-            {showStreamDescription && item.streamDescription && (
-              <Text
-                style={[
-                  styles.streamDescription,
-                  customStyles.streamDescription,
-                ]}>
-                {item.streamDescription}
-              </Text>
-            )}
-          </TouchableOpacity>
-        ))}
+              {!subscriptionData && item?.access === 'Paid' && (
+                <View style={styles.subscriptionContainer}>
+                  <FIcon name="crown" size={scale(8)} style={styles.subscriptionIcon} />
+                </View>
+              )}
+
+              {showStreamName && <Text style={[styles.streamName, customStyles.streamName]}>{item.streamName}</Text>}
+
+              {showStreamDescription && item.streamDescription && (
+                <Text style={[styles.streamDescription, customStyles.streamDescription]}>
+                  {item.streamDescription}
+                </Text>
+              )}
+            </TouchableOpacity>
+          );
+        })}
       </ScrollView>
     </View>
   );
@@ -241,10 +244,24 @@ const styles = StyleSheet.create({
     fontSize: scale(9),
     lineHeight: scale(15),
   },
+  // link: {
+  //   flexDirection: 'row',
+  //   alignItems: 'center',
+  // },
   link: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
+  flexDirection: 'row',
+  alignItems: 'center',
+  padding: scale(4),
+},
+focusedLink: {
+  borderWidth: 1,
+  borderColor: COLORS.white,
+  backgroundColor: COLORS.focusItem, // your highlight color
+  borderRadius: 4,
+  padding: scale(4),
+},
+
+
   viewAllText: {
     fontFamily: FONTS.montSemiBold,
     color: COLORS.white,
@@ -256,9 +273,21 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     alignItems: 'center',
   },
+  imageWrapper: {
+    // borderRadius: scale(6),
+    overflow: 'hidden',
+  },
+  focusedImageWrapper: {
+    borderWidth: scale(1),
+    borderColor: COLORS.white,
+    // borderRadius: scale(6),
+    // transform: [{ scale: 1.05 }],
+    backgroundColor: COLORS.focusItem,
+  },
   image: {
     width: '100%',
     height: '100%',
+    // borderRadius: scale(6),
   },
   streamName: {
     marginTop: scale(6),
@@ -278,11 +307,25 @@ const styles = StyleSheet.create({
     borderRadius: scale(3),
     top: scale(5),
     right: scale(5),
-    backgroundColor: 'rgba(0, 0, 0, 0.7)', // Background for better visibility
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   subscriptionIcon: {
-    color: COLORS.yellow, // Ensure the color is correct
+    color: COLORS.yellow,
   },
+//   highlighted: {
+//   borderWidth: 3,
+//   borderColor: '#fff',
+//   borderRadius: 8,
+//   transform: [{ scale: 1.05 }],
+//   backgroundColor: '#212121', // (optional, for dark highlight)
+//   // Optionally, add shadow for more depth
+//   shadowColor: '#000',
+//   shadowOffset: { width: 0, height: 4 },
+//   shadowOpacity: 0.3,
+//   shadowRadius: 6,
+//   elevation: 5
+// }
+
 });
