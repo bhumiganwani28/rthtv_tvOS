@@ -1,5 +1,5 @@
 // WhosWatchingTVOS.tsx
-import React, { useState, useRef } from 'react';
+import React, {useState, useRef} from 'react';
 import {
   View,
   Text,
@@ -8,20 +8,24 @@ import {
   ScrollView,
   ActivityIndicator,
   Platform,
+  BackHandler,
 } from 'react-native';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
+import {useNavigation, useFocusEffect} from '@react-navigation/native';
+import {useSelector} from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import AIcon from 'react-native-vector-icons/AntDesign';
 import MIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import CAlertModal from '../../components/CAlertModal';
 import Header from '../../components/Header';
 import BackHandlerComponent from '../../components/BackHandlerComponent';
-import { scale, verticalScale } from 'react-native-size-matters';
-import { IMAGES } from '../../theme/images';
-import { COLORS } from '../../theme/colors';
+import {scale, verticalScale} from 'react-native-size-matters';
+import {IMAGES} from '../../theme/images';
+import {COLORS} from '../../theme/colors';
 import apiHelper from '../../config/apiHelper';
-import { NEXT_PUBLIC_API_CDN_ENDPOINT, PROFILE_LIST } from '../../config/apiEndpoints';
+import {
+  NEXT_PUBLIC_API_CDN_ENDPOINT,
+  PROFILE_LIST,
+} from '../../config/apiEndpoints';
 import styles from './styles';
 
 const MAX_PROFILES = 6;
@@ -43,43 +47,41 @@ const WhosWatchingTVOS: React.FC = () => {
   useFocusEffect(
     React.useCallback(() => {
       fetchProfiles();
-    }, [])
+    }, []),
   );
-
   const fetchProfiles = async () => {
-  if (dataFetchedRef.current) return;
-  dataFetchedRef.current = true;
+    if (dataFetchedRef.current) return;
+    dataFetchedRef.current = true;
 
-  try {
-    const response = await apiHelper.get(PROFILE_LIST);
-    const profiles = response?.data || [];
+    try {
+      const response = await apiHelper.get(PROFILE_LIST);
+      const profiles = response?.data || [];
 
-    setProfilesData(profiles);
+      setProfilesData(profiles);
 
-    // 🔁 Save all profiles
-    await AsyncStorage.setItem('userProfiles', JSON.stringify(profiles));
-  } catch (error) {
-    setModalMessage(error?.message || 'Failed to load profiles.');
-    setModalType('error');
-    setModalVisible(true);
-  } finally {
-    setLoading(false);
-  }
-};
+      // 🔁 Save all profiles
+      await AsyncStorage.setItem('userProfiles', JSON.stringify(profiles));
+    } catch (error) {
+      setModalMessage(error?.message || 'Failed to load profiles.');
+      setModalType('error');
+      setModalVisible(true);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-const handleProfileSelect = async (profile: any) => {
-  if (isEditMode) {
-    navigation.navigate('AddProfile', profile);
-  } else {
-    console.log('Selected Profile:', profile);
+  const handleProfileSelect = async (profile: any) => {
+    if (isEditMode) {
+      navigation.navigate('AddProfile', profile);
+    } else {
+      console.log('Selected Profile:', profile);
 
-    await AsyncStorage.setItem('selectedProfile', JSON.stringify(profile));
-    await new Promise(resolve => setTimeout(resolve, 100)); // optional delay
+      await AsyncStorage.setItem('selectedProfile', JSON.stringify(profile));
+      await new Promise(resolve => setTimeout(resolve, 100)); // optional delay
 
-    navigation.replace('Home');
-  }
-};
-
+      navigation.replace('Home');
+    }
+  };
 
   const toggleEditMode = () => setIsEditMode(prev => !prev);
 
@@ -93,15 +95,21 @@ const handleProfileSelect = async (profile: any) => {
           onFocus={() => setFocusedIndex(index)}
           onPress={() => handleProfileSelect(profile)}
           hasTVPreferredFocus={index === 0}
-          focusable={true}
-        >
+          focusable={true}>
           <Image
-            source={{ uri: `${NEXT_PUBLIC_API_CDN_ENDPOINT}${profile.avatar}` }}
-            style={[styles.profileImage, { width: PROFILE_IMAGE_SIZE, height: PROFILE_IMAGE_SIZE }]}
+            source={{uri: `${NEXT_PUBLIC_API_CDN_ENDPOINT}${profile.avatar}`}}
+            style={[
+              styles.profileImage,
+              {width: PROFILE_IMAGE_SIZE, height: PROFILE_IMAGE_SIZE},
+            ]}
             resizeMode="cover"
           />
           {isEditMode && (
-            <View style={[styles.editOverlay, { width: PROFILE_IMAGE_SIZE, height: PROFILE_IMAGE_SIZE }]}>
+            <View
+              style={[
+                styles.editOverlay,
+                {width: PROFILE_IMAGE_SIZE, height: PROFILE_IMAGE_SIZE},
+              ]}>
               <MIcon name="pencil-outline" size={22} color={COLORS.white} />
             </View>
           )}
@@ -117,9 +125,12 @@ const handleProfileSelect = async (profile: any) => {
         style={styles.addProfileCard}
         onPress={() => navigation.navigate('AddProfile')}
         hasTVPreferredFocus={profilesData.length === 0}
-        focusable={true}
-      >
-        <View style={[styles.addProfileContainer, { width: PROFILE_IMAGE_SIZE, height: PROFILE_IMAGE_SIZE }]}>
+        focusable={true}>
+        <View
+          style={[
+            styles.addProfileContainer,
+            {width: PROFILE_IMAGE_SIZE, height: PROFILE_IMAGE_SIZE},
+          ]}>
           <AIcon name="plus" size={28} color={COLORS.white} />
         </View>
       </TouchableOpacity>
@@ -129,7 +140,13 @@ const handleProfileSelect = async (profile: any) => {
 
   return (
     <View style={styles.centerWrapper}>
-      <BackHandlerComponent onBackPress={() => true} />
+      <BackHandlerComponent
+        onBackPress={() => {
+          BackHandler.exitApp();
+          return true;
+        }}
+      />
+
       <Header logoSource={IMAGES.logo} editIconPress={toggleEditMode} />
       <View style={styles.titleContainer}>
         <Text style={styles.title}>Who's watching?</Text>
@@ -142,8 +159,7 @@ const handleProfileSelect = async (profile: any) => {
         <ScrollView
           contentContainerStyle={styles.profilesScroll}
           horizontal
-          showsHorizontalScrollIndicator={false}
-        >
+          showsHorizontalScrollIndicator={false}>
           {profilesData.map(renderProfile)}
           {profilesData.length < MAX_PROFILES && renderAddProfile()}
         </ScrollView>

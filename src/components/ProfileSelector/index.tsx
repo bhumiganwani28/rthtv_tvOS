@@ -65,8 +65,12 @@ const ProfileMenuTV: React.FC<ProfileMenuTVProps> = ({ onProfileChange }) => {
     setShowDropdown(false);
     switch (action) {
       case 'manageProfile':
-        navigation.navigate('WhosWatching');
-        break;
+  navigation.replace('WhosWatching');
+  break;
+
+      // case 'manageProfile':
+      //   navigation.navigate('WhosWatching');
+      //   break;
       case 'settings':
         // navigation.navigate('Settings'); // adjust as per your navigation
         break;

@@ -19,7 +19,7 @@ import { validateEmail, validatePassword } from '../../utils/validation';
 import apiHelper from '../../config/apiHelper';
 import { SIGNUP_URL } from '../../config/apiEndpoints';
 import CAlertModal from '../../components/CAlertModal';
-
+import CountryPicker, { Country } from 'react-native-country-picker-modal';
 const SignUpScreen = ({ navigation }: { navigation: any }) => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -35,6 +35,16 @@ const SignUpScreen = ({ navigation }: { navigation: any }) => {
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [modalType, setModalType] = useState<'success' | 'error'>('success');
   const [modalMessage, setModalMessage] = useState<string>('');
+    // New country picker state
+  const [countryCode, setCountryCode] = useState('IN'); // Default India
+  const [callingCode, setCallingCode] = useState('91');
+  const [countryPickerVisible, setCountryPickerVisible] = useState(false);
+
+  const onSelectCountry = (country: Country) => {
+    setCountryCode(country.cca2);
+    setCallingCode(country.callingCode[0] || '');
+    setCountryPickerVisible(false);
+  };
 
   const togglePasswordVisibility = () => {
     setIsPasswordVisible(!isPasswordVisible);
@@ -104,7 +114,7 @@ const SignUpScreen = ({ navigation }: { navigation: any }) => {
         setModalVisible(true);
         setTimeout(() => {
           setModalVisible(false);
-          navigation.navigate('Login');
+          navigation.navigate('LoginTV');
         }, 1500);
       }
     } catch (error) {
@@ -136,7 +146,7 @@ const SignUpScreen = ({ navigation }: { navigation: any }) => {
           break;
         case 'select':
           if (focusedField === 'signup') handleSignUp();
-          else if (focusedField === 'login') navigation.navigate('Login');
+          else if (focusedField === 'login') navigation.navigate('LoginTV');
           break;
       }
     }
@@ -252,7 +262,7 @@ const SignUpScreen = ({ navigation }: { navigation: any }) => {
 
                 <View style={styles.footerContainer}>
                   <TouchableOpacity
-                    onPress={() => navigation.navigate('Login')}
+                    onPress={() => navigation.navigate('LoginTV')}
                     style={{ flexDirection: 'row' }}
                     hasTVPreferredFocus={focusedField === 'login'}
                     focusable

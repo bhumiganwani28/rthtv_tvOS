@@ -29,10 +29,11 @@ const {width, height} = Dimensions.get('window');
 const isTV = Platform.isTV;
 
 const LoginTV = ({navigation}: {navigation: any}) => {
-  const [email, setEmail] = useState<string>(
-    __DEV__ ? 'ruhi28@mailinator.com' : '',
-  );
-  const [password, setPassword] = useState<string>(__DEV__ ? 'Ruhi@2811' : '');
+  // const [email, setEmail] = useState<string>(
+  //   __DEV__ ? 'ruhi28@mailinator.com' : '',
+  // );
+   const [email, setEmail] = useState<string>('ruhi28@mailinator.com');
+  const [password, setPassword] = useState<string>('Ruhi@2811');
   const [focusedField, setFocusedField] = useState<
     'email' | 'password' | 'submit' | 'signup' | 'forgot'
   >('email');
@@ -112,7 +113,7 @@ const LoginTV = ({navigation}: {navigation: any}) => {
         // Navigate to Home after delay
         setTimeout(() => {
           setModalVisible(false);
-          navigation.navigate('WhosWatching');
+          navigation.replace('WhosWatching');
         }, 1000);
       }
     } catch (error) {
@@ -174,15 +175,19 @@ const LoginTV = ({navigation}: {navigation: any}) => {
           else if (focusedField === 'password') setFocusedField('email');
           break;
         case 'select':
-          if (focusedField === 'submit') handleLogin();
-          else if (focusedField === 'signup') navigation.navigate('SignUp');
-          else if (focusedField === 'forgot') {
-            // Handle forgot password
-            console.log('Forgot password clicked');
-          } else if (focusedField === 'email' || focusedField === 'password') {
-            setShowKeyboard(true);
-          }
-          break;
+        if (focusedField === 'submit') {
+          handleLogin();
+        } else if (focusedField === 'forgot') {
+          // console.log('Forgot password clicked');
+             navigation.navigate('ForgotPasswordTV');
+          // TODO: Navigate to forgot screen if needed
+        } else if (focusedField === 'signup') {
+          navigation.navigate('SignUp');
+        } else if (focusedField === 'email' || focusedField === 'password') {
+          setShowKeyboard(true);
+        }
+        break;
+
       }
     }
   });
@@ -285,8 +290,7 @@ const LoginTV = ({navigation}: {navigation: any}) => {
                   <View style={styles.signupContainer}>
                     <Text style={styles.signupText}>New to RTH.TV?</Text>
                     <TouchableOpacity
-                      onPress={() => handleLogin()}
-                      // onPress={() => navigation.navigate('SignUp')}
+                      onPress={() => navigation.navigate('SignUp')}
                       focusable={isTV}
                       hasTVPreferredFocus={focusedField === 'signup'}>
                       <Text style={styles.signupLink}>Sign Up</Text>

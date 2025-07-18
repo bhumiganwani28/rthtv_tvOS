@@ -42,14 +42,12 @@ const OnBoarding: React.FC<OnBoardingProps> = ({ navigation }) => {
 
   // Handle navigation to signup
   const handleSignUp = async () => {
-    await AsyncStorage.setItem('hasSeenOnboarding', 'true');
     navigation.navigate('SignUp');
   };
 
   // Handle navigation to signin
   const handleSignIn = async () => {
-    await AsyncStorage.setItem('hasSeenOnboarding', 'true');
-    navigation.navigate('Login');
+    navigation.navigate('LoginTV');
   };
 
   // Handle TV remote events

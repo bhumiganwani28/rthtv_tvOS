@@ -362,12 +362,12 @@ const CInput: React.FC<CInputProps> = ({
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    borderWidth:1,
-    borderColor:COLORS.white,
     backgroundColor:COLORS.black,
 
   },
   inputContainer: {
+    borderWidth:1,
+    borderColor:COLORS.white,
     flexDirection: 'row',
     alignItems: 'center',
     borderRadius: 4,
@@ -394,7 +394,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     color: COLORS.red,
-    fontSize: scale(10),
+    fontSize: scale(8),
     marginTop: scale(2),
     fontFamily: FONTS.montRegular,
   },

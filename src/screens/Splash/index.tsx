@@ -43,21 +43,28 @@ const Splash: React.FC<SplashProps> = ({ navigation }) => {
           navigation.replace('OnBoarding'); // Show onboarding for subsequent launches
         }
       }
+      
     } catch (error) {
       console.error('Error during login check:', error);
       navigation.replace('Intro'); // Default fallback
     }
   };
+  
+useEffect(() => {
+  Animated.timing(fadeAnim, {
+    toValue: 1,
+    duration: 1000,
+    useNativeDriver: true,
+  }).start(() => {
+    setTimeout(() => {
+      (async () => {
+        await checkLoginStatus();
+      })();
+    }, 1000);
+  });
+}, [fadeAnim, dispatch, navigation]);
 
-  useEffect(() => {
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 1000,
-      useNativeDriver: true,
-    }).start(() => {
-      setTimeout(checkLoginStatus, 1500);
-    });
-  }, [fadeAnim, dispatch, navigation]);
+
 
   return (
     <>
