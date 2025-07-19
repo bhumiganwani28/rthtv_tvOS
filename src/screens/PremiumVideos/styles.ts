@@ -50,8 +50,8 @@ export default StyleSheet.create({
   },
   itemContainer: {
     //  borderRadius: scale(10),
-    overflow: 'hidden',
-    borderWidth: 3,
+    // overflow: 'hidden',
+    borderWidth: scale(1),
     borderColor: 'transparent',
     backgroundColor: COLORS.itemContainer,
   },

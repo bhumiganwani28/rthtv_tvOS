@@ -21,6 +21,7 @@ import ChannelDetails from '../screens/ChannelDetailsTV';
 import AllSeasons from '../screens/AllSeasons';
 import Channels from '../screens/Channels';
 import SearchVideosTV from '../screens/SearchVideosTV';
+import SearchScreenTV from '../screens/SearchScreenTV';
 
 
 const Stack = createNativeStackNavigator();
@@ -62,7 +63,7 @@ const AppNavigator = () => {
 
       <Stack.Screen name="AllSeasons" component={AllSeasons} />
        <Stack.Screen name="SearchVideosTV" component={SearchVideosTV} />
-
+       <Stack.Screen name="SearchScreenTV" component={SearchScreenTV} />
          {/* <Stack.Screen name="VODScreen" component={VODScreen} /> */}
     </Stack.Navigator>
   );
