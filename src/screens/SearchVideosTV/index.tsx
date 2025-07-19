@@ -40,7 +40,7 @@ const ITEM_SPACING = scale(26);
 const totalSpacing = ITEM_SPACING * (NUM_COLUMNS + 1);
 const cardWidth = (screenWidth - totalSpacing) / NUM_COLUMNS;
 const cardHeight = cardWidth * 1.4;
-const itemMargin = ITEM_SPACING / 2;
+const itemMargin = ITEM_SPACING / 1.5;
 
 const SearchVideosTV: React.FC = () => {
   const navigation = useNavigation();
@@ -164,7 +164,7 @@ const SearchVideosTV: React.FC = () => {
           width: cardWidth,
           height: cardHeight,
           marginHorizontal: itemMargin / 1.5,
-          marginVertical: itemMargin / 2,
+          marginVertical: itemMargin / 1.5,
         }}>
         <View
           style={[
@@ -208,14 +208,21 @@ const SearchVideosTV: React.FC = () => {
       </View>
 
       {/* ========== Trending List ========== */}
-      <View style={{paddingHorizontal: scale(20)}}>
+      <View 
+      style={{
+        paddingHorizontal: scale(20),
+
+      }}>
         <FlatList
           horizontal
           data={trendingData}
           renderItem={renderTrendingItem}
           keyExtractor={item => item.id}
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{paddingBottom: scale(10)}} // No marginBottom here
+          contentContainerStyle={{
+         paddingBottom: scale(10),
+}}
+          // contentContainerStyle={{paddingBottom: scale(10)}} // No marginBottom here
         />
       </View>
       {/* ========== Season List Results ========== */}
