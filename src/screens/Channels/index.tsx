@@ -246,7 +246,7 @@ const cardHeight = cardWidth / CARD_ASPECT_RATIO;
         showBack={false}
         showSearch
         showLogout
-        onSearchPress={() => navigation.navigate('SearchVideos')}
+        onSearchPress={() => navigation.navigate('SearchVideosTV')}
       />
 
       {/* ✅ Tab Bar at the top */}

@@ -479,7 +479,7 @@ const HomeScreen: React.FC = () => {
         showBack={false}
         showSearch={true}
         showLogout={true}
-        onSearchPress={() => navigation.navigate('SearchVideos')}
+        onSearchPress={() => navigation.navigate('SearchVideosTV')}
         onLogoutPress={handleLogout}
       />
 

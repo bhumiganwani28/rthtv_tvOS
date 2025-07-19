@@ -224,7 +224,7 @@ const LatestSeason: React.FC = () => {
         showBack={false}
         showSearch
         showLogout
-        onSearchPress={() => navigation.navigate('SearchVideos')}
+        onSearchPress={() => navigation.navigate('SearchVideosTV')}
       />
 
       {/* Tab Bar */}

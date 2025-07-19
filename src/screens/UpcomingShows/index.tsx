@@ -208,7 +208,7 @@ const UpcomingShows: React.FC = () => {
         showBack={false}
         showSearch
         showLogout
-        onSearchPress={() => navigation.navigate('SearchVideos')}
+        onSearchPress={() => navigation.navigate('SearchVideosTV')}
       />
 
       {/* Tab bar - optional if you plan to add other tabs */}

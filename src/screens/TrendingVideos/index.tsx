@@ -233,7 +233,7 @@ const TrendingVideos: React.FC = () => {
         showLogo
         showSearch
         showLogout
-        onSearchPress={() => navigation.navigate('SearchVideos')}
+        onSearchPress={() => navigation.navigate('SearchVideosTV')}
       />
 
       {/* Tab bar */}
