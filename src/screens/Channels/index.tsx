@@ -212,7 +212,7 @@ const cardHeight = cardWidth / CARD_ASPECT_RATIO;
         navigation.navigate('LatestSeason');
         break;
       case 'mylist':
-        navigation.navigate('AllVideosScreen');
+        // navigation.navigate('AllVideosScreen');
         break;
       default:
         break;

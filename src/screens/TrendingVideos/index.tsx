@@ -126,7 +126,7 @@ const TrendingVideos: React.FC = () => {
       case 'channels': navigation.navigate('Channels'); break;
       case 'premium': navigation.navigate('PremiumVideos'); break;
       case 'featured': navigation.navigate('TrendingVideos'); break;
-      case 'mylist': navigation.navigate('AllVideosScreen'); break;
+      // case 'mylist': navigation.navigate('AllVideosScreen'); break;
     }
   };
 

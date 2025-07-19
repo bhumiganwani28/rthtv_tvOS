@@ -157,7 +157,7 @@ const LatestSeason: React.FC = () => {
         navigation.navigate('Featured'); // update route name if required
         break;
       case 'mylist':
-        navigation.navigate('AllVideosScreen');
+        // navigation.navigate('AllVideosScreen');
         break;
     }
   };
