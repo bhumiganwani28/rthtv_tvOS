@@ -17,6 +17,22 @@ export default StyleSheet.create({
     marginBottom: scale(15),
     paddingHorizontal: scale(20),
   },
+  trendingHeaderRow: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+},
+
+searchIconButton: {
+  padding: scale(6),
+  backgroundColor: COLORS.lightBlack,
+  borderRadius: scale(4),
+},
+
+focusedSearchIcon: {
+  borderWidth: scale(1),
+  borderColor: COLORS.white,
+},
 trendingItem: {
   backgroundColor: COLORS.greyBorder,
   paddingHorizontal: scale(8),
