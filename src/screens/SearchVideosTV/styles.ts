@@ -7,7 +7,7 @@ import { FONTS } from '../../utils/fonts';
 export default StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.black,
     paddingVertical: scale(20),
   },
   headerTitle: {

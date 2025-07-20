@@ -218,7 +218,7 @@ const HomeScreen: React.FC = () => {
   const handleTvShowPress = (item: any) => {
     console.log("item>",item);
     
-    // navigation.navigate('VODScreen', {seasonID: item?._id});
+    navigation.navigate('VODScreenTV', {seasonID: item?._id});
   };
 
   const fetchData = async () => {

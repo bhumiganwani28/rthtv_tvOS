@@ -5901,6 +5901,11 @@ react-native-timezone@^3.1.0:
   resolved "https://registry.yarnpkg.com/react-native-timezone/-/react-native-timezone-3.1.0.tgz#4aafbae1ff0039a48276212999d9b3d3dc7f9ca2"
   integrity sha512-B8TMTZko9l21WchFRQkqDOLW5f+sUIwswIXuvtBWEAxHOYY3c7ZKzYZ0AQBCIwKfrTNJCHASGS14KLWjOs4XWA==
 
+react-native-tvfocus@^0.2.0:
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/react-native-tvfocus/-/react-native-tvfocus-0.2.0.tgz#a85e82c300feec3d5cb88b9ebc6b62597965a597"
+  integrity sha512-6UTXcRfk6BccZ0fV07ck8BsFX2r94P1r+EnH4DGz6ZjtnPVL42u/gHRsMFHmNwqRAHxJhB6c841q2HLrHAY4Bw==
+
 react-native-vector-icons@^10.2.0:
   version "10.2.0"
   resolved "https://registry.npmjs.org/react-native-vector-icons/-/react-native-vector-icons-10.2.0.tgz"

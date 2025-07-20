@@ -29,6 +29,7 @@
     "react-native-screens": "^4.11.1",
     "react-native-size-matters": "^0.4.2",
     "react-native-timezone": "^3.1.0",
+    "react-native-tvfocus": "^0.2.0",
     "react-native-vector-icons": "^10.2.0",
     "react-redux": "^9.2.0"
   },
