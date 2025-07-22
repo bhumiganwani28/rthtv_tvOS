@@ -31,6 +31,7 @@
     "react-native-timezone": "^3.1.0",
     "react-native-tvfocus": "^0.2.0",
     "react-native-vector-icons": "^10.2.0",
+    "react-native-video": "^6.16.1",
     "react-redux": "^9.2.0"
   },
   "devDependencies": {

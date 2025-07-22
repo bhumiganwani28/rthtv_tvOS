@@ -108,7 +108,7 @@ const SearchVideosTV: React.FC = () => {
   const handleSeasonPress = (item: SeasonItem) => {
     console.log("item>",item);
     
-    // navigation.navigate('VODScreen', {seasonID: item?._id});
+    navigation.navigate('VODScreen', {seasonID: item?._id});
   };
 
   useEffect(() => {

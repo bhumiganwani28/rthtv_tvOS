@@ -96,7 +96,7 @@ const HomeScreen: React.FC = () => {
     {id: 'channels', title: 'Channels'},
     {id: 'premium', title: 'Premium'},
     {id: 'featured', title: 'Featured'},
-    {id: 'mylist', title: 'My List'},
+    // {id: 'tvGuide', title: 'TV Guide'},
   ]);
   const [selectedTab, setSelectedTab] = useState<string>('home');
   const [focusedTab, setFocusedTab] = useState<string>('home');
@@ -145,10 +145,10 @@ const HomeScreen: React.FC = () => {
         navigation.navigate('PremiumVideos'); // Change as per your route names
         break;
       case 'featured':
-        // navigation.navigate('LatestSeason');
+        navigation.navigate('LatestSeason');
         break;
-      case 'mylist':
-        // navigation.navigate('AllVideosScreen');
+      case 'tvGuide':
+        // navigation.navigate('TVGuideScreen');
         break;
       default:
         break;
@@ -218,7 +218,7 @@ const HomeScreen: React.FC = () => {
   const handleTvShowPress = (item: any) => {
     console.log("item>",item);
     
-    navigation.navigate('VODScreenTV', {seasonID: item?._id});
+    navigation.navigate('VODScreen', {seasonID: item?._id});
   };
 
   const fetchData = async () => {

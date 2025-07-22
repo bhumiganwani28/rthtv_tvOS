@@ -110,12 +110,14 @@ const VODScreen: React.FC = ({route}) => {
       if (response?.data) {
         // const videoUrl =
         const videoUri = response?.data?.data?.video?.accessKey;
+        console.log("videoUri");
+        
         // const videoUri = `${NEXT_PUBLIC_API_CDN_ENDPOINT}${response?.data?.data?.video}`;
         // console.log("Video URL:", videoUri); // Log video URL to console
 
-        navigation.navigate('VideoPlayerScreen', {
-          videoUri,
-          streamName: response?.data.data?.title,
+        navigation.navigate('TVVideoPlayerScreen', {
+          // videoUri,
+          // streamName: response?.data.data?.title,
         });
       } else {
         console.error('No data received for the selected video.');
