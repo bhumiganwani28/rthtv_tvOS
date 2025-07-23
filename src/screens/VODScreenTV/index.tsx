@@ -115,9 +115,9 @@ const VODScreen: React.FC = ({route}) => {
         // const videoUri = `${NEXT_PUBLIC_API_CDN_ENDPOINT}${response?.data?.data?.video}`;
         // console.log("Video URL:", videoUri); // Log video URL to console
 
-        navigation.navigate('TVVideoPlayerScreen', {
-          // videoUri,
-          // streamName: response?.data.data?.title,
+        navigation.navigate('VideoPlayerScreen', {
+          videoUri,
+          streamName: response?.data.data?.title,
         });
       } else {
         console.error('No data received for the selected video.');
