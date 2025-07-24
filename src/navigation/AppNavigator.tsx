@@ -31,11 +31,11 @@ const Stack = createNativeStackNavigator();
 
 const AppNavigator = () => {
   return (
-    <Stack.Navigator 
-      initialRouteName="Splash" 
-      screenOptions={{ 
+    <Stack.Navigator
+      initialRouteName="Splash"
+      screenOptions={{
         headerShown: false,
-        animation: Platform.isTV ? 'fade' : 'default',
+        animation: Platform.isTV ? 'none' : 'default',
         contentStyle: { backgroundColor: 'transparent' },
         fullScreenGestureEnabled: false,
         gestureEnabled: !Platform.isTV,
@@ -46,13 +46,13 @@ const AppNavigator = () => {
     >
       <Stack.Screen name="Splash" component={Splash} />
       <Stack.Screen name="OnBoarding" component={OnBoarding} />
-      
+
       <Stack.Screen name="LoginTV" component={LoginTV} />
-     <Stack.Screen name="SignUp" component={SignUpScreen} />
-     <Stack.Screen name="ForgotPasswordTV" component={ForgotPasswordTV} />
+      <Stack.Screen name="SignUp" component={SignUpScreen} />
+      <Stack.Screen name="ForgotPasswordTV" component={ForgotPasswordTV} />
       <Stack.Screen name="ChangePasswordTV" component={ChangePasswordTV} />
 
-    
+
       <Stack.Screen name="WhosWatching" component={WhosWatchingScreen} />
       <Stack.Screen name="Home" component={Home} />
       <Stack.Screen name="ChannelDetailsTV" component={ChannelDetailsTV} />
@@ -63,13 +63,13 @@ const AppNavigator = () => {
       <Stack.Screen name="LatestSeason" component={LatestSeason} />
       <Stack.Screen name="Intro" component={IntroSlider} />
 
-       <Stack.Screen name="VODScreen" component={VODScreen} />
+      <Stack.Screen name="VODScreen" component={VODScreen} />
 
       <Stack.Screen name="AllSeasons" component={AllSeasons} />
-       <Stack.Screen name="SearchVideosTV" component={SearchVideosTV} />
-       <Stack.Screen name="SearchScreenTV" component={SearchScreenTV} />
-        <Stack.Screen name="VideoPlayerScreen" component={VideoPlayerScreen} />
-        {/* <Stack.Screen name="TVGuideScreen" component={TVGuideScreen} /> */}
+      <Stack.Screen name="SearchVideosTV" component={SearchVideosTV} />
+      <Stack.Screen name="SearchScreenTV" component={SearchScreenTV} />
+      <Stack.Screen name="VideoPlayerScreen" component={VideoPlayerScreen} />
+      {/* <Stack.Screen name="TVGuideScreen" component={TVGuideScreen} /> */}
 
     </Stack.Navigator>
   );

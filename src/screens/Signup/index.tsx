@@ -26,7 +26,7 @@ const SignUpScreen = ({ navigation }: { navigation: any }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-  const [focusedField, setFocusedField] = useState<'firstName' | 'lastName' | 'email' | 'password' | 'signup' | 'login'>('firstName');
+  const [focusedField, setFocusedField] = useState<'firstName' | 'lastName' | 'email' | 'password' | 'passwordEye' | 'signup' | 'login'>('firstName');
   const [loading, setLoading] = useState<boolean>(false);
   const [firstNameError, setFirstNameError] = useState<string>('');
   const [lastNameError, setLastNameError] = useState<string>('');
@@ -35,7 +35,7 @@ const SignUpScreen = ({ navigation }: { navigation: any }) => {
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [modalType, setModalType] = useState<'success' | 'error'>('success');
   const [modalMessage, setModalMessage] = useState<string>('');
-    // New country picker state
+  // New country picker state
   const [countryCode, setCountryCode] = useState('IN'); // Default India
   const [callingCode, setCallingCode] = useState('91');
   const [countryPickerVisible, setCountryPickerVisible] = useState(false);
@@ -134,19 +134,26 @@ const SignUpScreen = ({ navigation }: { navigation: any }) => {
           if (focusedField === 'firstName') setFocusedField('lastName');
           else if (focusedField === 'lastName') setFocusedField('email');
           else if (focusedField === 'email') setFocusedField('password');
-          else if (focusedField === 'password') setFocusedField('signup');
+          else if (focusedField === 'password' || focusedField === 'passwordEye') setFocusedField('signup');
           else if (focusedField === 'signup') setFocusedField('login');
           break;
         case 'up':
           if (focusedField === 'login') setFocusedField('signup');
           else if (focusedField === 'signup') setFocusedField('password');
-          else if (focusedField === 'password') setFocusedField('email');
+          else if (focusedField === 'password' || focusedField === 'passwordEye') setFocusedField('email');
           else if (focusedField === 'email') setFocusedField('lastName');
           else if (focusedField === 'lastName') setFocusedField('firstName');
+          break;
+        case 'right':
+          if (focusedField === 'password') setFocusedField('passwordEye');
+          break;
+        case 'left':
+          if (focusedField === 'passwordEye') setFocusedField('password');
           break;
         case 'select':
           if (focusedField === 'signup') handleSignUp();
           else if (focusedField === 'login') navigation.navigate('LoginTV');
+          else if (focusedField === 'passwordEye') togglePasswordVisibility();
           break;
       }
     }
@@ -246,6 +253,7 @@ const SignUpScreen = ({ navigation }: { navigation: any }) => {
                     containerStyle={styles.input}
                     errorShow={!!passwordError}
                     errorText={passwordError}
+                    eyeIconFocused={focusedField === 'passwordEye'}
                   />
                 </View>
 
@@ -254,7 +262,7 @@ const SignUpScreen = ({ navigation }: { navigation: any }) => {
                   onPress={() => handleSignUp()}
                   style={styles.button}
                   textStyle={styles.buttonText}
-                  hasTVPreferredFocus={focusedField === 'submit'}
+                  hasTVPreferredFocus={focusedField === 'signup'}
                   focusable
                   backgroundColor={COLORS.primary}
                   loading={loading}
