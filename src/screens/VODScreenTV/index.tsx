@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState, useRef} from 'react';
+import React, { useCallback, useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -11,16 +11,17 @@ import {
   Linking,
   Share,
   Dimensions,
+  ScrollView,
   Platform,
 } from 'react-native';
 import IIcon from 'react-native-vector-icons/Ionicons';
-import {COLORS} from '../../theme/colors';
-import {scale} from 'react-native-size-matters';
-import {FONTS} from '../../utils/fonts';
-import {IMAGES} from '../../theme/images';
+import { COLORS } from '../../theme/colors';
+import { scale } from 'react-native-size-matters';
+import { FONTS } from '../../utils/fonts';
+import { IMAGES } from '../../theme/images';
 import AIcon from 'react-native-vector-icons/AntDesign'; // For caret-right icon
 import styles from './styles';
-import {NavigationProp, useNavigation} from '@react-navigation/native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import {
   HOME_PAGE_API,
   NEXT_PUBLIC_API_CDN_ENDPOINT,
@@ -33,14 +34,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import FIcon from 'react-native-vector-icons/FontAwesome6';
 import FIIcon from 'react-native-vector-icons/FontAwesome';
 import FFIcon from 'react-native-vector-icons/Feather';
-import {useSelector} from 'react-redux';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import { useSelector } from 'react-redux';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Header from '../../components/Header';
-import {ScrollView} from 'react-native-gesture-handler';
+// import {ScrollView} from 'react-native-gesture-handler';
 
 type VODScreenNavigationProp = NavigationProp<any>; // Use the correct type for your stack
 
-const VODScreen: React.FC = ({route}) => {
+const VODScreen: React.FC = ({ route }) => {
   const navigation = useNavigation<VODScreenNavigationProp>();
   const [tabLoading, setTabLoading] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState('Episodes');
@@ -54,7 +55,7 @@ const VODScreen: React.FC = ({route}) => {
   const [episodesList, setEpisodesList] = useState<any[]>([]);
   const [subscriptionData, setSubscriptionData] = useState<any>(null);
   const [longISDescription, setLongISDescription] = useState<any>(null);
-  const {seasonID} = route?.params || {};
+  const { seasonID } = route?.params || {};
   const scrollY = useRef(new Animated.Value(0)).current;
   const limitedSeasonsData = Array.isArray(seasonsData)
     ? seasonsData?.slice(0, 6)
@@ -66,12 +67,12 @@ const VODScreen: React.FC = ({route}) => {
   // const posterSpacing = isTablet ? scale(8) : scale(10);
 
   const screenWidth = Dimensions.get('window').width;
-  const itemMargin =  scale(24);
+  const itemMargin = scale(24);
   const columns = 5;
   const posterWidth = (screenWidth - itemMargin * (columns + 1)) / columns;
   const posterHeight = posterWidth * 1.5;
 
-  const ICON_SIZE =  scale(40); // Adjust icon size for tablet/phone (you can tweak these)
+  const ICON_SIZE = scale(40); // Adjust icon size for tablet/phone (you can tweak these)
   const HALF_ICON_SIZE = ICON_SIZE / 2;
   // Toggle dropdown visibility
   const toggleDropdown = () => {
@@ -111,7 +112,7 @@ const VODScreen: React.FC = ({route}) => {
         // const videoUrl =
         const videoUri = response?.data?.data?.video?.accessKey;
         console.log("videoUri");
-        
+
         // const videoUri = `${NEXT_PUBLIC_API_CDN_ENDPOINT}${response?.data?.data?.video}`;
         // console.log("Video URL:", videoUri); // Log video URL to console
 
@@ -177,7 +178,7 @@ const VODScreen: React.FC = ({route}) => {
           // Otherwise, seasonCount can be set elsewhere.
           setSeasonCount(response.data?.totalSeasonCount?.seasonNo);
 
-          // ✅ Set genre names here
+          // :white_check_mark: Set genre names here
           const genresArray = response?.data?.season?.genre || [];
           const genreNamesList = genresArray.map((genre: any) => genre.name);
           setGenreNames(genreNamesList.join(', '));
@@ -225,7 +226,7 @@ const VODScreen: React.FC = ({route}) => {
 
   // navigate to particluar image press in VOD screen with seasonID
   const handleSeasonPress = (item: any) => {
-    navigation.navigate('VODScreen', {seasonID: item?._id});
+    navigation.navigate('VODScreen', { seasonID: item?._id });
   };
 
   useEffect(() => {
@@ -256,7 +257,7 @@ const VODScreen: React.FC = ({route}) => {
     extrapolate: 'clamp',
   });
 
-  const renderEpisodeItem = ({item}: {item: typeof episodesList}) => (
+  const renderEpisodeItem = ({ item }: { item: typeof episodesList }) => (
     <TouchableOpacity
       onPress={() => handleTvShowPress(item)}
       style={[
@@ -270,7 +271,7 @@ const VODScreen: React.FC = ({route}) => {
       <View style={styles.episodeItem}>
         <View style={styles.imageContainer}>
           <Image
-            source={{uri: `${NEXT_PUBLIC_API_CDN_ENDPOINT}${item?.coverImage}`}}
+            source={{ uri: `${NEXT_PUBLIC_API_CDN_ENDPOINT}${item?.coverImage}` }}
             style={[
               styles.episodeImage,
               {
@@ -305,8 +306,8 @@ const VODScreen: React.FC = ({route}) => {
                 top: '50%',
                 left: '50%',
                 transform: [
-                  {translateX: -HALF_ICON_SIZE},
-                  {translateY: -HALF_ICON_SIZE},
+                  { translateX: -HALF_ICON_SIZE },
+                  { translateY: -HALF_ICON_SIZE },
                 ],
                 width: ICON_SIZE,
                 height: ICON_SIZE,
@@ -323,7 +324,7 @@ const VODScreen: React.FC = ({route}) => {
           style={[
             styles.episodeDetails,
             {
-              marginLeft:scale(10),
+              marginLeft: scale(10),
             },
           ]}>
           <View>
@@ -339,8 +340,8 @@ const VODScreen: React.FC = ({route}) => {
                 style={[
                   styles.episodeDescription,
                   {
-                    fontSize:scale(8),
-                    lineHeight :scale(12),
+                    fontSize: scale(8),
+                    lineHeight: scale(12),
                     marginTop: scale(2),
                   },
                 ]}>
@@ -356,7 +357,7 @@ const VODScreen: React.FC = ({route}) => {
             style={[
               styles.episodeDescription,
               {
-                fontSize:  scale(13),
+                fontSize: scale(13),
                 lineHeight: scale(18),
               },
             ]}>
@@ -367,7 +368,7 @@ const VODScreen: React.FC = ({route}) => {
     </TouchableOpacity>
   );
 
-  const renderSeasonItem = ({item}: {item: any}) => (
+  const renderSeasonItem = ({ item }: { item: any }) => (
     <TouchableOpacity
       onPress={() => handleSeasonPress(item)}
       style={{
@@ -392,9 +393,9 @@ const VODScreen: React.FC = ({route}) => {
     `${item?.id}-${item?.slug}-${index}`;
 
   const headerComponent = (
-    <View style={{flex: 1}}>
+    <View style={{ flex: 1 }}>
       {/* Banner */}
-      <View style={{flex: 1}}>
+      <View style={{ flex: 1 }}>
         {showDetails?.season?.mobileBanner && (
           <Image
             source={{
@@ -402,7 +403,7 @@ const VODScreen: React.FC = ({route}) => {
             }}
             style={{
               width: '100%',
-              height:  scale(200),
+              height: scale(200),
             }}
           />
         )}
@@ -420,7 +421,7 @@ const VODScreen: React.FC = ({route}) => {
                   styles.title,
                   {
                     fontSize: scale(13),
-                    lineHeight:  scale(18),
+                    lineHeight: scale(18),
                     marginVertical: scale(10),
                   },
                 ]}>
@@ -458,7 +459,7 @@ const VODScreen: React.FC = ({route}) => {
                     },
                   ]}>
                   {Array.from(
-                    {length: seasonCount},
+                    { length: seasonCount },
                     (_, index) => index + 1,
                   ).map(season => (
                     <TouchableOpacity
@@ -466,14 +467,14 @@ const VODScreen: React.FC = ({route}) => {
                       style={[
                         styles.dropdownItem,
                         {
-                          padding:scale(5),
+                          padding: scale(5),
                         },
                       ]}
                       onPress={() => handleSeasonSelect(season)}>
                       <Text
                         style={[
                           styles.dropdownItemText,
-                          {fontSize: scale(10)},
+                          { fontSize: scale(10) },
                         ]}>{`Season ${season}`}</Text>
                     </TouchableOpacity>
                   ))}
@@ -485,7 +486,7 @@ const VODScreen: React.FC = ({route}) => {
               style={[
                 styles.sessionTag,
                 {
-                  paddingVertical:  scale(5),
+                  paddingVertical: scale(5),
                   paddingHorizontal: scale(10),
                 },
               ]}
@@ -494,7 +495,7 @@ const VODScreen: React.FC = ({route}) => {
                 style={[
                   styles.sessionText,
                   {
-                    fontSize:scale(13),
+                    fontSize: scale(13),
                   },
                 ]}>{`Season ${selectedSeason}`}</Text>
               <FFIcon
@@ -522,9 +523,9 @@ const VODScreen: React.FC = ({route}) => {
                 style={[
                   styles.seasonDescription,
                   {
-                    fontSize:  scale(11),
+                    fontSize: scale(11),
                     lineHeight: scale(15),
-                    marginTop:  scale(5),
+                    marginTop: scale(5),
                   },
                 ]}>
                 {showDetails?.season?.shortDescription}
@@ -535,14 +536,14 @@ const VODScreen: React.FC = ({route}) => {
                 styles.yearInfo,
                 {
                   fontSize: scale(12),
-                  lineHeight:  scale(18),
-                  marginTop:scale(5),
+                  lineHeight: scale(18),
+                  marginTop: scale(5),
                 },
               ]}>
               {showDetails?.season?.releaseDate
                 ? `${new Date(
-                    showDetails?.season?.releaseDate,
-                  ).getFullYear()} • `
+                  showDetails?.season?.releaseDate,
+                ).getFullYear()} • `
                 : ''}
               {episodesList?.length}{' '}
               {episodesList?.length === 1 ? 'Episode' : 'Episodes'}
@@ -557,8 +558,8 @@ const VODScreen: React.FC = ({route}) => {
             style={[
               styles.actionButton,
               {
-              paddingVertical:  scale(5),
-              paddingHorizontal: scale(10),
+                paddingVertical: scale(5),
+                paddingHorizontal: scale(10),
               },
             ]}>
             <FIIcon
@@ -571,8 +572,8 @@ const VODScreen: React.FC = ({route}) => {
               style={[
                 styles.watchText,
                 {
-                  fontSize:  scale(12),
-                  marginLeft:  scale(10),
+                  fontSize: scale(12),
+                  marginLeft: scale(10),
                 },
               ]}>
               Watch Now
@@ -582,7 +583,7 @@ const VODScreen: React.FC = ({route}) => {
             style={[
               styles.circleButton,
               {
-                width:  scale(25),
+                width: scale(25),
                 height: scale(25),
                 marginHorizontal: scale(5),
               },
@@ -602,21 +603,21 @@ const VODScreen: React.FC = ({route}) => {
         title={showDetails?.season?.title}
         // showBackButton
         onBackPress={() => navigation.goBack()}
-        // showSearchIcon={false}
+      // showSearchIcon={false}
       />
-      <View style={{flex: 1}}>
+      <View style={{ flex: 1 }}>
         {loading ? (
           <View style={styles.loaderContainer}>
             <ActivityIndicator size="large" color={COLORS.primary} />
           </View>
         ) : (
-          <View style={{flex: 1}}>
+          <View style={{ flex: 1 }}>
             <FlatList
               data={[]}
               renderItem={() => null}
               ListHeaderComponent={headerComponent}
               ListFooterComponent={
-                <View style={{flex: 1, marginBottom: scale(20)}}>
+                <View style={{ flex: 1, marginBottom: scale(20) }}>
                   {/* Tabs */}
                   <View
                     style={[
@@ -629,7 +630,7 @@ const VODScreen: React.FC = ({route}) => {
                       style={[
                         styles.tabItem,
                         {
-                          paddingVertical:  scale(10),
+                          paddingVertical: scale(10),
                         },
                         activeTab === 'Episodes' && styles.activeTab,
                       ]}
@@ -639,8 +640,8 @@ const VODScreen: React.FC = ({route}) => {
                           styles.tabLabel,
                           activeTab === 'Episodes' && styles.activeText,
                           {
-                            fontSize:  scale(13),
-                            lineHeight:  scale(20),
+                            fontSize: scale(13),
+                            lineHeight: scale(20),
                           },
                         ]}>
                         Episodes
@@ -664,7 +665,7 @@ const VODScreen: React.FC = ({route}) => {
                           activeTab === 'More Details' && styles.activeText,
                           {
                             fontSize: scale(13),
-                            lineHeight:  scale(20),
+                            lineHeight: scale(20),
                           },
                         ]}>
                         More Details
@@ -681,7 +682,7 @@ const VODScreen: React.FC = ({route}) => {
                       <ActivityIndicator size="large" color={COLORS.primary} />
                     </View>
                   ) : activeTab === 'Episodes' ? (
-                    <View style={{flex: 1}}>
+                    <View style={{ flex: 1 }}>
                       <FlatList
                         style={{
                           flex: 1,
@@ -697,13 +698,13 @@ const VODScreen: React.FC = ({route}) => {
                         }}
                       />
                       {/* More Like This section */}
-                      <View style={{flex: 1, marginHorizontal:  scale(5),}}>
+                      <View style={{ flex: 1, marginHorizontal: scale(5), }}>
                         <View
                           style={[
                             styles.viewHeader,
                             {
-                              marginHorizontal:  scale(12),
-                              marginVertical:  scale(10),
+                              marginHorizontal: scale(12),
+                              marginVertical: scale(10),
                             },
                           ]}>
                           <Text
@@ -729,9 +730,9 @@ const VODScreen: React.FC = ({route}) => {
                               style={[
                                 styles.viewAllText,
                                 {
-                                  fontSize:  scale(10),
-                                  lineHeight:scale(12),
-                                  marginRight:scale(2),
+                                  fontSize: scale(10),
+                                  lineHeight: scale(12),
+                                  marginRight: scale(2),
                                 },
                               ]}>
                               View All
@@ -747,7 +748,7 @@ const VODScreen: React.FC = ({route}) => {
                           data={limitedSeasonsData}
                           renderItem={renderSeasonItem}
                           keyExtractor={(_, index) => `more-${index}`}
-                          style={{flex: 1}}
+                          style={{ flex: 1 }}
                           numColumns={columns}
                           contentContainerStyle={{
                             flexGrow: 1,
@@ -762,15 +763,15 @@ const VODScreen: React.FC = ({route}) => {
                       showsVerticalScrollIndicator={false}
                       style={{
                         flex: 1,
-                        paddingHorizontal:  scale(10),
-                        paddingTop:  scale(10),
+                        paddingHorizontal: scale(10),
+                        paddingTop: scale(8),
                       }}
-                      contentContainerStyle={{flexGrow: 1}}>
+                      contentContainerStyle={{ flexGrow: 1 }}>
                       {genreNames && (
                         <Text
                           style={[
                             styles.genreText,
-                            {fontSize: scale(13)},
+                            { fontSize: scale(12) },
                           ]}>
                           Genres: {genreNames}
                         </Text>
@@ -779,9 +780,9 @@ const VODScreen: React.FC = ({route}) => {
                         style={[
                           styles.moreDetails,
                           {
-                            fontSize:  scale(13),
-                            lineHeight:  scale(19),
-                            paddingTop:  scale(10),
+                            fontSize: scale(10),
+                            lineHeight: scale(15),
+                            paddingTop: scale(8),
                           },
                         ]}>
                         {longISDescription}
@@ -793,8 +794,8 @@ const VODScreen: React.FC = ({route}) => {
               keyExtractor={() => 'unique'}
               showsVerticalScrollIndicator={false}
               onScroll={Animated.event(
-                [{nativeEvent: {contentOffset: {y: scrollY}}}],
-                {useNativeDriver: false},
+                [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+                { useNativeDriver: false },
               )}
               scrollEventThrottle={16}
             />
