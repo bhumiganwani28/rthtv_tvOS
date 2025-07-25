@@ -1,5 +1,5 @@
 // WhosWatchingTVOS.tsx
-import React, {useState, useRef} from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,29 +7,28 @@ import {
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
-  Platform,
   BackHandler,
 } from 'react-native';
-import {useNavigation, useFocusEffect} from '@react-navigation/native';
-import {useSelector} from 'react-redux';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import AIcon from 'react-native-vector-icons/AntDesign';
 import MIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import CAlertModal from '../../components/CAlertModal';
 import Header from '../../components/Header';
 import BackHandlerComponent from '../../components/BackHandlerComponent';
-import {scale, verticalScale} from 'react-native-size-matters';
-import {IMAGES} from '../../theme/images';
-import {COLORS} from '../../theme/colors';
+import { scale, verticalScale } from 'react-native-size-matters';
+import { IMAGES } from '../../theme/images';
+import { COLORS } from '../../theme/colors';
 import apiHelper from '../../config/apiHelper';
 import {
   NEXT_PUBLIC_API_CDN_ENDPOINT,
   PROFILE_LIST,
 } from '../../config/apiEndpoints';
 import styles from './styles';
+import CButton from '../../components/CButton';
 
 const MAX_PROFILES = 6;
-const isTV = Platform.isTV;
 
 const WhosWatchingTVOS: React.FC = () => {
   const navigation = useNavigation();
@@ -97,10 +96,10 @@ const WhosWatchingTVOS: React.FC = () => {
           hasTVPreferredFocus={index === 0}
           focusable={true}>
           <Image
-            source={{uri: `${NEXT_PUBLIC_API_CDN_ENDPOINT}${profile.avatar}`}}
+            source={{ uri: `${NEXT_PUBLIC_API_CDN_ENDPOINT}${profile.avatar}` }}
             style={[
               styles.profileImage,
-              {width: PROFILE_IMAGE_SIZE, height: PROFILE_IMAGE_SIZE},
+              { width: PROFILE_IMAGE_SIZE, height: PROFILE_IMAGE_SIZE },
             ]}
             resizeMode="cover"
           />
@@ -108,8 +107,9 @@ const WhosWatchingTVOS: React.FC = () => {
             <View
               style={[
                 styles.editOverlay,
-                {width: PROFILE_IMAGE_SIZE, height: PROFILE_IMAGE_SIZE},
-              ]}>
+                { width: PROFILE_IMAGE_SIZE, height: PROFILE_IMAGE_SIZE },
+              ]}
+            >
               <MIcon name="pencil-outline" size={22} color={COLORS.white} />
             </View>
           )}
@@ -121,20 +121,14 @@ const WhosWatchingTVOS: React.FC = () => {
 
   const renderAddProfile = () => (
     <View style={styles.profileWrapper}>
-      <TouchableOpacity
-        style={styles.addProfileCard}
+      <CButton
+        text="Add"
         onPress={() => navigation.navigate('AddProfile')}
+        style={styles.addProfileCard}
         hasTVPreferredFocus={profilesData.length === 0}
-        focusable={true}>
-        <View
-          style={[
-            styles.addProfileContainer,
-            {width: PROFILE_IMAGE_SIZE, height: PROFILE_IMAGE_SIZE},
-          ]}>
-          <AIcon name="plus" size={28} color={COLORS.white} />
-        </View>
-      </TouchableOpacity>
-      <Text style={styles.profileName}>Add</Text>
+        focusable={true}
+        icon={<AIcon name="plus" size={28} color={COLORS.white} />}
+      />
     </View>
   );
 
@@ -156,13 +150,36 @@ const WhosWatchingTVOS: React.FC = () => {
           <ActivityIndicator size="large" color={COLORS.primary} />
         </View>
       ) : (
-        <ScrollView
-          contentContainerStyle={styles.profilesScroll}
-          horizontal
-          showsHorizontalScrollIndicator={false}>
-          {profilesData.map(renderProfile)}
-          {profilesData.length < MAX_PROFILES && renderAddProfile()}
-        </ScrollView>
+        <>
+          <ScrollView
+            contentContainerStyle={styles.profilesScroll}
+            horizontal
+            showsHorizontalScrollIndicator={false}>
+            {profilesData.map(renderProfile)}
+            {profilesData.length < MAX_PROFILES && renderAddProfile()}
+          </ScrollView>
+          {/* Edit/Cancel Buttons Row under profiles */}
+          <View style={styles.editButtonsRow}>
+            {!isEditMode && (
+              <CButton
+                text="Edit Profiles"
+                onPress={toggleEditMode}
+                style={styles.editProfilesButton}
+                icon={<MIcon name="pencil-outline" size={22} color={COLORS.white} />}
+                focusable={true}
+              />
+            )}
+            {isEditMode && (
+              <CButton
+                text="Cancel"
+                onPress={toggleEditMode}
+                style={styles.cancelEditButton}
+                outline
+                focusable={true}
+              />
+            )}
+          </View>
+        </>
       )}
       <CAlertModal
         visible={modalVisible}

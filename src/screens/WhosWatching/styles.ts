@@ -47,10 +47,10 @@ export default StyleSheet.create({
     alignItems: 'center',
   },
 
-  addProfileCard:{
-  marginHorizontal: scale(15),
+  addProfileCard: {
+    marginHorizontal: scale(15),
     alignItems: 'center',
- 
+
   },
   profileCard: {
     justifyContent: 'center',
@@ -103,5 +103,20 @@ export default StyleSheet.create({
     paddingBottom: verticalScale(10),
     backgroundColor: COLORS.black,
     alignItems: 'center',
+  },
+  editProfilesButton: {
+    width: '20%',
+  },
+  cancelEditButton: {
+    borderColor: COLORS.primary,
+    borderWidth: 1,
+    width: '20%',
+  },
+  editButtonsRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: verticalScale(10),
+    marginBottom: verticalScale(60),
   },
 });
