@@ -26,9 +26,10 @@ import {useDispatch} from 'react-redux';
 import {loginSuccess} from '../../redux/slices/authSlice';
 
 const {width, height} = Dimensions.get('window');
-const isTV = Platform.isTV;
 
 const LoginTV = ({navigation}: {navigation: any}) => {
+  const isTV = Platform.isTV;
+
   // const [email, setEmail] = useState<string>(
   //   __DEV__ ? 'ruhi28@mailinator.com' : '',
   // );

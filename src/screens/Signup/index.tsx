@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { IMAGES } from '../../theme/images';
 import { COLORS } from '../../theme/colors';
-import styles from './styles';
+import styles from './styles'; 
 import CInput from '../../components/CInput';
 import CButton from '../../components/CButton';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -38,8 +38,8 @@ const SignUpScreen = ({ navigation }: { navigation: any }) => {
   const [modalType, setModalType] = useState<'success' | 'error'>('success');
   const [modalMessage, setModalMessage] = useState<string>('');
   // New country picker state
-  const [countryCode, setCountryCode] = useState('IN'); // Default India
-  const [callingCode, setCallingCode] = useState('91');
+  const [countryCode, setCountryCode] = useState('US'); // Default India
+  const [callingCode, setCallingCode] = useState('1');
   const [countryPickerVisible, setCountryPickerVisible] = useState(false);
   const [mobile, setMobile] = useState('');
   const [mobileError, setMobileError] = useState('');
@@ -113,17 +113,19 @@ const SignUpScreen = ({ navigation }: { navigation: any }) => {
 
     setLoading(true);
     try {
-      const fcmToken = (await AsyncStorage.getItem('fcmToken')) || '';
+      // Prepare FormData as in mobile app
+      const formDataToSend = new FormData();
+      formDataToSend.append('first_name', firstName.trim());
+      formDataToSend.append('last_name', lastName.trim());
+      formDataToSend.append('email', email.trim());
+      formDataToSend.append('password', password.trim());
+      formDataToSend.append('phoneNumber', callingCode + mobile.trim());
 
-      const response = await apiHelper.post(SIGNUP_URL, {
-        firstName: firstName.trim(),
-        lastName: lastName.trim(),
-        email: email.trim(),
-        password: password.trim(),
-        mobile: mobile.trim(),
-        countryCode,
-        callingCode,
-        fcmToken,
+      // API call to signup endpoint with correct headers
+      const response = await apiHelper.post(SIGNUP_URL, formDataToSend, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
       });
 
       if (response?.status === 200 || response?.status === 201) {
@@ -138,7 +140,14 @@ const SignUpScreen = ({ navigation }: { navigation: any }) => {
     } catch (error) {
       console.error('Signup failed:', error);
       setModalType('error');
-      setModalMessage(error instanceof Error ? error.message : 'Signup failed. Please try again.');
+      // Show backend error if available
+      let backendMsg = 'Signup failed. Please try again.';
+      if (error?.response && error?.response.data && error?.response?.data?.message) {
+        backendMsg = error?.response?.data?.message;
+      } else if (error?.message) {
+        backendMsg = error?.message;
+      }
+      setModalMessage(backendMsg);
       setModalVisible(true);
     } finally {
       setLoading(false);
