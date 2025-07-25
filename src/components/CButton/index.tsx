@@ -103,6 +103,7 @@ const styles = StyleSheet.create({
     width: '100%',
     borderColor: 'transparent',
     borderWidth: 0,
+      overflow: 'hidden',
   },
   smallButton: {
     height: scale(20),
@@ -148,16 +149,18 @@ const styles = StyleSheet.create({
   tvButton: {
  height: scale(22),
     borderRadius: 4,
+     overflow: 'hidden',
   },
   tvFocusedButton: {
-    transform: [{ scale: 1.02 }],
-    borderColor: COLORS.white,
-    borderWidth: 1,
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-  },
+  transform: [{ scale: 1.02 }],
+  borderColor: COLORS.white,
+  borderWidth: 1,
+  shadowColor: COLORS.primary,
+  shadowOffset: { width: 0, height: 0 },
+  shadowOpacity: 0.3,
+  shadowRadius: 5,
+  backgroundColor: COLORS.primary, // ✅ Add this line
+},
   tvButtonText: {
     fontSize: scale(12),
   },
