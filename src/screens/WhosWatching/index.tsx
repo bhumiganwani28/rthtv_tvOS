@@ -48,39 +48,47 @@ const WhosWatchingTVOS: React.FC = () => {
       fetchProfiles();
     }, []),
   );
-  const fetchProfiles = async () => {
-    if (dataFetchedRef.current) return;
-    dataFetchedRef.current = true;
 
-    try {
-      const response = await apiHelper.get(PROFILE_LIST);
-      const profiles = response?.data || [];
 
-      setProfilesData(profiles);
+    const fetchProfiles = async () => {
+        if (dataFetchedRef.current) return;
+        dataFetchedRef.current = true;
+        setLoading(true);
 
-      // 🔁 Save all profiles
-      await AsyncStorage.setItem('userProfiles', JSON.stringify(profiles));
-    } catch (error) {
-      setModalMessage(error?.message || 'Failed to load profiles.');
-      setModalType('error');
-      setModalVisible(true);
-    } finally {
-      setLoading(false);
-    }
-  };
+        try {
+            const response = await apiHelper.get(PROFILE_LIST); // Fetch profiles from API
+            setProfilesData(response?.data);
+        } catch (error: any) {
+            const errorMessage =
+                error?.message || 'An error occurred. Please try again.';
+            // Set error modal
+            setModalMessage(errorMessage);
+            setModalType('error');
+            setModalVisible(true);
+        } finally {
+            setLoading(false);
+        }
+    };
 
-  const handleProfileSelect = async (profile: any) => {
-    if (isEditMode) {
-      navigation.navigate('AddProfile', profile);
-    } else {
-      console.log('Selected Profile:', profile);
-
-      await AsyncStorage.setItem('selectedProfile', JSON.stringify(profile));
-      await new Promise(resolve => setTimeout(resolve, 100)); // optional delay
-
-      navigation.replace('Home');
-    }
-  };
+    const handleProfileSelect = async (profileId: number) => {
+        const selectedProfile = profilesData.find(profile => profile?.id === profileId);
+        if (isEditMode) {
+            // Navigate to AddProfile screen with pre-filled data for editing
+            navigation.navigate('AddProfile', {
+                profileId: selectedProfile?.id,
+                name: selectedProfile?.name,
+                avatar: selectedProfile?.avatar,
+                defaultProfile: selectedProfile?.default,
+                isKidsProfile: selectedProfile?.isKidsProfile,
+            });
+        } else {
+            // Store the selected profile's image URL in AsyncStorage
+            await AsyncStorage.setItem('selectedProfileImage', selectedProfile?.avatar || '');
+            await AsyncStorage.setItem('selectedProfileName', selectedProfile?.name || '');
+            // Navigate to home screen (or the appropriate screen)
+            navigation.replace('Home');
+        }
+    };
 
   const toggleEditMode = () => setIsEditMode(prev => !prev);
 
@@ -92,11 +100,12 @@ const WhosWatchingTVOS: React.FC = () => {
         <TouchableOpacity
           style={[styles.profileCard, isFocused && styles.focusedProfileCard]}
           onFocus={() => setFocusedIndex(index)}
-          onPress={() => handleProfileSelect(profile)}
+          // onPress={() => handleProfileSelect(profile)}
+          onPress={() => handleProfileSelect(profile?.id)}
           hasTVPreferredFocus={index === 0}
           focusable={true}>
           <Image
-            source={{ uri: `${NEXT_PUBLIC_API_CDN_ENDPOINT}${profile.avatar}` }}
+            source={{ uri: `${NEXT_PUBLIC_API_CDN_ENDPOINT}${profile?.avatar}` }}
             style={[
               styles.profileImage,
               { width: PROFILE_IMAGE_SIZE, height: PROFILE_IMAGE_SIZE },
