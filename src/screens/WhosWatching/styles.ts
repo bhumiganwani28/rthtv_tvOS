@@ -79,6 +79,7 @@ export default StyleSheet.create({
     fontFamily: FONTS.montMedium,
   },
 
+  
   addProfileContainer: {
     borderRadius: scale(10),
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
@@ -88,6 +89,21 @@ export default StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.3)',
   },
 
+addProfileBox: {
+  width: scale(55),
+  height: scale(55),
+  borderRadius: scale(6),
+  backgroundColor: '#1a1a1a',
+  borderColor: '#333',
+  borderWidth: 1,
+  justifyContent: 'center',
+  alignItems: 'center',
+},
+
+focusedAddProfileBox: {
+  borderColor: COLORS.primary, // Highlight color on focus
+  borderWidth: 3,
+},
   editOverlay: {
     position: 'absolute',
     top: 0,

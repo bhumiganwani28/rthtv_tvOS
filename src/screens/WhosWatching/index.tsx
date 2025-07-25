@@ -39,7 +39,7 @@ const WhosWatchingTVOS: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalMessage, setModalMessage] = useState('');
   const [modalType, setModalType] = useState<'success' | 'error'>('error');
-
+const [isAddFocused, setIsAddFocused] = useState(false);
   const dataFetchedRef = useRef(false);
   const PROFILE_IMAGE_SIZE = scale(55); // small and neat
 
@@ -128,18 +128,23 @@ const WhosWatchingTVOS: React.FC = () => {
     );
   };
 
-  const renderAddProfile = () => (
-    <View style={styles.profileWrapper}>
-      <CButton
-        text="Add"
-        onPress={() => navigation.navigate('AddProfile')}
-        style={styles.addProfileCard}
-        hasTVPreferredFocus={profilesData.length === 0}
-        focusable={true}
-        icon={<AIcon name="plus" size={28} color={COLORS.white} />}
-      />
-    </View>
-  );
+const renderAddProfile = () => (
+  <View style={styles.profileWrapper}>
+    <TouchableOpacity
+      style={[
+        styles.addProfileBox,
+        isAddFocused && styles.focusedAddProfileBox,
+      ]}
+      onFocus={() => setIsAddFocused(true)}
+      onBlur={() => setIsAddFocused(false)}
+      onPress={() => navigation.navigate('AddProfile')}
+      hasTVPreferredFocus={profilesData.length === 0}
+      focusable={true}>
+      <AIcon name="plus" size={28} color={COLORS.white} />
+    </TouchableOpacity>
+    <Text style={styles.profileName}>Add</Text>
+  </View>
+);
 
   return (
     <View style={styles.centerWrapper}>
