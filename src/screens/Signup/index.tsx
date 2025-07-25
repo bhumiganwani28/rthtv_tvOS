@@ -8,6 +8,7 @@ import {
   Image,
   SafeAreaView,
   TouchableOpacity,
+  ScrollView,
 } from 'react-native';
 import { IMAGES } from '../../theme/images';
 import { COLORS } from '../../theme/colors';
@@ -20,13 +21,14 @@ import apiHelper from '../../config/apiHelper';
 import { SIGNUP_URL } from '../../config/apiEndpoints';
 import CAlertModal from '../../components/CAlertModal';
 import CountryPicker, { Country } from 'react-native-country-picker-modal';
+import { scale } from 'react-native-size-matters';
 const SignUpScreen = ({ navigation }: { navigation: any }) => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-  const [focusedField, setFocusedField] = useState<'firstName' | 'lastName' | 'email' | 'password' | 'passwordEye' | 'signup' | 'login'>('firstName');
+  const [focusedField, setFocusedField] = useState<'firstName' | 'lastName' | 'email' | 'mobile' | 'mobileFlag' | 'password' | 'passwordEye' | 'signup' | 'login'>('firstName');
   const [loading, setLoading] = useState<boolean>(false);
   const [firstNameError, setFirstNameError] = useState<string>('');
   const [lastNameError, setLastNameError] = useState<string>('');
@@ -39,6 +41,8 @@ const SignUpScreen = ({ navigation }: { navigation: any }) => {
   const [countryCode, setCountryCode] = useState('IN'); // Default India
   const [callingCode, setCallingCode] = useState('91');
   const [countryPickerVisible, setCountryPickerVisible] = useState(false);
+  const [mobile, setMobile] = useState('');
+  const [mobileError, setMobileError] = useState('');
 
   const onSelectCountry = (country: Country) => {
     setCountryCode(country.cca2);
@@ -78,6 +82,17 @@ const SignUpScreen = ({ navigation }: { navigation: any }) => {
       setEmailError('');
     }
 
+    // Mobile validation: required, digits only, min 6, max 15
+    if (!mobile.trim()) {
+      setMobileError('Mobile number is required');
+      isValid = false;
+    } else if (!/^\d{6,15}$/.test(mobile.trim())) {
+      setMobileError('Enter a valid mobile number (6-15 digits)');
+      isValid = false;
+    } else {
+      setMobileError('');
+    }
+
     if (!password.trim()) {
       setPasswordError('Password is required');
       isValid = false;
@@ -105,6 +120,9 @@ const SignUpScreen = ({ navigation }: { navigation: any }) => {
         lastName: lastName.trim(),
         email: email.trim(),
         password: password.trim(),
+        mobile: mobile.trim(),
+        countryCode,
+        callingCode,
         fcmToken,
       });
 
@@ -133,27 +151,34 @@ const SignUpScreen = ({ navigation }: { navigation: any }) => {
         case 'down':
           if (focusedField === 'firstName') setFocusedField('lastName');
           else if (focusedField === 'lastName') setFocusedField('email');
-          else if (focusedField === 'email') setFocusedField('password');
+          else if (focusedField === 'email') setFocusedField('mobileFlag');
+          else if (focusedField === 'mobileFlag') setFocusedField('mobile');
+          else if (focusedField === 'mobile') setFocusedField('password');
           else if (focusedField === 'password' || focusedField === 'passwordEye') setFocusedField('signup');
           else if (focusedField === 'signup') setFocusedField('login');
           break;
         case 'up':
           if (focusedField === 'login') setFocusedField('signup');
           else if (focusedField === 'signup') setFocusedField('password');
-          else if (focusedField === 'password' || focusedField === 'passwordEye') setFocusedField('email');
+          else if (focusedField === 'password' || focusedField === 'passwordEye') setFocusedField('mobile');
+          else if (focusedField === 'mobile') setFocusedField('mobileFlag');
+          else if (focusedField === 'mobileFlag') setFocusedField('email');
           else if (focusedField === 'email') setFocusedField('lastName');
           else if (focusedField === 'lastName') setFocusedField('firstName');
           break;
         case 'right':
-          if (focusedField === 'password') setFocusedField('passwordEye');
+          if (focusedField === 'mobileFlag') setFocusedField('mobile');
+          else if (focusedField === 'password') setFocusedField('passwordEye');
           break;
         case 'left':
-          if (focusedField === 'passwordEye') setFocusedField('password');
+          if (focusedField === 'mobile') setFocusedField('mobileFlag');
+          else if (focusedField === 'passwordEye') setFocusedField('password');
           break;
         case 'select':
           if (focusedField === 'signup') handleSignUp();
           else if (focusedField === 'login') navigation.navigate('LoginTV');
           else if (focusedField === 'passwordEye') togglePasswordVisibility();
+          else if (focusedField === 'mobileFlag') setCountryPickerVisible(true);
           break;
       }
     }
@@ -171,115 +196,165 @@ const SignUpScreen = ({ navigation }: { navigation: any }) => {
             )}
 
             <View style={styles.formWrapper}>
-              <Text style={styles.heading}>Create Your Account</Text>
+              <ScrollView
+                style={{ width: '100%' }}
+                contentContainerStyle={{ flexGrow: 1, alignItems: 'center', justifyContent: 'center' }}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+              >
+                <Text style={styles.heading}>Create Your Account</Text>
+                <View style={styles.formContainer}>
+                  {/* First and Last Name row */}
+                  <View style={styles.row}>
+                    <View style={styles.halfInputWrapper}>
+                      <Text style={styles.inputLabel}>First Name</Text>
+                      <CInput
+                        placeholder="First Name"
+                        value={firstName}
+                        onChangeText={(text) => {
+                          setFirstName(text);
+                          if (firstNameError) validateInputs();
+                        }}
+                        onPress={() => setFocusedField('firstName')}
+                        hasTVPreferredFocus={focusedField === 'firstName'}
+                        focusable
+                        containerStyle={styles.input}
+                        errorShow={!!firstNameError}
+                        errorText={firstNameError}
+                      />
+                    </View>
 
-              <View style={styles.formContainer}>
-                {/* First and Last Name row */}
-                <View style={styles.row}>
-                  <View style={styles.halfInputWrapper}>
-                    <Text style={styles.inputLabel}>First Name</Text>
+                    <View style={styles.halfInputWrapper}>
+                      <Text style={styles.inputLabel}>Last Name</Text>
+                      <CInput
+                        placeholder="Last Name"
+                        value={lastName}
+                        onChangeText={(text) => {
+                          setLastName(text);
+                          if (lastNameError) validateInputs();
+                        }}
+                        onPress={() => setFocusedField('lastName')}
+                        hasTVPreferredFocus={focusedField === 'lastName'}
+                        focusable
+                        containerStyle={styles.input}
+                        errorShow={!!lastNameError}
+                        errorText={lastNameError}
+                      />
+                    </View>
+                  </View>
+
+                  {/* Email */}
+
+                  <View style={styles.singleInputWrapper}>
+                    <Text style={styles.inputLabel}>Email</Text>
                     <CInput
-                      placeholder="First Name"
-                      value={firstName}
+                      placeholder="Email"
+                      value={email}
                       onChangeText={(text) => {
-                        setFirstName(text);
-                        if (firstNameError) validateInputs();
+                        setEmail(text.replace(/\s/g, '').toLowerCase());
+                        if (emailError) validateInputs();
                       }}
-                      onPress={() => setFocusedField('firstName')}
-                      hasTVPreferredFocus={focusedField === 'firstName'}
+                      keyboardType="email-address"
+                      onPress={() => setFocusedField('email')}
+                      hasTVPreferredFocus={focusedField === 'email'}
                       focusable
                       containerStyle={styles.input}
-                      errorShow={!!firstNameError}
-                      errorText={firstNameError}
+                      errorShow={!!emailError}
+                      errorText={emailError}
                     />
                   </View>
 
-                  <View style={styles.halfInputWrapper}>
-                    <Text style={styles.inputLabel}>Last Name</Text>
+                  {/* Mobile and Country Picker */}
+                  <View style={styles.singleInputWrapper}>
+                    <Text style={styles.inputLabel}>Mobile Number</Text>
+                    <View style={styles.contryInContainer}>
+                      <TouchableOpacity
+                        style={styles.contrycodeContainer}
+                        onPress={() => setCountryPickerVisible(true)}
+                        hasTVPreferredFocus={focusedField === 'mobileFlag'}
+                        focusable
+                      >
+                        <CountryPicker
+                          countryCode={countryCode as any}
+                          withCallingCode
+                          withFlag
+                          withFilter
+                          onSelect={onSelectCountry}
+                          visible={countryPickerVisible}
+                          onOpen={() => setCountryPickerVisible(true)}
+                          onClose={() => setCountryPickerVisible(false)}
+                        />
+                        <Text style={styles.callingCode}>+{callingCode}</Text>
+                      </TouchableOpacity>
+                      <View style={{ width: 1, height: '60%', backgroundColor: COLORS.borderColor, marginRight: scale(6) }} />
+                      <CInput
+                        placeholder="Type your phone number"
+                        value={mobile}
+                        onChangeText={(text) => {
+                          setMobile(text.replace(/\D/g, ''));
+                          if (mobileError) validateInputs();
+                        }}
+                        keyboardType="numeric"
+                        onPress={() => setFocusedField('mobile')}
+                        hasTVPreferredFocus={focusedField === 'mobile'}
+                        focusable
+                        containerStyle={{ backgroundColor: 'transparent', borderWidth: 0, flex: 1, height: scale(22), marginBottom: 0, paddingHorizontal: 0 }}
+                        errorShow={false}
+                        maxLength={15}
+                      />
+                    </View>
+                    {!!mobileError && (
+                      <Text style={styles.errorText}>{mobileError}</Text>
+                    )}
+                  </View>
+
+                  {/* Password */}
+                  <View style={styles.singleInputWrapper}>
+                    <Text style={styles.inputLabel}>Password</Text>
                     <CInput
-                      placeholder="Last Name"
-                      value={lastName}
+                      placeholder="Password"
+                      value={password}
                       onChangeText={(text) => {
-                        setLastName(text);
-                        if (lastNameError) validateInputs();
+                        setPassword(text.replace(/\s/g, ''));
+                        if (passwordError) validateInputs();
                       }}
-                      onPress={() => setFocusedField('lastName')}
-                      hasTVPreferredFocus={focusedField === 'lastName'}
+                      secureTextEntry={!isPasswordVisible}
+                      isPasswordVisible={isPasswordVisible}
+                      togglePassword={togglePasswordVisibility}
+                      onPress={() => setFocusedField('password')}
+                      hasTVPreferredFocus={focusedField === 'password'}
                       focusable
                       containerStyle={styles.input}
-                      errorShow={!!lastNameError}
-                      errorText={lastNameError}
+                      errorShow={!!passwordError}
+                      errorText={passwordError}
+                      eyeIconFocused={focusedField === 'passwordEye'}
                     />
                   </View>
-                </View>
 
-                {/* Email */}
-
-                <View style={styles.singleInputWrapper}>
-                  <Text style={styles.inputLabel}>Email</Text>
-                  <CInput
-                    placeholder="Email"
-                    value={email}
-                    onChangeText={(text) => {
-                      setEmail(text.replace(/\s/g, '').toLowerCase());
-                      if (emailError) validateInputs();
-                    }}
-                    keyboardType="email-address"
-                    onPress={() => setFocusedField('email')}
-                    hasTVPreferredFocus={focusedField === 'email'}
+                  <CButton
+                    text="Sign Up"
+                    onPress={() => handleSignUp()}
+                    style={styles.button}
+                    textStyle={styles.buttonText}
+                    hasTVPreferredFocus={focusedField === 'signup'}
                     focusable
-                    containerStyle={styles.input}
-                    errorShow={!!emailError}
-                    errorText={emailError}
+                    backgroundColor={COLORS.primary}
+                    loading={loading}
                   />
-                </View>
 
-                {/* Password */}
-                <View style={styles.singleInputWrapper}>
-                  <Text style={styles.inputLabel}>Password</Text>
-                  <CInput
-                    placeholder="Password"
-                    value={password}
-                    onChangeText={(text) => {
-                      setPassword(text.replace(/\s/g, ''));
-                      if (passwordError) validateInputs();
-                    }}
-                    secureTextEntry={!isPasswordVisible}
-                    isPasswordVisible={isPasswordVisible}
-                    togglePassword={togglePasswordVisibility}
-                    onPress={() => setFocusedField('password')}
-                    hasTVPreferredFocus={focusedField === 'password'}
-                    focusable
-                    containerStyle={styles.input}
-                    errorShow={!!passwordError}
-                    errorText={passwordError}
-                    eyeIconFocused={focusedField === 'passwordEye'}
-                  />
+                  <View style={styles.footerContainer}>
+                    <TouchableOpacity
+                      onPress={() => navigation.navigate('LoginTV')}
+                      style={{ flexDirection: 'row' }}
+                      hasTVPreferredFocus={focusedField === 'login'}
+                      focusable
+                    >
+                      <Text style={styles.footerText}>Already a member?</Text>
+                      <Text style={styles.linkText}> Sign In</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
-
-                <CButton
-                  text="Sign Up"
-                  onPress={() => handleSignUp()}
-                  style={styles.button}
-                  textStyle={styles.buttonText}
-                  hasTVPreferredFocus={focusedField === 'signup'}
-                  focusable
-                  backgroundColor={COLORS.primary}
-                  loading={loading}
-                />
-
-                <View style={styles.footerContainer}>
-                  <TouchableOpacity
-                    onPress={() => navigation.navigate('LoginTV')}
-                    style={{ flexDirection: 'row' }}
-                    hasTVPreferredFocus={focusedField === 'login'}
-                    focusable
-                  >
-                    <Text style={styles.footerText}>Already a member?</Text>
-                    <Text style={styles.linkText}> Sign In</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
+              </ScrollView>
             </View>
           </View>
         </View>

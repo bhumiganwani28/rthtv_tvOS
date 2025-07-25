@@ -60,6 +60,7 @@ const styles = StyleSheet.create({
     padding: scale(20),
     borderWidth: 0,
     borderRadius: 4,
+    marginVertical:scale(20),
   },
   formContainer: {
     width: '100%',
@@ -82,13 +83,22 @@ const styles = StyleSheet.create({
   },
   halfInputWrapper: {
     width: '48%',
-    marginBottom:scale(10),
+    marginBottom: scale(10),
   },
   singleInputWrapper: {
     width: '100%',
-    marginBottom:scale(12),
+    marginBottom: scale(12),
   },
-
+  contryInContainer:{
+    flexDirection: 'row', 
+    alignItems: 'center',
+     borderWidth: 1, 
+     borderColor: COLORS.borderColor, 
+     backgroundColor: COLORS.black,
+      height: scale(22), 
+      paddingHorizontal: scale(8),
+    overflow:'hidden',
+  },
   // Label above inputs
   inputLabel: {
     fontSize: scale(10),
@@ -97,8 +107,31 @@ const styles = StyleSheet.create({
     marginBottom: scale(5),
     alignSelf: 'flex-start',
   },
+  contrycodeContainer:{
+flexDirection: 'row',
+ alignItems: 'center',
+  height: '100%', 
+  marginRight: scale(6)
+  },
   input: {
     width: '100%',
+  },
+  flagContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.borderColor,
+    backgroundColor: COLORS.black,
+    // borderRadius: 4,
+    paddingHorizontal: scale(8),
+    height: scale(22),
+    marginRight: scale(8),
+  },
+  callingCode: {
+    color: COLORS.white,
+    fontSize: scale(10),
+    marginLeft: scale(4),
+    fontFamily: FONTS.montRegular,
   },
 
   button: {

@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     color: COLORS.red,
-    fontSize: scale(12),
+    fontSize: scale(10),
     marginTop: scale(2),
     fontFamily: FONTS.montRegular,
   },
