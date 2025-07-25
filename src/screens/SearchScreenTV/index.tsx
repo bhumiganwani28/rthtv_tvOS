@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useCallback} from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -14,7 +14,7 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
-import {useDispatch, useSelector} from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   setChannelsData,
   appendChannelsData,
@@ -31,12 +31,13 @@ import {
   NEXT_PUBLIC_API_CDN_ENDPOINT,
   PAGE_LIMIT,
 } from '../../config/apiEndpoints';
-import {COLORS} from '../../theme/colors';
+import { COLORS } from '../../theme/colors';
 import apiHelper from '../../config/apiHelper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import FIcon from 'react-native-vector-icons/FontAwesome6';
 import styles from './styles';
-import {scale} from 'react-native-size-matters';
+import { s, scale } from 'react-native-size-matters';
+import CInput from '../../components/CInput';
 
 const SearchScreen: React.FC = () => {
   const dispatch = useDispatch();
@@ -46,7 +47,7 @@ const SearchScreen: React.FC = () => {
     (state: any) => state.trendingVideos?.data,
   );
   const route = useRoute();
-  const {query} = route.params || {};
+  const { query } = route.params || {};
   const [searchText, setSearchText] = useState(query || '');
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -55,7 +56,7 @@ const SearchScreen: React.FC = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [subscriptionData, setSubscriptionData] = useState<any>(null);
   const [focusedId, setFocusedId] = useState<string | number | null>(null);
-const [focusedTabIndex, setFocusedTabIndex] = useState<number | null>(null);
+  const [focusedTabIndex, setFocusedTabIndex] = useState<number | null>(null);
 
   // ✅ Responsive spacing logic
   const NUM_COLUMNS = 5;
@@ -63,14 +64,14 @@ const [focusedTabIndex, setFocusedTabIndex] = useState<number | null>(null);
   const CARD_GAP = activeTab === 0 ? scale(12) : scale(26); // spacing between items
   const screenWidth = Dimensions.get('window').width;
   const totalCardGap = CARD_GAP * (NUM_COLUMNS - 1); // 4 gaps between 5 items
-    const totalSpacing = CARD_GAP * (NUM_COLUMNS + 1);
+  const totalSpacing = CARD_GAP * (NUM_COLUMNS + 1);
   const cardWidth = activeTab === 0 ? (screenWidth - SIDE_PADDING * 2 - totalCardGap) / NUM_COLUMNS : (screenWidth - totalSpacing) / NUM_COLUMNS;;
   const cardHeight =
     activeTab === 0 ? cardWidth / (16 / 9) : cardWidth * 1.25;
 
   const handlePress = (item: any) => {
     if (activeTab === 0) {
-      navigation.navigate('ChannelDetails', {channelId: item?.id});
+      navigation.navigate('ChannelDetails', { channelId: item?.id });
     } else {
       navigation.navigate('Details', {
         tvShowId: item?.id,
@@ -114,7 +115,11 @@ const [focusedTabIndex, setFocusedTabIndex] = useState<number | null>(null);
       ? dispatch(resetChannelsData())
       : dispatch(resetTrendingVideosData());
     fetchData(1, true);
+     navigation.goBack();
   };
+
+
+
 
   const handleSearch = useCallback(() => {
     setPage(1);
@@ -161,14 +166,14 @@ const [focusedTabIndex, setFocusedTabIndex] = useState<number | null>(null);
         const storedSubscription = await AsyncStorage.getItem('subscription');
         if (storedSubscription)
           setSubscriptionData(JSON.parse(storedSubscription));
-      } catch {}
+      } catch { }
     };
     fetchSubscriptionData();
   }, []);
 
   const keyExtractor = (item: any, index: number) => `${item?.id}-${index}`;
 
-  const renderChannelItem = ({item, index}: {item: any, index: number}) => {
+  const renderChannelItem = ({ item, index }: { item: any, index: number }) => {
     const isFocused = focusedId === item.id && activeTab === 0;
     const isLastColumn = (index + 1) % NUM_COLUMNS === 0;
 
@@ -211,7 +216,7 @@ const [focusedTabIndex, setFocusedTabIndex] = useState<number | null>(null);
     );
   };
 
-  const renderTrendingItem = ({item, index}: {item: any, index: number}) => {
+  const renderTrendingItem = ({ item, index }: { item: any, index: number }) => {
     const isFocused = focusedId === item.id && activeTab === 1;
     const isLastColumn = (index + 1) % NUM_COLUMNS === 0;
 
@@ -261,80 +266,83 @@ const [focusedTabIndex, setFocusedTabIndex] = useState<number | null>(null);
   return (
     <View style={styles.container}>
       <View style={styles.mainSearch}>
-        <Text style={styles.searchInfo}>
-          Use remote/search UI to search. Current: {searchText}
-        </Text>
-        <TouchableOpacity
-          onPress={handleClear}
-          focusable
-          style={styles.clearIcon}>
-          <FIcon name="x" size={32} color={COLORS.white} />
-        </TouchableOpacity>
+        <CInput
+          placeholder="Search here..."
+          value={searchText}
+          onChangeText={setSearchText}
+          keyboardType="default"
+          containerStyle={{ flex: 1, marginRight: 8 }}
+          onPress={() => { }}
+          style={{
+            minHeight: scale(22),
+            justifyContent: 'center',
+            width: '95%'
+          }}
+           onSubmitEditing={handleSearch} 
+          focusable={true}
+          hasTVPreferredFocus={true}
+        />
+        <View style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}>
+          <TouchableOpacity
+            onPress={handleClear}
+            focusable
+            style={[styles.clearIcon, { width: scale(25), height: scale(25), borderRadius: scale(5) }]}
+          >
+            <FIcon name="x" size={scale(15)} color={COLORS.white} />
+          </TouchableOpacity>
+        </View>
       </View>
 
-      {/* <View style={styles.tabBar}>
+
+      <View style={styles.tabBar}>
         <TouchableOpacity
-          style={[styles.tabItem, activeTab === 0 && styles.activeTab]}
+          style={[
+            styles.tabItem,
+            activeTab === 0 && styles.activeTab,
+            focusedTabIndex === 0 && styles.focusedTabItem,
+          ]}
           onPress={() => switchTab(0)}
-          focusable>
-          <Text style={[styles.tabLabel, activeTab === 0 && styles.activeText]}>
+          focusable
+          onFocus={() => setFocusedTabIndex(0)}
+          onBlur={() => setFocusedTabIndex(null)}
+        >
+          <Text
+            style={[
+              styles.tabLabel,
+              activeTab === 0 && styles.activeText,
+              focusedTabIndex === 0 && styles.focusedTabText,
+            ]}
+          >
             Channels
           </Text>
         </TouchableOpacity>
+
         <TouchableOpacity
-          style={[styles.tabItem, activeTab === 1 && styles.activeTab]}
+          style={[
+            styles.tabItem,
+            activeTab === 1 && styles.activeTab,
+            focusedTabIndex === 1 && styles.focusedTabItem,
+          ]}
           onPress={() => switchTab(1)}
-          focusable>
-          <Text style={[styles.tabLabel, activeTab === 1 && styles.activeText]}>
+          focusable
+          onFocus={() => setFocusedTabIndex(1)}
+          onBlur={() => setFocusedTabIndex(null)}
+        >
+          <Text
+            style={[
+              styles.tabLabel,
+              activeTab === 1 && styles.activeText,
+              focusedTabIndex === 1 && styles.focusedTabText,
+            ]}
+          >
             Trending Videos
           </Text>
         </TouchableOpacity>
-      </View> */}
-<View style={styles.tabBar}>
-  <TouchableOpacity
-    style={[
-      styles.tabItem,
-      activeTab === 0 && styles.activeTab,
-      focusedTabIndex === 0 && styles.focusedTabItem,
-    ]}
-    onPress={() => switchTab(0)}
-    focusable
-    onFocus={() => setFocusedTabIndex(0)}
-    onBlur={() => setFocusedTabIndex(null)}
-  >
-    <Text
-      style={[
-        styles.tabLabel,
-        activeTab === 0 && styles.activeText,
-        focusedTabIndex === 0 && styles.focusedTabText,
-      ]}
-    >
-      Channels
-    </Text>
-  </TouchableOpacity>
-
-  <TouchableOpacity
-    style={[
-      styles.tabItem,
-      activeTab === 1 && styles.activeTab,
-      focusedTabIndex === 1 && styles.focusedTabItem,
-    ]}
-    onPress={() => switchTab(1)}
-    focusable
-    onFocus={() => setFocusedTabIndex(1)}
-    onBlur={() => setFocusedTabIndex(null)}
-  >
-    <Text
-      style={[
-        styles.tabLabel,
-        activeTab === 1 && styles.activeText,
-        focusedTabIndex === 1 && styles.focusedTabText,
-      ]}
-    >
-      Trending Videos
-    </Text>
-  </TouchableOpacity>
-</View>
+      </View>
 
       {loading && page === 1 ? (
         <View style={styles.loaderContainer}>

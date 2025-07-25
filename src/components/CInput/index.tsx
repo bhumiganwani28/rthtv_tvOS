@@ -37,6 +37,7 @@ interface CInputProps {
   onPress?: () => void;
   style?: StyleProp<ViewStyle>;
   eyeIconFocused?: boolean;
+  onSubmitEditing?: () => void;
 }
 
 const CInput: React.FC<CInputProps> = ({
@@ -60,6 +61,7 @@ const CInput: React.FC<CInputProps> = ({
   onPress,
   style,
   eyeIconFocused = false,
+  onSubmitEditing,
 }) => {
   const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef<TextInput>(null);
@@ -105,6 +107,7 @@ const CInput: React.FC<CInputProps> = ({
           onChangeText={onChangeText}
           onFocus={handleFocus}
           onBlur={handleBlur}
+          onSubmitEditing={onSubmitEditing} 
           secureTextEntry={secureTextEntry && !isPasswordVisible}
           keyboardType={keyboardType}
           editable={true}
