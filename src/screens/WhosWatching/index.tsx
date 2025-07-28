@@ -27,19 +27,36 @@ import {
 } from '../../config/apiEndpoints';
 import styles from './styles';
 import CButton from '../../components/CButton';
+import { Profile } from '../../types';
+import { StackNavigationProp } from '@react-navigation/stack';
 
 const MAX_PROFILES = 6;
 
 const WhosWatchingTVOS: React.FC = () => {
-  const navigation = useNavigation();
-  const [profilesData, setProfilesData] = useState([]);
+  // Define navigation prop type for WhosWatching
+  type WhosWatchingNavigationProp = StackNavigationProp<
+    {
+      Home: undefined;
+      AddProfile: {
+        profileId?: string;
+        name?: string;
+        avatar?: any;
+        defaultProfile?: any;
+        isKidsProfile?: boolean;
+      };
+    },
+    'Home'
+  >;
+
+  const navigation = useNavigation<WhosWatchingNavigationProp>();
+  const [profilesData, setProfilesData] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [isEditMode, setIsEditMode] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(0);
   const [modalVisible, setModalVisible] = useState(false);
   const [modalMessage, setModalMessage] = useState('');
   const [modalType, setModalType] = useState<'success' | 'error'>('error');
-const [isAddFocused, setIsAddFocused] = useState(false);
+  const [isAddFocused, setIsAddFocused] = useState(false);
   const dataFetchedRef = useRef(false);
   const PROFILE_IMAGE_SIZE = scale(55); // small and neat
 
@@ -50,49 +67,49 @@ const [isAddFocused, setIsAddFocused] = useState(false);
   );
 
 
-    const fetchProfiles = async () => {
-        if (dataFetchedRef.current) return;
-        dataFetchedRef.current = true;
-        setLoading(true);
+  const fetchProfiles = async () => {
+    if (dataFetchedRef.current) return;
+    dataFetchedRef.current = true;
+    setLoading(true);
 
-        try {
-            const response = await apiHelper.get(PROFILE_LIST); // Fetch profiles from API
-            setProfilesData(response?.data);
-        } catch (error: any) {
-            const errorMessage =
-                error?.message || 'An error occurred. Please try again.';
-            // Set error modal
-            setModalMessage(errorMessage);
-            setModalType('error');
-            setModalVisible(true);
-        } finally {
-            setLoading(false);
-        }
-    };
+    try {
+      const response = await apiHelper.get(PROFILE_LIST); // Fetch profiles from API
+      setProfilesData(response?.data);
+    } catch (error: any) {
+      const errorMessage =
+        error?.message || 'An error occurred. Please try again.';
+      // Set error modal
+      setModalMessage(errorMessage);
+      setModalType('error');
+      setModalVisible(true);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const handleProfileSelect = async (profileId: number) => {
-        const selectedProfile = profilesData.find(profile => profile?.id === profileId);
-        if (isEditMode) {
-            // Navigate to AddProfile screen with pre-filled data for editing
-            navigation.navigate('AddProfile', {
-                profileId: selectedProfile?.id,
-                name: selectedProfile?.name,
-                avatar: selectedProfile?.avatar,
-                defaultProfile: selectedProfile?.default,
-                isKidsProfile: selectedProfile?.isKidsProfile,
-            });
-        } else {
-            // Store the selected profile's image URL in AsyncStorage
-            await AsyncStorage.setItem('selectedProfileImage', selectedProfile?.avatar || '');
-            await AsyncStorage.setItem('selectedProfileName', selectedProfile?.name || '');
-            // Navigate to home screen (or the appropriate screen)
-            navigation.replace('Home');
-        }
-    };
+  const handleProfileSelect = async (profileId: string) => {
+    const selectedProfile = profilesData.find(profile => profile.id === profileId);
+    if (isEditMode) {
+      // Navigate to AddProfile screen with pre-filled data for editing
+      navigation.navigate('AddProfile', {
+        profileId: selectedProfile?.id,
+        name: selectedProfile?.name,
+        avatar: selectedProfile?.avatar,
+        isKidsProfile: selectedProfile?.isKids,
+      });
+    } else {
+      // Store the selected profile's image URL in AsyncStorage
+      await AsyncStorage.setItem('selectedProfile', JSON.stringify(selectedProfile));
+      await AsyncStorage.setItem('selectedProfileImage', selectedProfile?.avatar || '');
+      await AsyncStorage.setItem('selectedProfileName', selectedProfile?.name || '');
+      // Navigate to home screen (or the appropriate screen)
+      navigation.navigate('Home');
+    }
+  };
 
   const toggleEditMode = () => setIsEditMode(prev => !prev);
 
-  const renderProfile = (profile: any, index: number) => {
+  const renderProfile = (profile: Profile, index: number) => {
     const isFocused = focusedIndex === index;
 
     return (
@@ -101,11 +118,11 @@ const [isAddFocused, setIsAddFocused] = useState(false);
           style={[styles.profileCard, isFocused && styles.focusedProfileCard]}
           onFocus={() => setFocusedIndex(index)}
           // onPress={() => handleProfileSelect(profile)}
-          onPress={() => handleProfileSelect(profile?.id)}
+          onPress={() => handleProfileSelect(profile.id)}
           hasTVPreferredFocus={index === 0}
           focusable={true}>
           <Image
-            source={{ uri: `${NEXT_PUBLIC_API_CDN_ENDPOINT}${profile?.avatar}` }}
+            source={{ uri: `${NEXT_PUBLIC_API_CDN_ENDPOINT}${profile.avatar}` }}
             style={[
               styles.profileImage,
               { width: PROFILE_IMAGE_SIZE, height: PROFILE_IMAGE_SIZE },
@@ -128,23 +145,23 @@ const [isAddFocused, setIsAddFocused] = useState(false);
     );
   };
 
-const renderAddProfile = () => (
-  <View style={styles.profileWrapper}>
-    <TouchableOpacity
-      style={[
-        styles.addProfileBox,
-        isAddFocused && styles.focusedAddProfileBox,
-      ]}
-      onFocus={() => setIsAddFocused(true)}
-      onBlur={() => setIsAddFocused(false)}
-      onPress={() => navigation.navigate('AddProfile')}
-      hasTVPreferredFocus={profilesData.length === 0}
-      focusable={true}>
-      <AIcon name="plus" size={28} color={COLORS.white} />
-    </TouchableOpacity>
-    <Text style={styles.profileName}>Add</Text>
-  </View>
-);
+  const renderAddProfile = () => (
+    <View style={styles.profileWrapper}>
+      <TouchableOpacity
+        style={[
+          styles.addProfileBox,
+          isAddFocused && styles.focusedAddProfileBox,
+        ]}
+        onFocus={() => setIsAddFocused(true)}
+        onBlur={() => setIsAddFocused(false)}
+        onPress={() => navigation.navigate('AddProfile')}
+        hasTVPreferredFocus={profilesData.length === 0}
+        focusable={true}>
+        <AIcon name="plus" size={28} color={COLORS.white} />
+      </TouchableOpacity>
+      <Text style={styles.profileName}>Add</Text>
+    </View>
+  );
 
   return (
     <View style={styles.centerWrapper}>
