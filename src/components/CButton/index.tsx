@@ -160,6 +160,7 @@ const styles = StyleSheet.create({
   shadowOpacity: 0.3,
   shadowRadius: 5,
   backgroundColor: COLORS.primary, // ✅ Add this line
+  zIndex: 10,   
 },
   tvButtonText: {
     fontSize: scale(12),
