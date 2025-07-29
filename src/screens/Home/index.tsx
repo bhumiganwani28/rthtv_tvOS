@@ -334,7 +334,7 @@ const HomeScreen: React.FC = () => {
       // Navigate to Login screen
       navigation.reset({
         index: 0,
-        routes: [{name: 'Login'}],
+        routes: [{name: 'LoginTV'}],
       });
     } catch (error) {
       console.error('Error during logout:', error);
