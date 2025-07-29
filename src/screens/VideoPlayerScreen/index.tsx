@@ -1,13 +1,11 @@
-
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
   Animated,
-  Platform,
-  TVEventHandler,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import Video, { VideoRef } from 'react-native-video';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -19,15 +17,14 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { useTVEventHandler } from 'react-native';
 import { navigationRef } from '../../App';
 
-// Types
+const SEEK_STEP = 10; // seconds
+const CONTROLS_HIDE_TIMEOUT = 5000;
+const SAFE_HORIZONTAL_PADDING = 60;
+
 type VideoPlayerScreenProps = {
   route: RouteProp<any, any> & { params: { videoUri: string; streamName: string } };
   navigation: StackNavigationProp<any, any>;
 };
-
-const SEEK_STEP = 10; // seconds
-const CONTROLS_HIDE_TIMEOUT = 5000;
-const SAFE_HORIZONTAL_PADDING = 60;
 
 const VideoPlayerScreen = ({ route }: VideoPlayerScreenProps) => {
   const { videoUri, streamName } = route.params;
@@ -35,42 +32,43 @@ const VideoPlayerScreen = ({ route }: VideoPlayerScreenProps) => {
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const hideTimeout = useRef<NodeJS.Timeout | null>(null);
 
-  // Focusable refs
-  const rewindRef = useRef<any>(null);
-  const playRef = useRef<any>(null);
-  const forwardRef = useRef<any>(null);
-  const muteRef = useRef<any>(null);
-  const sliderRef = useRef<any>(null);
-  const infoRef = useRef<any>(null);
-  const subtitlesRef = useRef<any>(null);
-  const fullscreenRef = useRef<any>(null);
+  // Properly typed ref for slider
+  const sliderRef = useRef<TouchableOpacity | null>(null);
+
+  // Other focusable refs if needed:
+  const playRef = useRef<TouchableOpacity | null>(null);
+  const rewindRef = useRef<TouchableOpacity | null>(null);
+  const forwardRef = useRef<TouchableOpacity | null>(null);
+  const muteRef = useRef<TouchableOpacity | null>(null);
+  const fullscreenRef = useRef<TouchableOpacity | null>(null);
 
   // State
   const [paused, setPaused] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [showControls, setShowControls] = useState(true);
-  const [focusedControl, setFocusedControl] = useState('play');
+  const [focusedControl, setFocusedControl] = useState('');
   const [muted, setMuted] = useState(false);
   const [sliderFocused, setSliderFocused] = useState(false);
   const [sliderValue, setSliderValue] = useState(0);
   const [seeking, setSeeking] = useState(false);
+  const [showBigCenterIcon, setShowBigCenterIcon] = useState(false);
+  const [centerIconType, setCenterIconType] = useState<'play' | 'pause'>('pause');
 
-  // Format time helper
+  // Format time helper - mm:ss or hh:mm:ss
   const formatTime = (t: number) => {
     if (!t || isNaN(t)) return '0:00';
     const hours = Math.floor(t / 3600);
     const min = Math.floor((t % 3600) / 60);
     const sec = Math.floor(t % 60);
-    
     if (hours > 0) {
       return `${hours}:${min < 10 ? '0' : ''}${min}:${sec < 10 ? '0' : ''}${sec}`;
     }
     return `${min}:${sec < 10 ? '0' : ''}${sec}`;
   };
 
-  // Show controls and auto-hide after timeout
-  const showAndScheduleHide = () => {
+  // Show controls and schedule hide
+  const showAndScheduleHide = useCallback(() => {
     setShowControls(true);
     fadeAnim.setValue(1);
     if (hideTimeout.current) clearTimeout(hideTimeout.current);
@@ -81,73 +79,83 @@ const VideoPlayerScreen = ({ route }: VideoPlayerScreenProps) => {
         useNativeDriver: true,
       }).start(() => setShowControls(false));
     }, CONTROLS_HIDE_TIMEOUT);
-  };
+  }, [fadeAnim]);
 
-  
-useEffect(() => {
-  const unsubscribe = navigationRef.addListener('beforeRemove', (e) => {
-    if (showControls && focusedControl !== '') {
-      console.log('Blocked back navigation because control is focused');
-      e.preventDefault(); // Block going back
+  // Prevent accidental back navigation when a control is focused
+  useEffect(() => {
+    const unsubscribe = navigationRef.addListener('beforeRemove', (e) => {
+      if (showControls && focusedControl !== '') {
+        e.preventDefault();
+      }
+    });
+    return unsubscribe;
+  }, [showControls, focusedControl]);
+
+  // TV event handler for remote
+  useTVEventHandler((evt) => {
+    if (!evt || !evt.eventType) return;
+
+    // Always show controls and reset hide timer
+    if (!showControls) {
+      showAndScheduleHide();
+    }
+
+    if (hideTimeout.current) clearTimeout(hideTimeout.current);
+    hideTimeout.current = setTimeout(() => {
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 400,
+        useNativeDriver: true,
+      }).start(() => setShowControls(false));
+    }, CONTROLS_HIDE_TIMEOUT);
+
+    // If a control is focused, block select/playPause here so Touchable handles it
+    if (focusedControl && (evt.eventType === 'select' || evt.eventType === 'playPause')) {
+      return true;
+    }
+
+    // Slider controls when focused
+    if (sliderFocused) {
+      if (evt.eventType === 'right') {
+        setSliderValue((v) => Math.min(duration, v + SEEK_STEP));
+        setSeeking(true);
+      } else if (evt.eventType === 'left') {
+        setSliderValue((v) => Math.max(0, v - SEEK_STEP));
+        setSeeking(true);
+      } else if (evt.eventType === 'select') {
+        videoRef.current?.seek(sliderValue);
+        setCurrentTime(sliderValue);
+        setSeeking(false);
+        setShowBigCenterIcon(true);
+        setCenterIconType('pause');
+        setTimeout(() => setShowBigCenterIcon(false), 900);
+      }
+      return;
+    }
+
+    // If no control focused: Left/Right seek, select/playPause toggle
+    if (!focusedControl) {
+      if (evt.eventType === 'right') {
+        const newTime = Math.min(duration, currentTime + SEEK_STEP);
+        videoRef.current?.seek(newTime);
+        setCurrentTime(newTime);
+        setShowBigCenterIcon(true);
+        setCenterIconType('pause');
+        setTimeout(() => setShowBigCenterIcon(false), 700);
+      } else if (evt.eventType === 'left') {
+        const newTime = Math.max(0, currentTime - SEEK_STEP);
+        videoRef.current?.seek(newTime);
+        setCurrentTime(newTime);
+        setShowBigCenterIcon(true);
+        setCenterIconType('pause');
+        setTimeout(() => setShowBigCenterIcon(false), 700);
+      } else if (evt.eventType === 'select' || evt.eventType === 'playPause') {
+        handlePlayPause();
+      }
     }
   });
-  return unsubscribe;
-}, [showControls, focusedControl]);
-useTVEventHandler((evt) => {
-  if (!evt || !evt.eventType) return;
 
-  console.log('TV event:', evt.eventType);
-
-  // Always show controls on key press
-  if (!showControls) {
-    setShowControls(true);
-    fadeAnim.setValue(1);
-  }
-
-  // Reset hide timeout
-  if (hideTimeout.current) clearTimeout(hideTimeout.current);
-  hideTimeout.current = setTimeout(() => {
-    Animated.timing(fadeAnim, {
-      toValue: 0,
-      duration: 400,
-      useNativeDriver: true,
-    }).start(() => setShowControls(false));
-  }, CONTROLS_HIDE_TIMEOUT);
-
-  // 🔒 Block select key globally if control is focused
-  if (focusedControl && (evt.eventType === 'select' || evt.eventType === 'playPause')) {
-    console.log(`Select key pressed while ${focusedControl} is focused — letting Touchable handle it`);
-    return true; // Don't let it bubble further
-  }
-
-  // 🎯 Slider seeking
-  if (sliderFocused) {
-    if (evt.eventType === 'right') {
-      setSliderValue((v) => Math.min(duration, v + 10));
-      setSeeking(true);
-    } else if (evt.eventType === 'left') {
-      setSliderValue((v) => Math.max(0, v - 10));
-      setSeeking(true);
-    } else if (evt.eventType === 'select') {
-      videoRef.current?.seek(sliderValue);
-      setCurrentTime(sliderValue);
-      setSeeking(false);
-    }
-    return;
-  }
-
-  // ➡ Default seeking
-  if (!focusedControl) {
-    if (evt.eventType === 'right') {
-      videoRef.current?.seek(Math.min(duration, currentTime + SEEK_STEP));
-    } else if (evt.eventType === 'left') {
-      videoRef.current?.seek(Math.max(0, currentTime - SEEK_STEP));
-    } else if (evt.eventType === 'select') {
-      setPaused((prev) => !prev);
-    }
-  }
-});
-  // Slider focus/seek logic
+  // Sync sliderValue with currentTime when slider not focused
   useEffect(() => {
     if (!sliderFocused) {
       setSliderValue(currentTime);
@@ -155,184 +163,214 @@ useTVEventHandler((evt) => {
     }
   }, [currentTime, sliderFocused]);
 
-  // Clean up hide timeout
+  // Real-time seek while user is seeking with slider focused
+  useEffect(() => {
+    if (sliderFocused && seeking) {
+      videoRef.current?.seek(sliderValue);
+      setCurrentTime(sliderValue);
+    }
+  }, [sliderValue, seeking, sliderFocused]);
+
+  // Clear timers on component unmount
   useEffect(() => {
     return () => {
       if (hideTimeout.current) clearTimeout(hideTimeout.current);
     };
   }, []);
 
-  // Calculate progress for seekbar
+  // Play/Pause toggle handler with center overlay icon
+  const handlePlayPause = useCallback(() => {
+    setPaused((prev) => {
+      const nowPaused = !prev;
+      setShowBigCenterIcon(true);
+      setCenterIconType(nowPaused ? 'play' : 'pause');
+      setTimeout(() => setShowBigCenterIcon(false), 900);
+      return nowPaused;
+    });
+    showAndScheduleHide();
+  }, [showAndScheduleHide]);
+
   const progress = duration > 0 ? (sliderFocused ? sliderValue : currentTime) / duration : 0;
 
+  // Handle press anywhere outside controls: toggle play/pause
+  const handleAnyAreaPress = () => {
+    if (!focusedControl && !sliderFocused) {
+      handlePlayPause();
+    } else {
+      showAndScheduleHide();
+    }
+  };
+
   return (
-    <View style={styles.container}>
-      <Video
-        ref={videoRef}
-        source={{ uri: videoUri }}
-        style={StyleSheet.absoluteFill}
-        paused={paused}
-        muted={muted}
-        resizeMode="contain"
-        onLoad={(meta) => setDuration(meta.duration)}
-        onProgress={(prog) => {
-          if (!seeking) setCurrentTime(prog.currentTime);
-        }}
-        onEnd={() => setPaused(true)}
-      />
-      
-      {showControls && (
-        <Animated.View style={[styles.overlay, { opacity: fadeAnim }]}>
-          {/* Top gradient */}
-          <View style={styles.topGradient} />
-          
-          {/* Bottom gradient with controls */}
-          <View style={styles.bottomGradient} />
-          
-          {/* Title at top left */}
-          <View style={styles.titleContainer}>
-            <Text style={styles.titleText}>{streamName}</Text>
-          </View>
+    <TouchableWithoutFeedback onPress={handleAnyAreaPress}>
+      <View style={styles.container}>
+        <Video
+          ref={videoRef}
+          source={{ uri: videoUri }}
+          style={StyleSheet.absoluteFill}
+          paused={paused}
+          muted={muted}
+          resizeMode="contain"
+          onLoad={(meta) => setDuration(meta.duration)}
+          onProgress={({ currentTime: progTime }) => {
+            if (!seeking) setCurrentTime(progTime);
+          }}
+          onEnd={() => setPaused(true)}
+        />
 
-          {/* Bottom controls area */}
-          <View style={styles.bottomControls}>
-            {/* Progress bar */}
-            <View style={styles.progressContainer}>
-              <TouchableOpacity
-                ref={sliderRef}
-                focusable
-                onFocus={() => {
-                  console.log('Progress bar focused');
-                  setSliderFocused(true);
-                }}
-                onBlur={() => {
-                  console.log('Progress bar blurred');
-                  setSliderFocused(false);
-                }}
-                onPress={() => {
-                  console.log('Progress bar pressed!');
-                  if (sliderFocused) {
-                    videoRef.current?.seek(sliderValue);
-                    setCurrentTime(sliderValue);
+        {/* Big center play/pause icon */}
+        {showBigCenterIcon && (
+          <View style={styles.centerIconWrap}>
+            <View style={styles.centerIconBg}>
+              <Icon
+                name={centerIconType === 'play' ? 'play' : 'pause'}
+                color={COLORS.white}
+                size={scale(60)}
+              />
+            </View>
+          </View>
+        )}
+
+        {/* Controls overlay */}
+        {showControls && (
+          <Animated.View style={[styles.overlay, { opacity: fadeAnim }]}>
+            <View style={styles.topGradient} />
+            <View style={styles.bottomGradient} />
+            <View style={styles.titleContainer}>
+              <Text style={styles.titleText}>{streamName}</Text>
+            </View>
+
+            <View style={styles.bottomControls}>
+              {/* Progress bar */}
+              <View style={styles.progressContainer}>
+                <TouchableOpacity
+                  ref={sliderRef}
+                  focusable
+                  onFocus={() => setSliderFocused(true)}
+                  onBlur={() => {
+                    setSliderFocused(false);
                     setSeeking(false);
-                  }
-                }}
-                style={[styles.progressTouchable, sliderFocused && styles.progressFocused]}
-                activeOpacity={1}
-              >
-                <View style={styles.progressTrack}>
-                  <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
-                  <View 
-                    style={[
-                      styles.progressThumb, 
-                      { left: `${progress * 100}%` },
-                      sliderFocused && styles.progressThumbFocused
-                    ]} 
-                  />
-                </View>
-              </TouchableOpacity>
-            </View>
-
-            {/* Controls row */}
-            <View style={styles.controlsContainer}>
-              {/* Left side controls */}
-              <View style={styles.leftControls}>
-                <TouchableOpacity
-                  ref={playRef}
-                  focusable
-                  onPress={() => setPaused(prev => !prev)}
-                  onFocus={() => setFocusedControl('play')}
-                  onBlur={() => setFocusedControl('')}
-                  style={[styles.playButton, focusedControl === 'play' && styles.focusedButton]}
-                >
-                  <Icon 
-                    name={paused ? 'play' : 'pause'} 
-                    size={scale(25)} 
-                    color={COLORS.white} 
-                  />
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  ref={rewindRef}
-                  focusable
-                  onPress={() => {
-                    console.log('Rewind button pressed!');
-                    videoRef.current?.seek(Math.max(0, currentTime - SEEK_STEP));
                   }}
-                  onFocus={() => setFocusedControl('rewind')}
-                  onBlur={() => setFocusedControl('')}
-                  style={[styles.controlButton, focusedControl === 'rewind' && styles.focusedButton]}
-                  activeOpacity={0.7}
-                >
-                  {/* <Icon name="play-back" size={scale(18)} color={COLORS.white} /> */}
-                              <MIcon name="replay-10" size={scale(22)} color={COLORS.white} />
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  ref={forwardRef}
-                  focusable
                   onPress={() => {
-                    console.log('Forward button pressed!');
-                    videoRef.current?.seek(Math.min(duration, currentTime + SEEK_STEP));
+                    if (sliderFocused) {
+                      videoRef.current?.seek(sliderValue);
+                      setCurrentTime(sliderValue);
+                      setSeeking(false);
+                      showAndScheduleHide();
+                    }
                   }}
-                  onFocus={() => setFocusedControl('forward')}
-                  onBlur={() => setFocusedControl('')}
-                  style={[styles.controlButton, focusedControl === 'forward' && styles.focusedButton]}
-                  activeOpacity={0.7}
+                  style={[styles.progressTouchable, sliderFocused && styles.progressFocused]}
+                  activeOpacity={1}
                 >
-                  {/* <Icon name="play-forward" size={scale(18)} color={COLORS.white} /> */}
+                  <View style={styles.progressTrack}>
+                    <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
+                    <View
+                      style={[
+                        styles.progressThumb,
+                        { left: `${progress * 100}%` },
+                        sliderFocused && styles.progressThumbFocused,
+                      ]}
+                    />
+                  </View>
+                </TouchableOpacity>
+              </View>
+
+              {/* Controls row */}
+              <View style={styles.controlsContainer}>
+                <View style={styles.leftControls}>
+                  <TouchableOpacity
+                    ref={playRef}
+                    focusable
+                    onPress={handlePlayPause}
+                    onFocus={() => setFocusedControl('play')}
+                    onBlur={() => setFocusedControl('')}
+                    style={[styles.playButton, focusedControl === 'play' && styles.focusedButton]}
+                  >
+                    <Icon name={paused ? 'play' : 'pause'} size={scale(25)} color={COLORS.white} />
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    ref={rewindRef}
+                    focusable
+                    onPress={() => {
+                      const newTime = Math.max(0, currentTime - SEEK_STEP);
+                      videoRef.current?.seek(newTime);
+                      setCurrentTime(newTime);
+                      setShowBigCenterIcon(true);
+                      setCenterIconType('pause');
+                      setTimeout(() => setShowBigCenterIcon(false), 700);
+                      showAndScheduleHide();
+                    }}
+                    onFocus={() => setFocusedControl('rewind')}
+                    onBlur={() => setFocusedControl('')}
+                    style={[styles.controlButton, focusedControl === 'rewind' && styles.focusedButton]}
+                    activeOpacity={0.7}
+                  >
+                    <MIcon name="replay-10" size={scale(22)} color={COLORS.white} />
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    ref={forwardRef}
+                    focusable
+                    onPress={() => {
+                      const newTime = Math.min(duration, currentTime + SEEK_STEP);
+                      videoRef.current?.seek(newTime);
+                      setCurrentTime(newTime);
+                      setShowBigCenterIcon(true);
+                      setCenterIconType('pause');
+                      setTimeout(() => setShowBigCenterIcon(false), 700);
+                      showAndScheduleHide();
+                    }}
+                    onFocus={() => setFocusedControl('forward')}
+                    onBlur={() => setFocusedControl('')}
+                    style={[styles.controlButton, focusedControl === 'forward' && styles.focusedButton]}
+                    activeOpacity={0.7}
+                  >
                     <MIcon name="forward-10" size={scale(22)} color={COLORS.white} />
+                  </TouchableOpacity>
 
-                </TouchableOpacity>
+                  <Text style={styles.timeText}>
+                    {formatTime(sliderFocused ? sliderValue : currentTime)} / {formatTime(duration)}
+                  </Text>
+                </View>
 
-               
-                {/* Time display */}
-                <Text style={styles.timeText}>
-                  {formatTime(sliderFocused ? sliderValue : currentTime)} / {formatTime(duration)}
-                </Text>
-              </View>
+                <View style={styles.rightControls}>
+                  <TouchableOpacity
+                    ref={muteRef}
+                    focusable
+                    onPress={() => setMuted((m) => !m)}
+                    onFocus={() => setFocusedControl('mute')}
+                    onBlur={() => setFocusedControl('')}
+                    style={[styles.controlButton, focusedControl === 'mute' && styles.focusedButton]}
+                    activeOpacity={0.7}
+                  >
+                    <Icon
+                      name={muted ? 'volume-mute' : 'volume-high'}
+                      size={scale(20)}
+                      color={COLORS.white}
+                    />
+                  </TouchableOpacity>
 
-              {/* Right side controls */}
-              <View style={styles.rightControls}>
-                 <TouchableOpacity
-                  ref={muteRef}
-                  focusable
-                  onPress={() => {
-                    console.log('Mute button pressed!');
-                    setMuted(m => !m);
-                  }}
-                  onFocus={() => setFocusedControl('mute')}
-                  onBlur={() => setFocusedControl('')}
-                  style={[styles.controlButton, focusedControl === 'mute' && styles.focusedButton]}
-                  activeOpacity={0.7}
-                >
-                  <Icon 
-                    name={muted ? 'volume-mute' : 'volume-high'} 
-                    size={scale(20)} 
-                    color={COLORS.white}
-                  />
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  ref={fullscreenRef}
-                  focusable
-                  onPress={(e) => {
-                    e?.stopPropagation?.();
-                    console.log('Fullscreen pressed');
-                  }}
-                  onFocus={() => setFocusedControl('fullscreen')}
-                  onBlur={() => setFocusedControl('')}
-                  style={[styles.controlButton, focusedControl === 'fullscreen' && styles.focusedButton]}
-                  activeOpacity={0.8}
-                >
-                  <Icon name="expand-outline" size={scale(20)} color={COLORS.white} />
-                </TouchableOpacity>
+                  <TouchableOpacity
+                    ref={fullscreenRef}
+                    focusable
+                    onPress={() => {
+                      // Handle fullscreen toggle if needed
+                    }}
+                    onFocus={() => setFocusedControl('fullscreen')}
+                    onBlur={() => setFocusedControl('')}
+                    style={[styles.controlButton, focusedControl === 'fullscreen' && styles.focusedButton]}
+                    activeOpacity={0.8}
+                  >
+                    <Icon name="expand-outline" size={scale(20)} color={COLORS.white} />
+                  </TouchableOpacity>
+                </View>
               </View>
             </View>
-          </View>
-        </Animated.View>
-      )}
-    </View>
+          </Animated.View>
+        )}
+      </View>
+    </TouchableWithoutFeedback>
   );
 };
 
@@ -351,8 +389,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: scale(30),
-    // background: 'linear-gradient(180deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 70%, rgba(0,0,0,0) 100%)',
-    backgroundColor: 'rgba(0,0,0,0.6)', // Fallback for React Native
+    backgroundColor: 'rgba(0,0,0,0.6)',
   },
   bottomGradient: {
     position: 'absolute',
@@ -360,8 +397,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 200,
-    background: 'linear-gradient(0deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.6) 60%, rgba(0,0,0,0) 100%)',
-    backgroundColor: 'rgba(0,0,0,0.8)', // Fallback for React Native
+    backgroundColor: 'rgba(0,0,0,0.8)',
   },
   titleContainer: {
     position: 'absolute',
@@ -372,8 +408,7 @@ const styles = StyleSheet.create({
   titleText: {
     color: COLORS.white,
     fontSize: scale(10),
-    textAlign:'center',
-    // fontWeight: '700',
+    textAlign: 'center',
     textShadowColor: 'rgba(0,0,0,0.9)',
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 4,
@@ -394,18 +429,16 @@ const styles = StyleSheet.create({
     height: scale(5),
     justifyContent: 'center',
   },
-  progressFocused: {
-    // Add focus ring effect
-  },
+  progressFocused: {},
   progressTrack: {
-   height: scale(5),
+    height: scale(5),
     backgroundColor: 'rgba(255,255,255,0.25)',
     borderRadius: scale(5),
     position: 'relative',
   },
   progressFill: {
     height: scale(5),
-    backgroundColor:COLORS.primary,
+    backgroundColor: COLORS.primary,
     borderRadius: scale(5),
   },
   progressThumb: {
@@ -444,7 +477,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   playButton: {
-    // backgroundColor: 'rgba(255,255,255,0.15)',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 20,
@@ -465,11 +497,24 @@ const styles = StyleSheet.create({
   timeText: {
     color: COLORS.white,
     fontSize: scale(12),
-    // fontWeight: '600',
     marginLeft: scale(20),
     textShadowColor: 'rgba(0,0,0,0.8)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 3,
+  },
+  centerIconWrap: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 30,
+  },
+  centerIconBg: {
+    backgroundColor: 'rgba(0,0,0,0.42)',
+    borderRadius: scale(70),
+    width: scale(90),
+    height: scale(90),
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 
