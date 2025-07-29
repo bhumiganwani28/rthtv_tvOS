@@ -21,9 +21,9 @@ interface ProfileMenuTVProps {
 
 const MENU_ITEMS = [
   { key: 'manage', label: 'Manage Watch Profile', icon: '👤', action: 'manageProfile' },
-  { key: 'settings', label: 'Account & Settings', icon: '⚙️', action: 'settings' },
-  { key: 'devices', label: 'Manage Access & Devices', icon: '🖥️', action: 'devices' },
-  { key: 'subscription', label: 'Subscription', icon: '💳', action: 'subscription' },
+  // { key: 'settings', label: 'Account & Settings', icon: '⚙️', action: 'settings' },
+  // { key: 'devices', label: 'Manage Access & Devices', icon: '🖥️', action: 'devices' },
+  // { key: 'subscription', label: 'Subscription', icon: '💳', action: 'subscription' },
   { key: 'password', label: 'Change Password', icon: '🔒', action: 'changePassword' },
   { key: 'signout', label: 'Sign Out', icon: '⏏️', action: 'signout' },
 ];
@@ -68,24 +68,26 @@ const ProfileMenuTV: React.FC<ProfileMenuTVProps> = ({ onProfileChange }) => {
   navigation.replace('WhosWatching');
   break;
 
-      // case 'manageProfile':
-      //   navigation.navigate('WhosWatching');
+      case 'manageProfile':
+        navigation.navigate('WhosWatching');
+        break;
+      // case 'settings':
+      //   // navigation.navigate('Settings'); // adjust as per your navigation
       //   break;
-      case 'settings':
-        // navigation.navigate('Settings'); // adjust as per your navigation
-        break;
-      case 'devices':
-        // navigation.navigate('ManageDevices');
-        break;
-      case 'subscription':
-        // navigation.navigate('SubscriptionScreen');
-        break;
+      // case 'devices':
+      //   // navigation.navigate('ManageDevices');
+      //   break;
+      // case 'subscription':
+      //   // navigation.navigate('SubscriptionScreen');
+      //   break;
       case 'changePassword':
         navigation.navigate('ChangePasswordTV');
         break;
       case 'signout':
-        await AsyncStorage.removeItem('selectedProfile'); // clear profile
-        // navigation.navigate('SignIn'); // or your login/landing
+        await AsyncStorage.removeItem('accessToken');
+        await AsyncStorage.removeItem('user');
+        // await AsyncStorage.removeItem('selectedProfile'); // clear profile
+        navigation.navigate('LoginTV'); // or your login/landing
         break;
       default:
         break;
