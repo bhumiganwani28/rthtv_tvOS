@@ -55,6 +55,11 @@ const VideoPlayerScreen = ({ route }: VideoPlayerScreenProps) => {
   const [showBigCenterIcon, setShowBigCenterIcon] = useState(false);
   const [centerIconType, setCenterIconType] = useState<'play' | 'pause'>('pause');
 
+  const [videoScale, setVideoScale] = useState(1);
+const MIN_SCALE = 1;
+const MAX_SCALE = 3; // max zoom x3
+const SCALE_STEP = 0.25;
+
   // Format time helper - mm:ss or hh:mm:ss
   const formatTime = (t: number) => {
     if (!t || isNaN(t)) return '0:00';
@@ -133,6 +138,22 @@ const VideoPlayerScreen = ({ route }: VideoPlayerScreenProps) => {
       return;
     }
 
+      // Zoom keys when no control or slider focused
+    if (!focusedControl && !sliderFocused) {
+      if (evt.eventType === 'up') {
+        setVideoScale((scale) => Math.min(MAX_SCALE, scale + SCALE_STEP));
+        showAndScheduleHide();
+        return true;
+      }
+
+      if (evt.eventType === 'down') {
+        setVideoScale((scale) => Math.max(MIN_SCALE, scale - SCALE_STEP));
+        showAndScheduleHide();
+        return true;
+      }
+    }
+    
+
     // If no control focused: Left/Right seek, select/playPause toggle
     if (!focusedControl) {
       if (evt.eventType === 'right') {
@@ -207,7 +228,11 @@ const VideoPlayerScreen = ({ route }: VideoPlayerScreenProps) => {
         <Video
           ref={videoRef}
           source={{ uri: videoUri }}
-          style={StyleSheet.absoluteFill}
+          // style={StyleSheet.absoluteFill}
+style={[
+            StyleSheet.absoluteFill,
+            { transform: [{ scale: videoScale }] },  // <-- here zoom applied
+          ]}
           paused={paused}
           muted={muted}
           resizeMode="contain"
@@ -453,15 +478,19 @@ const styles = StyleSheet.create({
     borderColor: COLORS.white,
     shadowColor: COLORS.black,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.2,
     shadowRadius: 4,
   },
   progressThumbFocused: {
-    transform: [{ scale: 1.4 }],
+    // transform: [{ scale: 1.2 }],
     backgroundColor: COLORS.white,
     borderColor: COLORS.primary,
     shadowOpacity: 0.6,
     shadowRadius: 8,
+    borderRadius:scale(25),
+    width: scale(8),
+    height: scale(8),
+    
   },
   controlsContainer: {
     flexDirection: 'row',
