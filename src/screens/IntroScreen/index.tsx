@@ -10,11 +10,6 @@ import {
   StyleSheet,
 } from 'react-native';
 
-let TVEventHandler;
-if (Platform.OS === 'android') {
-  TVEventHandler = require('react-native').TVEventHandler;
-}
-
 import { IMAGES } from '../../theme/images';
 import { COLORS } from '../../theme/colors';
 import { scale } from 'react-native-size-matters';
@@ -55,76 +50,16 @@ const slides = [
 
 const IntroSlider = ({ navigation }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [focusedDot, setFocusedDot] = useState(currentIndex);
+  const [focusedDot, setFocusedDot] = useState(0);
   const [isFocusedButton, setIsFocusedButton] = useState(false);
   const [isFocusedSkip, setIsFocusedSkip] = useState(false);
 
-  const currentIndexRef = useRef(currentIndex);
-
-  useEffect(() => {
-    currentIndexRef.current = currentIndex;
-    setFocusedDot(currentIndex);
-  }, [currentIndex]);
-
-  const tvEventHandlerRef = useRef(null);
-
-  useEffect(() => {
-    if (Platform.OS === 'android' && TVEventHandler) {
-      tvEventHandlerRef.current = new TVEventHandler();
-      tvEventHandlerRef.current.enable(null, (cmp, evt) => {
-        if (!evt) return;
-        switch (evt.eventType) {
-          case 'right':
-            // Focus moves Skip -> Next -> Dots in cycle
-            if (isFocusedSkip) setIsFocusedSkip(false), setIsFocusedButton(true);
-            else if (isFocusedButton) {
-              // Move focus to first dot if exists
-              setIsFocusedButton(false);
-              setFocusedDot(0);
-            } else if (focusedDot < slides.length - 1) {
-              setFocusedDot((prev) => prev + 1);
-            }
-            break;
-          case 'left':
-            if (focusedDot > 0) {
-              setFocusedDot((prev) => prev - 1);
-            } else if (!isFocusedButton && !isFocusedSkip) {
-              // Move focus to Next button if on first dot
-              setFocusedDot(-1);
-              setIsFocusedButton(true);
-            } else if (!isFocusedSkip && isFocusedButton) {
-              // From Next to Skip
-              setIsFocusedButton(false);
-              setIsFocusedSkip(true);
-            }
-            break;
-          case 'select':
-            if (isFocusedSkip) {
-              navigation.replace('OnBoarding');
-            } else if (isFocusedButton) {
-              onPressNext();
-            } else if (focusedDot >= 0) {
-              setCurrentIndex(focusedDot);
-            }
-            break;
-          default:
-            break;
-        }
-      });
-    }
-    return () => {
-      if (tvEventHandlerRef.current) {
-        tvEventHandlerRef.current.disable();
-        tvEventHandlerRef.current = null;
-      }
-    };
-  }, [focusedDot, isFocusedButton, isFocusedSkip]);
+  const isLastSlide = currentIndex === slides.length - 1;
+  const slide = slides[currentIndex];
 
   const onPressNext = () => {
     if (currentIndex < slides.length - 1) {
       setCurrentIndex((prev) => prev + 1);
-      setFocusedDot(currentIndex + 1);
-      setIsFocusedButton(false);
     } else {
       navigation.replace('OnBoarding');
     }
@@ -134,8 +69,9 @@ const IntroSlider = ({ navigation }) => {
     navigation.replace('OnBoarding');
   };
 
-  const slide = slides[currentIndex];
-  const isLastSlide = currentIndex === slides.length - 1;
+  useEffect(() => {
+    setFocusedDot(currentIndex);
+  }, [currentIndex]);
 
   return (
     <View style={[styles.container, { backgroundColor: slide.backgroundColor }]}>
@@ -147,7 +83,11 @@ const IntroSlider = ({ navigation }) => {
         onPress={onPressSkip}
         hasTVPreferredFocus={isFocusedSkip}
         activeOpacity={0.7}
-        onFocus={() => setIsFocusedSkip(true)}
+        onFocus={() => {
+          setIsFocusedSkip(true);
+          setIsFocusedButton(false);
+          setFocusedDot(-1);
+        }}
         onBlur={() => setIsFocusedSkip(false)}
       >
         <Text style={[styles.skipButtonText, isFocusedSkip && styles.skipButtonTextFocused]}>
@@ -200,7 +140,7 @@ const IntroSlider = ({ navigation }) => {
         <TouchableHighlight
           style={[styles.tvButton, isFocusedButton && styles.tvButtonFocused]}
           underlayColor={COLORS.primaryDark}
-          hasTVPreferredFocus={!isFocusedSkip && !~focusedDot}
+          hasTVPreferredFocus={!isFocusedSkip && focusedDot === -1}
           onFocus={() => {
             setIsFocusedButton(true);
             setIsFocusedSkip(false);
