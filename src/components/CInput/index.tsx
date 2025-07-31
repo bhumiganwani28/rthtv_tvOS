@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   TextInput,
@@ -10,6 +10,7 @@ import {
   TextStyle,
   Platform,
   TouchableOpacity,
+  useTVEventHandler,
 } from 'react-native';
 import FIcon from 'react-native-vector-icons/Feather';
 import { scale } from 'react-native-size-matters';
@@ -38,6 +39,8 @@ interface CInputProps {
   style?: StyleProp<ViewStyle>;
   eyeIconFocused?: boolean;
   onSubmitEditing?: () => void;
+  onKeyboardShow?: () => void;
+  onKeyboardHide?: () => void;
 }
 
 const CInput: React.FC<CInputProps> = ({
@@ -62,74 +65,136 @@ const CInput: React.FC<CInputProps> = ({
   style,
   eyeIconFocused = false,
   onSubmitEditing,
+  onKeyboardShow,
+  onKeyboardHide,
 }) => {
   const [isFocused, setIsFocused] = useState(false);
+  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
   const inputRef = useRef<TextInput>(null);
+  const containerRef = useRef<View>(null);
 
+  // Handle TV keyboard events - prevent navigation when keyboard is open
+  useTVEventHandler((evt) => {
+    if (!Platform.isTV || !evt) return;
+
+    // If keyboard is open and input is focused, don't handle navigation events
+    if (isKeyboardOpen && isFocused) {
+      return;
+    }
+
+    switch (evt.eventType) {
+      case 'select':
+        // Handle select to focus input and show native keyboard
+        if (Platform.isTV && inputRef.current && !isFocused) {
+          inputRef.current.focus();
+          setIsKeyboardOpen(true);
+          onKeyboardShow?.();
+        }
+        break;
+    }
+  });
+
+  // Handle focus changes
   const handleFocus = () => {
     setIsFocused(true);
-    if (onPress) {
-      onPress();
+    if (Platform.isTV) {
+      // On TV, focus should trigger native keyboard
+      setIsKeyboardOpen(true);
+      onKeyboardShow?.();
+      if (onPress) {
+        onPress();
+      }
     }
   };
 
   const handleBlur = () => {
     setIsFocused(false);
+    setIsKeyboardOpen(false);
+    if (Platform.isTV) {
+      onKeyboardHide?.();
+    }
+  };
+
+  // Handle text input changes
+  const handleTextChange = (text: string) => {
+    onChangeText(text);
+  };
+
+  // Handle TV select button press
+  const handleTVSelect = () => {
+    if (Platform.isTV) {
+      if (inputRef.current) {
+        inputRef.current.focus();
+        setIsKeyboardOpen(true);
+      }
+      onKeyboardShow?.();
+    }
   };
 
   return (
     <View style={[styles.container, style]}>
-      <View
-        style={[
-          styles.inputContainer,
-          containerStyle,
-          isFocused && styles.focusedContainer,
-          {
-            backgroundColor: bgColor || COLORS.black,
-            borderColor: isFocused ? COLORS.primary : COLORS.borderColor,
-          },
-        ]}
+      <TouchableOpacity
+        activeOpacity={1}
+        onPress={handleTVSelect}
         focusable={focusable}
         hasTVPreferredFocus={hasTVPreferredFocus}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
       >
-        {leftComponent && <View style={styles.leftComponent}>{leftComponent}</View>}
-        <TextInput
-          ref={inputRef}
+        <View
+          ref={containerRef}
           style={[
-            styles.textInput,
-            textStyle,
-            { color: COLORS.white },
+            styles.inputContainer,
+            containerStyle,
+            isFocused && styles.focusedContainer,
+            {
+              backgroundColor: bgColor || COLORS.black,
+              borderColor: isFocused ? COLORS.primary : COLORS.borderColor,
+            },
           ]}
-          placeholder={placeholder}
-          value={value}
-          maxLength={maxLength}
-          placeholderTextColor={COLORS.greyText}
-          onChangeText={onChangeText}
-          onFocus={handleFocus}
-          onBlur={handleBlur}
-          onSubmitEditing={onSubmitEditing} 
-          secureTextEntry={secureTextEntry && !isPasswordVisible}
-          keyboardType={keyboardType}
-          editable={true}
-          selectionColor={COLORS.primary}
-          focusable={focusable}
-          hasTVPreferredFocus={hasTVPreferredFocus && !eyeIconFocused}
-        />
-        {secureTextEntry && togglePassword && (
-          <TouchableOpacity
-            style={[styles.eyeIcon, eyeIconFocused && styles.eyeIconFocused]}
-            onPress={togglePassword}
-            focusable={true}
-            hasTVPreferredFocus={eyeIconFocused}
-          >
-            <FIcon
-              name={isPasswordVisible ? 'eye' : 'eye-off'}
-              size={scale(14)}
-              color={eyeIconFocused ? COLORS.primary : COLORS.greyText}
-            />
-          </TouchableOpacity>
-        )}
-      </View>
+        >
+          {leftComponent && <View style={styles.leftComponent}>{leftComponent}</View>}
+          <TextInput
+            ref={inputRef}
+            style={[
+              styles.textInput,
+              textStyle,
+              { color: COLORS.white },
+            ]}
+            placeholder={placeholder}
+            value={value}
+            maxLength={maxLength}
+            placeholderTextColor={COLORS.greyText}
+            onChangeText={handleTextChange}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+            onSubmitEditing={onSubmitEditing}
+            secureTextEntry={secureTextEntry && !isPasswordVisible}
+            keyboardType={keyboardType}
+            editable={true} // Enable native keyboard on TV
+            selectionColor={COLORS.primary}
+            focusable={focusable}
+            hasTVPreferredFocus={hasTVPreferredFocus && !eyeIconFocused}
+            autoCapitalize="none"
+            autoCorrect={false}
+            spellCheck={false}
+          />
+          {secureTextEntry && togglePassword && (
+            <TouchableOpacity
+              style={[styles.eyeIcon, eyeIconFocused && styles.eyeIconFocused]}
+              onPress={togglePassword}
+              focusable={Platform.isTV}
+              hasTVPreferredFocus={eyeIconFocused}
+            >
+              <FIcon
+                name={isPasswordVisible ? 'eye' : 'eye-off'}
+                size={scale(14)}
+                color={eyeIconFocused ? COLORS.primary : COLORS.greyText}
+              />
+            </TouchableOpacity>
+          )}
+        </View>
+      </TouchableOpacity>
       {errorShow && errorText ? <Text style={styles.errorText}>{errorText}</Text> : null}
     </View>
   );
@@ -184,8 +249,3 @@ const styles = StyleSheet.create({
 });
 
 export default CInput;
-
-
-
-
-

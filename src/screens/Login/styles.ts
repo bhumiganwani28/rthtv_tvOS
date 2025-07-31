@@ -37,6 +37,14 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
   },
+    formWrapper: {
+    width: scale(280),
+    backgroundColor: 'rgba(0,0,0,0.75)',
+    padding: scale(20),
+    borderWidth: 0,
+    borderRadius: 4,
+    marginVertical:scale(20),
+  },
   logoContainer: {
     position: 'absolute',
     top: scale(25),
@@ -67,7 +75,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   inputView:{
-marginBottom:scale(12),
+   width: '100%',
+    marginBottom: scale(12),
   },
   inputLabel: {
     fontSize: scale(10),
@@ -123,6 +132,7 @@ marginBottom:scale(12),
     marginLeft: scale(5),
     textDecorationLine: 'underline',
   },
+  
 });
 
 export default styles;
