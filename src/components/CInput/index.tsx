@@ -1,16 +1,11 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   TextInput,
   StyleSheet,
   Text,
-  TextInputProps,
-  StyleProp,
-  ViewStyle,
-  TextStyle,
-  Platform,
   TouchableOpacity,
-  useTVEventHandler,
+  Platform,
 } from 'react-native';
 import FIcon from 'react-native-vector-icons/Feather';
 import { scale } from 'react-native-size-matters';
@@ -27,16 +22,16 @@ interface CInputProps {
   togglePassword?: () => void;
   leftComponent?: React.ReactNode;
   isPasswordVisible?: boolean;
-  keyboardType?: TextInputProps['keyboardType'];
+  keyboardType?: any;
   errorShow?: boolean;
   errorText?: string;
-  containerStyle?: StyleProp<ViewStyle>;
-  textStyle?: StyleProp<TextStyle>;
+  containerStyle?: any;
+  textStyle?: any;
   bgColor?: string;
   focusable?: boolean;
   hasTVPreferredFocus?: boolean;
   onPress?: () => void;
-  style?: StyleProp<ViewStyle>;
+  style?: any;
   eyeIconFocused?: boolean;
   onSubmitEditing?: () => void;
   onKeyboardShow?: () => void;
@@ -69,65 +64,25 @@ const CInput: React.FC<CInputProps> = ({
   onKeyboardHide,
 }) => {
   const [isFocused, setIsFocused] = useState(false);
-  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
   const inputRef = useRef<TextInput>(null);
-  const containerRef = useRef<View>(null);
+  const isTV = Platform.isTV;
 
-  // Handle TV keyboard events - prevent navigation when keyboard is open
-  useTVEventHandler((evt) => {
-    if (!Platform.isTV || !evt) return;
-
-    // If keyboard is open and input is focused, don't handle navigation events
-    if (isKeyboardOpen && isFocused) {
-      return;
-    }
-
-    switch (evt.eventType) {
-      case 'select':
-        // Handle select to focus input and show native keyboard
-        if (Platform.isTV && inputRef.current && !isFocused) {
-          inputRef.current.focus();
-          setIsKeyboardOpen(true);
-          onKeyboardShow?.();
-        }
-        break;
-    }
-  });
-
-  // Handle focus changes
+  // Keyboard events (if you need to fire any custom events)
   const handleFocus = () => {
     setIsFocused(true);
-    if (Platform.isTV) {
-      // On TV, focus should trigger native keyboard
-      setIsKeyboardOpen(true);
-      onKeyboardShow?.();
-      if (onPress) {
-        onPress();
-      }
-    }
+    onKeyboardShow?.();
+    onPress?.(); // TV: opens or highlights input as needed
   };
 
   const handleBlur = () => {
     setIsFocused(false);
-    setIsKeyboardOpen(false);
-    if (Platform.isTV) {
-      onKeyboardHide?.();
-    }
+    onKeyboardHide?.();
   };
 
-  // Handle text input changes
-  const handleTextChange = (text: string) => {
-    onChangeText(text);
-  };
-
-  // Handle TV select button press
-  const handleTVSelect = () => {
-    if (Platform.isTV) {
-      if (inputRef.current) {
-        inputRef.current.focus();
-        setIsKeyboardOpen(true);
-      }
-      onKeyboardShow?.();
+  const handleContainerPress = () => {
+    // On TV, make sure TextInput gets focused when Touchable is pressed with remote
+    if (Platform.isTV && inputRef.current) {
+      inputRef.current.focus();
     }
   };
 
@@ -135,20 +90,18 @@ const CInput: React.FC<CInputProps> = ({
     <View style={[styles.container, style]}>
       <TouchableOpacity
         activeOpacity={1}
-        onPress={handleTVSelect}
+        onPress={handleContainerPress}
         focusable={focusable}
         hasTVPreferredFocus={hasTVPreferredFocus}
         onFocus={handleFocus}
         onBlur={handleBlur}
       >
         <View
-          ref={containerRef}
           style={[
             styles.inputContainer,
             containerStyle,
             isFocused && styles.focusedContainer,
-            {
-              backgroundColor: bgColor || COLORS.black,
+            { backgroundColor: bgColor || COLORS.black,
               borderColor: isFocused ? COLORS.primary : COLORS.borderColor,
             },
           ]}
@@ -156,22 +109,18 @@ const CInput: React.FC<CInputProps> = ({
           {leftComponent && <View style={styles.leftComponent}>{leftComponent}</View>}
           <TextInput
             ref={inputRef}
-            style={[
-              styles.textInput,
-              textStyle,
-              { color: COLORS.white },
-            ]}
+            style={[styles.textInput, textStyle, { color: COLORS.white }]}
             placeholder={placeholder}
             value={value}
             maxLength={maxLength}
             placeholderTextColor={COLORS.greyText}
-            onChangeText={handleTextChange}
+            onChangeText={onChangeText}
             onFocus={handleFocus}
             onBlur={handleBlur}
             onSubmitEditing={onSubmitEditing}
             secureTextEntry={secureTextEntry && !isPasswordVisible}
             keyboardType={keyboardType}
-            editable={true} // Enable native keyboard on TV
+            editable={true}
             selectionColor={COLORS.primary}
             focusable={focusable}
             hasTVPreferredFocus={hasTVPreferredFocus && !eyeIconFocused}
@@ -195,34 +144,30 @@ const CInput: React.FC<CInputProps> = ({
           )}
         </View>
       </TouchableOpacity>
-      {errorShow && errorText ? <Text style={styles.errorText}>{errorText}</Text> : null}
+      {errorShow && errorText ? (
+        <Text style={styles.errorText}>{errorText}</Text>
+      ) : null}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    width: '100%',
-    backgroundColor: COLORS.black,
-  },
+  container: { width: '100%', backgroundColor: COLORS.black },
   inputContainer: {
-    borderWidth: 1, // No border by default
+    borderWidth: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    // borderRadius: 4,
-    paddingHorizontal: scale(0), // No extra horizontal padding
+    paddingHorizontal: scale(0),
     height: scale(22),
     width: '100%',
-    backgroundColor: COLORS.lightBlack, // Always dark background
+    backgroundColor: COLORS.lightBlack,
   },
   focusedContainer: {
     borderWidth: 1,
     borderColor: COLORS.primary,
-    backgroundColor: COLORS.lightBlack, // or '#232323' or any dark color you want
+    backgroundColor: COLORS.lightBlack,
   },
-  leftComponent: {
-    marginRight: scale(8),
-  },
+  leftComponent: { marginRight: scale(8) },
   textInput: {
     flex: 1,
     fontSize: scale(10),
@@ -231,15 +176,10 @@ const styles = StyleSheet.create({
     margin: 0,
     height: '100%',
     color: COLORS.white,
-    backgroundColor: 'transparent', // No extra background
+    backgroundColor: 'transparent',
   },
-  eyeIcon: {
-    padding: scale(4),
-  },
-  eyeIconFocused: {
-    backgroundColor: COLORS.borderColor,
-    borderRadius: 12,
-  },
+  eyeIcon: { padding: scale(4) },
+  eyeIconFocused: { backgroundColor: COLORS.white, borderRadius: 12 },
   errorText: {
     color: COLORS.red,
     fontSize: scale(10),

@@ -15,46 +15,65 @@ import { COLORS } from '../../theme/colors';
 import styles from './styles'; 
 import CInput from '../../components/CInput';
 import CButton from '../../components/CButton';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { validateEmail, validatePassword } from '../../utils/validation';
 import apiHelper from '../../config/apiHelper';
 import { SIGNUP_URL } from '../../config/apiEndpoints';
 import CAlertModal from '../../components/CAlertModal';
 import CountryPicker, { Country } from 'react-native-country-picker-modal';
 import { scale } from 'react-native-size-matters';
+import { validateEmail, validatePassword } from '../../utils/validation';
+
 const SignUpScreen = ({ navigation }: { navigation: any }) => {
+  // Form state
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
+  const [mobile, setMobile] = useState('');
   const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-  const [focusedField, setFocusedField] = useState<'firstName' | 'lastName' | 'email' | 'mobile' | 'mobileFlag' | 'password' | 'passwordEye' | 'signup' | 'login'>('firstName');
-  const [loading, setLoading] = useState<boolean>(false);
-  const [firstNameError, setFirstNameError] = useState<string>('');
-  const [lastNameError, setLastNameError] = useState<string>('');
-  const [emailError, setEmailError] = useState<string>('');
-  const [passwordError, setPasswordError] = useState<string>('');
-  const [modalVisible, setModalVisible] = useState<boolean>(false);
+
+  // Focus management for TV
+  type FocusField =
+    | 'firstName'
+    | 'lastName'
+    | 'email'
+    | 'mobileFlag'
+    | 'mobile'
+    | 'password'
+    | 'passwordEye'
+    | 'signup'
+    | 'login';
+
+  const [focusedField, setFocusedField] = useState<FocusField>('firstName');
+
+  // Error and loading state
+  const [firstNameError, setFirstNameError] = useState('');
+  const [lastNameError, setLastNameError] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [mobileError, setMobileError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  // Modal for success/error messages
+  const [modalVisible, setModalVisible] = useState(false);
   const [modalType, setModalType] = useState<'success' | 'error'>('success');
-  const [modalMessage, setModalMessage] = useState<string>('');
-  // New country picker state
-  const [countryCode, setCountryCode] = useState('US'); // Default India
+  const [modalMessage, setModalMessage] = useState('');
+
+  // Country picker state
+  const [countryCode, setCountryCode] = useState('US');
   const [callingCode, setCallingCode] = useState('1');
   const [countryPickerVisible, setCountryPickerVisible] = useState(false);
-  const [mobile, setMobile] = useState('');
-  const [mobileError, setMobileError] = useState('');
 
   const onSelectCountry = (country: Country) => {
     setCountryCode(country.cca2);
     setCallingCode(country.callingCode[0] || '');
     setCountryPickerVisible(false);
+    setFocusedField('mobile'); // Return focus to mobile input after selecting country
   };
 
   const togglePasswordVisibility = () => {
-    setIsPasswordVisible(!isPasswordVisible);
+    setIsPasswordVisible((v) => !v);
   };
 
-  // Validate inputs before submitting
   const validateInputs = () => {
     let isValid = true;
 
@@ -82,7 +101,6 @@ const SignUpScreen = ({ navigation }: { navigation: any }) => {
       setEmailError('');
     }
 
-    // Mobile validation: required, digits only, min 6, max 15
     if (!mobile.trim()) {
       setMobileError('Mobile number is required');
       isValid = false;
@@ -98,7 +116,7 @@ const SignUpScreen = ({ navigation }: { navigation: any }) => {
       isValid = false;
     } else if (!validatePassword(password.trim())) {
       setPasswordError(
-        'Password must be at least 6 characters with at least one lowercase, one uppercase, one number, and one special character',
+        'Password must be at least 6 characters with uppercase, lowercase, number, and special character',
       );
       isValid = false;
     } else {
@@ -113,7 +131,6 @@ const SignUpScreen = ({ navigation }: { navigation: any }) => {
 
     setLoading(true);
     try {
-      // Prepare FormData as in mobile app
       const formDataToSend = new FormData();
       formDataToSend.append('first_name', firstName.trim());
       formDataToSend.append('last_name', lastName.trim());
@@ -121,11 +138,8 @@ const SignUpScreen = ({ navigation }: { navigation: any }) => {
       formDataToSend.append('password', password.trim());
       formDataToSend.append('phoneNumber', callingCode + mobile.trim());
 
-      // API call to signup endpoint with correct headers
       const response = await apiHelper.post(SIGNUP_URL, formDataToSend, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
 
       if (response?.status === 200 || response?.status === 201) {
@@ -137,59 +151,65 @@ const SignUpScreen = ({ navigation }: { navigation: any }) => {
           navigation.navigate('LoginTV');
         }, 1500);
       }
-    } catch (error) {
-      console.error('Signup failed:', error);
+    } catch (error: any) {
       setModalType('error');
-      // Show backend error if available
-      let backendMsg = 'Signup failed. Please try again.';
-      if (error?.response && error?.response.data && error?.response?.data?.message) {
-        backendMsg = error?.response?.data?.message;
-      } else if (error?.message) {
-        backendMsg = error?.message;
-      }
-      setModalMessage(backendMsg);
+      let message = 'Signup failed. Please try again.';
+      if (error?.response?.data?.message) message = error.response.data.message;
+      else if (error?.message) message = error.message;
+      setModalMessage(message);
       setModalVisible(true);
     } finally {
       setLoading(false);
     }
   };
 
+  // Controlled TV remote navigation with smooth focus transitions
   useTVEventHandler((evt) => {
-    if (evt && evt.eventType) {
-      switch (evt.eventType) {
-        case 'down':
-          if (focusedField === 'firstName') setFocusedField('lastName');
-          else if (focusedField === 'lastName') setFocusedField('email');
-          else if (focusedField === 'email') setFocusedField('mobileFlag');
-          else if (focusedField === 'mobileFlag') setFocusedField('mobile');
-          else if (focusedField === 'mobile') setFocusedField('password');
-          else if (focusedField === 'password' || focusedField === 'passwordEye') setFocusedField('signup');
-          else if (focusedField === 'signup') setFocusedField('login');
-          break;
-        case 'up':
-          if (focusedField === 'login') setFocusedField('signup');
-          else if (focusedField === 'signup') setFocusedField('password');
-          else if (focusedField === 'password' || focusedField === 'passwordEye') setFocusedField('mobile');
-          else if (focusedField === 'mobile') setFocusedField('mobileFlag');
-          else if (focusedField === 'mobileFlag') setFocusedField('email');
-          else if (focusedField === 'email') setFocusedField('lastName');
-          else if (focusedField === 'lastName') setFocusedField('firstName');
-          break;
-        case 'right':
-          if (focusedField === 'mobileFlag') setFocusedField('mobile');
-          else if (focusedField === 'password') setFocusedField('passwordEye');
-          break;
-        case 'left':
-          if (focusedField === 'mobile') setFocusedField('mobileFlag');
-          else if (focusedField === 'passwordEye') setFocusedField('password');
-          break;
-        case 'select':
-          if (focusedField === 'signup') handleSignUp();
-          else if (focusedField === 'login') navigation.navigate('LoginTV');
-          else if (focusedField === 'passwordEye') togglePasswordVisibility();
-          else if (focusedField === 'mobileFlag') setCountryPickerVisible(true);
-          break;
-      }
+    if (!evt?.eventType) return;
+    switch (evt.eventType) {
+      case 'down':
+        if (focusedField === 'firstName') setFocusedField('lastName');
+        else if (focusedField === 'lastName') setFocusedField('email');
+        else if (focusedField === 'email') setFocusedField('mobileFlag');
+        else if (focusedField === 'mobileFlag') setFocusedField('mobile');
+        else if (focusedField === 'mobile') setFocusedField('password');
+        else if (focusedField === 'password') setFocusedField('passwordEye');
+        else if (focusedField === 'passwordEye') setFocusedField('signup');
+        else if (focusedField === 'signup') setFocusedField('login');
+        break;
+
+      case 'up':
+        if (focusedField === 'login') setFocusedField('signup');
+        else if (focusedField === 'signup') setFocusedField('passwordEye');
+        else if (focusedField === 'passwordEye') setFocusedField('password');
+        else if (focusedField === 'password') setFocusedField('mobile');
+        else if (focusedField === 'mobile') setFocusedField('mobileFlag');
+        else if (focusedField === 'mobileFlag') setFocusedField('email');
+        else if (focusedField === 'email') setFocusedField('lastName');
+        else if (focusedField === 'lastName') setFocusedField('firstName');
+        break;
+
+      case 'right':
+        if (focusedField === 'mobileFlag') setFocusedField('mobile');
+        else if (focusedField === 'password') setFocusedField('passwordEye');
+        break;
+
+      case 'left':
+        if (focusedField === 'mobile') setFocusedField('mobileFlag');
+        else if (focusedField === 'passwordEye') setFocusedField('password');
+        break;
+
+      case 'select':
+        if (focusedField === 'signup') {
+          handleSignUp();
+        } else if (focusedField === 'login') {
+          navigation.navigate('LoginTV');
+        } else if (focusedField === 'passwordEye') {
+          togglePasswordVisibility();
+        } else if (focusedField === 'mobileFlag') {
+          setCountryPickerVisible(true);
+        }
+        break;
     }
   });
 
@@ -213,7 +233,6 @@ const SignUpScreen = ({ navigation }: { navigation: any }) => {
               >
                 <Text style={styles.heading}>Create Your Account</Text>
                 <View style={styles.formContainer}>
-                  {/* First and Last Name row */}
                   <View style={styles.row}>
                     <View style={styles.halfInputWrapper}>
                       <Text style={styles.inputLabel}>First Name</Text>
@@ -252,8 +271,6 @@ const SignUpScreen = ({ navigation }: { navigation: any }) => {
                     </View>
                   </View>
 
-                  {/* Email */}
-
                   <View style={styles.singleInputWrapper}>
                     <Text style={styles.inputLabel}>Email</Text>
                     <CInput
@@ -273,7 +290,6 @@ const SignUpScreen = ({ navigation }: { navigation: any }) => {
                     />
                   </View>
 
-                  {/* Mobile and Country Picker */}
                   <View style={styles.singleInputWrapper}>
                     <Text style={styles.inputLabel}>Mobile Number</Text>
                     <View style={styles.contryInContainer}>
@@ -295,7 +311,14 @@ const SignUpScreen = ({ navigation }: { navigation: any }) => {
                         />
                         <Text style={styles.callingCode}>+{callingCode}</Text>
                       </TouchableOpacity>
-                      <View style={{ width: 1, height: '60%', backgroundColor: COLORS.borderColor, marginRight: scale(6) }} />
+                      <View
+                        style={{
+                          width: 1,
+                          height: '60%',
+                          backgroundColor: COLORS.borderColor,
+                          marginRight: scale(6),
+                        }}
+                      />
                       <CInput
                         placeholder="Type your phone number"
                         value={mobile}
@@ -303,21 +326,25 @@ const SignUpScreen = ({ navigation }: { navigation: any }) => {
                           setMobile(text.replace(/\D/g, ''));
                           if (mobileError) validateInputs();
                         }}
-                        keyboardType="numeric"
+                        keyboardType="phone-pad" // Better numeric input on TV
                         onPress={() => setFocusedField('mobile')}
                         hasTVPreferredFocus={focusedField === 'mobile'}
                         focusable
-                        containerStyle={{ backgroundColor: 'transparent', borderWidth: 0, flex: 1, height: scale(22), marginBottom: 0, paddingHorizontal: 0 }}
+                        containerStyle={{
+                          backgroundColor: 'transparent',
+                          borderWidth: 0,
+                          flex: 1,
+                          height: scale(22),
+                          marginBottom: 0,
+                          paddingHorizontal: 0,
+                        }}
                         errorShow={false}
                         maxLength={15}
                       />
                     </View>
-                    {!!mobileError && (
-                      <Text style={styles.errorText}>{mobileError}</Text>
-                    )}
+                    {!!mobileError && <Text style={styles.errorText}>{mobileError}</Text>}
                   </View>
 
-                  {/* Password */}
                   <View style={styles.singleInputWrapper}>
                     <Text style={styles.inputLabel}>Password</Text>
                     <CInput
@@ -342,7 +369,7 @@ const SignUpScreen = ({ navigation }: { navigation: any }) => {
 
                   <CButton
                     text="Sign Up"
-                    onPress={() => handleSignUp()}
+                    onPress={handleSignUp}
                     style={styles.button}
                     textStyle={styles.buttonText}
                     hasTVPreferredFocus={focusedField === 'signup'}
@@ -369,8 +396,13 @@ const SignUpScreen = ({ navigation }: { navigation: any }) => {
         </View>
       </ImageBackground>
 
-      {/* Alert Modal */}
-      <CAlertModal visible={modalVisible} btnTitle="OK" type={modalType} message={modalMessage} onOkPress={() => setModalVisible(false)} />
+      <CAlertModal
+        visible={modalVisible}
+        btnTitle="OK"
+        type={modalType}
+        message={modalMessage}
+        onOkPress={() => setModalVisible(false)}
+      />
     </SafeAreaView>
   );
 };

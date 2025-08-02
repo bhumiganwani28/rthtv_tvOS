@@ -1,4 +1,3 @@
-// WhosWatchingTVOS.tsx
 import React, { useState, useRef } from 'react';
 import {
   View,
@@ -17,7 +16,7 @@ import MIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import CAlertModal from '../../components/CAlertModal';
 import Header from '../../components/Header';
 import BackHandlerComponent from '../../components/BackHandlerComponent';
-import { scale, verticalScale } from 'react-native-size-matters';
+import { scale } from 'react-native-size-matters';
 import { IMAGES } from '../../theme/images';
 import { COLORS } from '../../theme/colors';
 import apiHelper from '../../config/apiHelper';
@@ -33,7 +32,6 @@ import { StackNavigationProp } from '@react-navigation/stack';
 const MAX_PROFILES = 6;
 
 const WhosWatchingTVOS: React.FC = () => {
-  // Define navigation prop type for WhosWatching
   type WhosWatchingNavigationProp = StackNavigationProp<
     {
       Home: undefined;
@@ -58,7 +56,11 @@ const WhosWatchingTVOS: React.FC = () => {
   const [modalType, setModalType] = useState<'success' | 'error'>('error');
   const [isAddFocused, setIsAddFocused] = useState(false);
   const dataFetchedRef = useRef(false);
-  const PROFILE_IMAGE_SIZE = scale(55); // small and neat
+  const PROFILE_IMAGE_SIZE = scale(55);
+
+  // Refs for TV Focus
+  const profileRefs = useRef<{[key: number]: any}>({});
+  const addProfileRef = useRef<any>(null);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -66,19 +68,34 @@ const WhosWatchingTVOS: React.FC = () => {
     }, []),
   );
 
+  // Auto-focus on profile or Add profile on screen load
+  React.useEffect(() => {
+    if (!loading) {
+      if (profilesData?.length > 0) {
+        setTimeout(() => {
+          profileRefs?.current[0]?.focus && profileRefs?.current[0]?.focus();
+        }, 100); // slight delay for TV reliability
+        setFocusedIndex(0);
+        setIsAddFocused(false);
+      } else {
+        setTimeout(() => {
+          addProfileRef.current?.focus && addProfileRef.current.focus();
+        }, 100);
+        setIsAddFocused(true);
+        setFocusedIndex(-1);
+      }
+    }
+  }, [loading, profilesData.length]);
 
   const fetchProfiles = async () => {
     if (dataFetchedRef.current) return;
     dataFetchedRef.current = true;
     setLoading(true);
-
     try {
-      const response = await apiHelper.get(PROFILE_LIST); // Fetch profiles from API
+      const response = await apiHelper.get(PROFILE_LIST);
       setProfilesData(response?.data);
     } catch (error: any) {
-      const errorMessage =
-        error?.message || 'An error occurred. Please try again.';
-      // Set error modal
+      const errorMessage = error?.message || 'An error occurred. Please try again.';
       setModalMessage(errorMessage);
       setModalType('error');
       setModalVisible(true);
@@ -90,7 +107,6 @@ const WhosWatchingTVOS: React.FC = () => {
   const handleProfileSelect = async (profileId: string) => {
     const selectedProfile = profilesData.find(profile => profile.id === profileId);
     if (isEditMode) {
-      // Navigate to AddProfile screen with pre-filled data for editing
       navigation.navigate('AddProfile', {
         profileId: selectedProfile?.id,
         name: selectedProfile?.name,
@@ -98,11 +114,9 @@ const WhosWatchingTVOS: React.FC = () => {
         isKidsProfile: selectedProfile?.isKids,
       });
     } else {
-      // Store the selected profile's image URL in AsyncStorage
       await AsyncStorage.setItem('selectedProfile', JSON.stringify(selectedProfile));
       await AsyncStorage.setItem('selectedProfileImage', selectedProfile?.avatar || '');
       await AsyncStorage.setItem('selectedProfileName', selectedProfile?.name || '');
-      // Navigate to home screen (or the appropriate screen)
       navigation.navigate('Home');
     }
   };
@@ -111,16 +125,17 @@ const WhosWatchingTVOS: React.FC = () => {
 
   const renderProfile = (profile: Profile, index: number) => {
     const isFocused = focusedIndex === index;
-
     return (
       <View key={profile.id} style={styles.profileWrapper}>
         <TouchableOpacity
+          ref={el => {
+            if (el) profileRefs.current[index] = el;
+          }}
           style={[styles.profileCard, isFocused && styles.focusedProfileCard]}
           onFocus={() => setFocusedIndex(index)}
-          // onPress={() => handleProfileSelect(profile)}
           onPress={() => handleProfileSelect(profile.id)}
-          hasTVPreferredFocus={index === 0}
-          focusable={true}>
+          focusable={true}
+        >
           <Image
             source={{ uri: `${NEXT_PUBLIC_API_CDN_ENDPOINT}${profile.avatar}` }}
             style={[
@@ -148,6 +163,7 @@ const WhosWatchingTVOS: React.FC = () => {
   const renderAddProfile = () => (
     <View style={styles.profileWrapper}>
       <TouchableOpacity
+        ref={addProfileRef}
         style={[
           styles.addProfileBox,
           isAddFocused && styles.focusedAddProfileBox,
@@ -155,8 +171,8 @@ const WhosWatchingTVOS: React.FC = () => {
         onFocus={() => setIsAddFocused(true)}
         onBlur={() => setIsAddFocused(false)}
         onPress={() => navigation.navigate('AddProfile')}
-        hasTVPreferredFocus={profilesData.length === 0}
-        focusable={true}>
+        focusable={true}
+      >
         <AIcon name="plus" size={28} color={COLORS.white} />
       </TouchableOpacity>
       <Text style={styles.profileName}>Add</Text>
@@ -171,7 +187,6 @@ const WhosWatchingTVOS: React.FC = () => {
           return true;
         }}
       />
-
       <Header logoSource={IMAGES.logo} editIconPress={toggleEditMode} />
       <View style={styles.titleContainer}>
         <Text style={styles.title}>Who's watching?</Text>
@@ -189,7 +204,6 @@ const WhosWatchingTVOS: React.FC = () => {
             {profilesData.map(renderProfile)}
             {profilesData.length < MAX_PROFILES && renderAddProfile()}
           </ScrollView>
-          {/* Edit/Cancel Buttons Row under profiles */}
           <View style={styles.editButtonsRow}>
             {!isEditMode && (
               <CButton

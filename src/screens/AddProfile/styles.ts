@@ -65,6 +65,10 @@ const styles = StyleSheet.create({
     },
     inputView: {
         marginBottom: scale(20),
+         width: '100%',
+    },
+       input: {
+        width: '100%',
     },
     inputLabel: {
         fontSize: scale(10),
@@ -73,9 +77,7 @@ const styles = StyleSheet.create({
         marginBottom: scale(5),
         alignSelf: 'flex-start',
     },
-    input: {
-        width: '100%',
-    },
+ 
 
     avatarWrapper: {
         alignItems: 'center',

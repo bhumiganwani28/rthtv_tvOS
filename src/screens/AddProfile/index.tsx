@@ -245,13 +245,19 @@ console.log("profileId.",profileId);
                 </View>
                 <View style={styles.inputView}>
                   <Text style={styles.inputLabel}>Profile Name</Text>
-                 <CInput
-                        placeholder="Type here..."
-                        value={name}
-                        onChangeText={setName}
-                        errorShow={!!nameError}
-                        errorText={nameError}
-                    />
+                  <View style={styles.inputView}>
+                    <CInput
+                    placeholder="Type here..."
+                    value={name}
+                    onChangeText={setName}
+                    errorShow={!!nameError}
+                    errorText={nameError}
+                    containerStyle={styles.input}
+                    focusable={true}
+                    hasTVPreferredFocus={true} // Use true if this input should get initial focus on modal/screen load
+/>
+
+                    </View>
                 </View>
                 <CButton
                   text="Save"
