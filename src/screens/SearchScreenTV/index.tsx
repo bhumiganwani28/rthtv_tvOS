@@ -271,7 +271,7 @@ const SearchScreen: React.FC = () => {
           value={searchText}
           onChangeText={setSearchText}
           keyboardType="default"
-          containerStyle={{ flex: 1, marginRight: 8 }}
+          containerStyle={{ marginRight: 8 }}
           onPress={() => { }}
           style={{
             minHeight: scale(22),

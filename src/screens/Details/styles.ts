@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: scale(12),
     flexDirection: "row",
     alignItems: "center",
-    borderRadius: scale(5),
+    // borderRadius: scale(5),
   },
 
   liveDot: {
@@ -64,8 +64,8 @@ const styles = StyleSheet.create({
 
   streamNameTV: {
     color: COLORS.white,
-    fontSize: isTV ? scale(30) : scale(24),
-    lineHeight: isTV ? scale(40) : scale(32),
+    fontSize: scale(16),
+    lineHeight: scale(20),
     fontFamily: FONTS.montBold,
     textAlign: "left",
   },
@@ -73,8 +73,8 @@ const styles = StyleSheet.create({
   descriptionTV: {
     marginTop: scale(8),
     fontFamily: FONTS.montRegular,
-    fontSize: isTV ? scale(20) : scale(16),
-    lineHeight: scale(28),
+    fontSize: scale(14),
+    lineHeight: scale(20),
     color: "rgba(255,255,255,0.75)",
     textAlign: "left",
   },
@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
   },
 
   trendingSection: {
-    marginTop: scale(40),
+    marginTop: scale(10),
     paddingBottom: scale(50),
   },
 

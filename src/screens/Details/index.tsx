@@ -211,7 +211,7 @@ const Details: React.FC = () => {
         ) : (
           <>
             {/* Header with Back button */}
-            <Animated.View style={[styles.header, { backgroundColor: headerBackgroundColor }]}>
+            {/* <Animated.View style={[styles.header, { backgroundColor: headerBackgroundColor }]}>
               <TVTouchable
                 onPress={handleBackPress}
                 style={{ padding: scale(10) }}
@@ -221,7 +221,7 @@ const Details: React.FC = () => {
               >
                 <AIcon name="arrowleft" size={isTablet ? 24 : 20} color={COLORS.white} />
               </TVTouchable>
-            </Animated.View>
+            </Animated.View> */}
 
             {/* Banner Image + Live Now badge */}
             <TVTouchable accessible={false}>

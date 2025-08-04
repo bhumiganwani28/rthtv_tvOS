@@ -91,3 +91,110 @@ export function useTVNavigation(
     setFocusedIndex,
   };
 }
+
+// New hook for search screen navigation
+export function useSearchTVNavigation() {
+  const [rowFocus, setRowFocus] = useState<'search' | 'tabs' | 'content'>('search');
+  const [focusedTabIndex, setFocusedTabIndex] = useState<number>(0);
+  const [focusedId, setFocusedId] = useState<string | number | null>(null);
+  const [searchFocused, setSearchFocused] = useState(false);
+  const [clearFocused, setClearFocused] = useState(false);
+
+  const handleNavigation = (
+    evt: any,
+    data: any[],
+    onSearchFocus?: () => void,
+    onClear?: () => void,
+    onTabSwitch?: (index: number) => void,
+    onItemSelect?: (item: any) => void
+  ) => {
+    if (!evt?.eventType) return;
+
+    switch (evt.eventType) {
+      case 'down':
+        if (rowFocus === 'search') {
+          setRowFocus('tabs');
+          setFocusedTabIndex(0);
+        } else if (rowFocus === 'tabs') {
+          setRowFocus('content');
+          setFocusedId(null);
+        } else if (rowFocus === 'content') {
+          if (data.length > 0) {
+            setFocusedId(data[0]?.id);
+          }
+        }
+        break;
+
+      case 'up':
+        if (rowFocus === 'content') {
+          setRowFocus('tabs');
+          setFocusedTabIndex(0);
+        } else if (rowFocus === 'tabs') {
+          setRowFocus('search');
+          setSearchFocused(true);
+        }
+        break;
+
+      case 'right':
+        if (rowFocus === 'search') {
+          setSearchFocused(false);
+          setClearFocused(true);
+        } else if (rowFocus === 'tabs') {
+          const nextTab = focusedTabIndex === 0 ? 1 : 0;
+          setFocusedTabIndex(nextTab);
+        } else if (rowFocus === 'content') {
+          const currentIndex = data.findIndex((item: any) => item.id === focusedId);
+          if (currentIndex < data.length - 1) {
+            setFocusedId(data[currentIndex + 1]?.id);
+          }
+        }
+        break;
+
+      case 'left':
+        if (rowFocus === 'search') {
+          setSearchFocused(false);
+        } else if (rowFocus === 'tabs') {
+          const prevTab = focusedTabIndex === 1 ? 0 : 1;
+          setFocusedTabIndex(prevTab);
+        } else if (rowFocus === 'content') {
+          const currentIndex = data.findIndex((item: any) => item.id === focusedId);
+          if (currentIndex > 0) {
+            setFocusedId(data[currentIndex - 1]?.id);
+          }
+        }
+        break;
+
+      case 'select':
+        if (rowFocus === 'search' && searchFocused) {
+          onSearchFocus?.();
+        } else if (rowFocus === 'search' && clearFocused) {
+          onClear?.();
+        } else if (rowFocus === 'tabs') {
+          onTabSwitch?.(focusedTabIndex || 0);
+        } else if (rowFocus === 'content' && focusedId) {
+          const selectedItem = data.find((item: any) => item.id === focusedId);
+          if (selectedItem) {
+            onItemSelect?.(selectedItem);
+          }
+        }
+        break;
+
+      default:
+        break;
+    }
+  };
+
+  return {
+    rowFocus,
+    setRowFocus,
+    focusedTabIndex,
+    setFocusedTabIndex,
+    focusedId,
+    setFocusedId,
+    searchFocused,
+    setSearchFocused,
+    clearFocused,
+    setClearFocused,
+    handleNavigation,
+  };
+}

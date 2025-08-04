@@ -57,13 +57,12 @@ const LatestSeason: React.FC = () => {
   const [subscriptionData, setSubscriptionData] = useState<any>(null);
   const [focusedIndex, setFocusedIndex] = useState(0);
 
-  // Tabs (you can add more if needed)
+  // 🟦 Tab menu state
   const [tabs] = useState<Tab[]>([
     { id: 'home', title: 'Home' },
-    { id: 'latestSeason', title: 'Latest Season' },
+    { id: 'channels', title: 'Channels' },
     { id: 'premium', title: 'Premium' },
     { id: 'featured', title: 'Featured' },
-    { id: 'mylist', title: 'My List' },
   ]);
   const [selectedTab, setSelectedTab] = useState('latestSeason');
   const [focusedTab, setFocusedTab] = useState('latestSeason');
@@ -139,10 +138,11 @@ const LatestSeason: React.FC = () => {
     navigation.navigate('VODScreen', { seasonID: item?._id });
   };
 
-  // Tab navigation handler
+  // ✅ Tab Navigation Handler
   const handleTabPress = (tabId: string) => {
     setSelectedTab(tabId);
     setFocusedTab(tabId);
+
     switch (tabId) {
       case 'home':
         navigation.navigate('Home');
@@ -156,8 +156,8 @@ const LatestSeason: React.FC = () => {
       case 'featured':
         navigation.navigate('Featured'); // update route name if required
         break;
-      case 'mylist':
-        // navigation.navigate('AllVideosScreen');
+      // navigation.navigate('AllVideosScreen');
+      default:
         break;
     }
   };

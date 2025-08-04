@@ -60,14 +60,13 @@ const PremiumVideos: React.FC = () => {
 
   const itemMargin = ITEM_SPACING / 2;
 
-  // Tabs
-  const tabs: Tab[] = [
+  // 🟦 Tab menu state
+  const [tabs] = useState<Tab[]>([
     { id: 'home', title: 'Home' },
     { id: 'channels', title: 'Channels' },
     { id: 'premium', title: 'Premium' },
     { id: 'featured', title: 'Featured' },
-    { id: 'mylist', title: 'My List' },
-  ];
+  ]);
 
   // Focus states
   const [rowFocus, setRowFocus] = useState<'tabs' | 'content'>('tabs');
@@ -163,15 +162,17 @@ const PremiumVideos: React.FC = () => {
     }
   });
 
+  // ✅ Tab Navigation Handler
   const handleTabPress = (tabId: string) => {
     setSelectedTab(tabId);
     setFocusedTab(tabId);
+
     switch (tabId) {
       case 'home': navigation.navigate('Home'); break;
       case 'channels': navigation.navigate('Channels'); break;
       case 'premium': navigation.navigate('PremiumVideos'); break;
       case 'featured': navigation.navigate('LatestSeason'); break;
-      // case 'mylist': navigation.navigate('AllVideosScreen'); break;
+      default: break;
     }
   };
 

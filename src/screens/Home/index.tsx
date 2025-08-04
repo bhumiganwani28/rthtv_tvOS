@@ -92,11 +92,10 @@ const HomeScreen: React.FC = () => {
 
   // 🟦 Tab menu state
   const [tabs] = useState<Tab[]>([
-    {id: 'home', title: 'Home'},
-    {id: 'channels', title: 'Channels'},
-    {id: 'premium', title: 'Premium'},
-    {id: 'featured', title: 'Featured'},
-    // {id: 'tvGuide', title: 'TV Guide'},
+    { id: 'home', title: 'Home' },
+    { id: 'channels', title: 'Channels' },
+    { id: 'premium', title: 'Premium' },
+    { id: 'featured', title: 'Featured' },
   ]);
   const [selectedTab, setSelectedTab] = useState<string>('home');
   const [focusedTab, setFocusedTab] = useState<string>('home');
@@ -147,9 +146,9 @@ const HomeScreen: React.FC = () => {
       case 'featured':
         navigation.navigate('LatestSeason');
         break;
-      case 'tvGuide':
-        // navigation.navigate('TVGuideScreen');
-        break;
+      // case 'tvGuide':
+      //   navigation.navigate('TVGuideScreen');
+      //   break;
       default:
         break;
     }
