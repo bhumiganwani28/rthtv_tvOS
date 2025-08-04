@@ -60,7 +60,7 @@ const Channels: React.FC = () => {
     { id: 'channels', title: 'Channels' },
     { id: 'premium', title: 'Premium' },
     { id: 'featured', title: 'Featured' },
-    { id: 'mylist', title: 'My List' },
+    // { id: 'mylist', title: 'My List' },
   ]);
   const [selectedTab, setSelectedTab] = useState<string>('channels');
   const [focusedTab, setFocusedTab] = useState<string>('channels');
@@ -211,7 +211,7 @@ const cardHeight = cardWidth / CARD_ASPECT_RATIO;
       case 'featured':
         navigation.navigate('LatestSeason');
         break;
-      case 'mylist':
+      case 'AllVideos':
         // navigation.navigate('AllVideosScreen');
         break;
       default:

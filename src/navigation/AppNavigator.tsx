@@ -26,6 +26,7 @@ import VideoPlayerScreen from '../screens/VideoPlayerScreen';
 import VODScreen from '../screens/VODScreenTV';
 import SelectAvatar from '../screens/SelectAvtar';
 import AddProfile from '../screens/AddProfile';
+import Details from '../screens/Details';
 // import TVGuideScreen from '../screens/TVGuideScreen';
 
 
@@ -74,6 +75,7 @@ const AppNavigator = () => {
       <Stack.Screen name="SearchVideosTV" component={SearchVideosTV} />
       <Stack.Screen name="SearchScreenTV" component={SearchScreenTV} />
       <Stack.Screen name="VideoPlayerScreen" component={VideoPlayerScreen} />
+       <Stack.Screen name="Details" component={Details} />
       {/* <Stack.Screen name="TVGuideScreen" component={TVGuideScreen} /> */}
 
     </Stack.Navigator>
