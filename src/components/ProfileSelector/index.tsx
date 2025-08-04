@@ -21,6 +21,7 @@ interface ProfileMenuTVProps {
 
 const MENU_ITEMS = [
   { key: 'manage', label: 'Manage Watch Profile', icon: '👤', action: 'manageProfile' },
+  { key: 'editProfile', label: 'Edit Profile', icon: '✏️', action: 'editProfile' },
   // { key: 'settings', label: 'Account & Settings', icon: '⚙️', action: 'settings' },
   // { key: 'devices', label: 'Manage Access & Devices', icon: '🖥️', action: 'devices' },
   // { key: 'subscription', label: 'Subscription', icon: '💳', action: 'subscription' },
@@ -65,11 +66,10 @@ const ProfileMenuTV: React.FC<ProfileMenuTVProps> = ({ onProfileChange }) => {
     setShowDropdown(false);
     switch (action) {
       case 'manageProfile':
-  navigation.replace('WhosWatching');
-  break;
-
-      case 'manageProfile':
         navigation.navigate('WhosWatching');
+        break;
+      case 'editProfile':
+        navigation.navigate('EditProfile');
         break;
       // case 'settings':
       //   // navigation.navigate('Settings'); // adjust as per your navigation
