@@ -17,6 +17,8 @@ interface TabMenuBarProps {
   rowFocus: string;
   onTabPress: (tabId: string) => void;
   onTabFocus: (tabId: string) => void;
+  tabFocusIndex?: number;
+  setTabFocusIndex?: (index: number) => void;
 }
 
 const TabMenuBar: React.FC<TabMenuBarProps> = ({
@@ -26,6 +28,8 @@ const TabMenuBar: React.FC<TabMenuBarProps> = ({
   rowFocus,
   onTabPress,
   onTabFocus,
+  tabFocusIndex,
+  setTabFocusIndex,
 }) => {
   return (
     <View style={styles.tabBarContainer}>
@@ -34,27 +38,31 @@ const TabMenuBar: React.FC<TabMenuBarProps> = ({
         data={tabs}
         keyExtractor={(item) => item.id}
         showsHorizontalScrollIndicator={false}
-        renderItem={({ item }) => {
+        renderItem={({ item, index }) => {
           const isSelected = selectedTab === item.id;
           const isFocused = focusedTab === item.id && rowFocus === 'tabs';
+          const isTabFocused = tabFocusIndex === index && rowFocus === 'tabs';
 
           return (
             <TouchableOpacity
               style={[
                 styles.tabItem,
                 isSelected && styles.selectedTab,
-                isFocused && styles.focusedTab,
+                (isFocused || isTabFocused) && styles.focusedTab,
               ]}
               onPress={() => onTabPress(item.id)}
-              onFocus={() => onTabFocus(item.id)}
-              hasTVPreferredFocus={item.id === 'home'}
+              onFocus={() => {
+                onTabFocus(item.id);
+                setTabFocusIndex?.(index);
+              }}
+              hasTVPreferredFocus={index === tabFocusIndex && rowFocus === 'tabs'}
               focusable={Platform.isTV}
             >
               <Text
                 style={[
                   styles.tabText,
                   isSelected && styles.selectedTabText,
-                  isFocused && styles.focusedTabText,
+                  (isFocused || isTabFocused) && styles.focusedTabText,
                 ]}
               >
                 {item.title}

@@ -40,9 +40,14 @@ type Tab = {
   title: string;
 };
 
+// Navigation type
+type NavigationProps = {
+  navigate: (screen: string, params?: any) => void;
+  goBack: () => void;
+};
 
 const Channels: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProps>();
   const dispatch = useDispatch();
   const channelsData = useSelector((state: any) => state.channels?.data);
   const dataFetchedRef = useRef(false);
@@ -54,7 +59,7 @@ const Channels: React.FC = () => {
   const [subscriptionData, setSubscriptionData] = useState<any>(null);
   const [focusedIndex, setFocusedIndex] = useState<number>(0);
 
-  // 🟦 Tab menu state
+  // 🟦 Tab menu state with smooth navigation
   const [tabs] = useState<Tab[]>([
     { id: 'home', title: 'Home' },
     { id: 'channels', title: 'Channels' },
@@ -64,17 +69,17 @@ const Channels: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState<string>('channels');
   const [focusedTab, setFocusedTab] = useState<string>('channels');
   const [rowFocus, setRowFocus] = useState<'tabs' | 'content'>('tabs');
+  const [tabFocusIndex, setTabFocusIndex] = useState<number>(1); // Start with channels tab
 
-
-
-const NUM_COLUMNS = 5;
-const CARD_ASPECT_RATIO = 16 / 9;
-const itemHorizontalSpacing = scale(12); // space between cards
-const windowWidth = Dimensions.get('window').width;
-const totalSpacing = itemHorizontalSpacing * (NUM_COLUMNS + 1);
-const cardWidth = (windowWidth - totalSpacing) / NUM_COLUMNS;
-const cardHeight = cardWidth / CARD_ASPECT_RATIO;
+  const NUM_COLUMNS = 5;
+  const CARD_ASPECT_RATIO = 16 / 9;
+  const itemHorizontalSpacing = scale(12); // space between cards
+  const windowWidth = Dimensions.get('window').width;
+  const totalSpacing = itemHorizontalSpacing * (NUM_COLUMNS + 1);
+  const cardWidth = (windowWidth - totalSpacing) / NUM_COLUMNS;
+  const cardHeight = cardWidth / CARD_ASPECT_RATIO;
   const itemMargin = itemHorizontalSpacing / 1.5;
+
   const handleBackPress = useCallback(() => {
     navigation.goBack();
     return true;
@@ -125,6 +130,14 @@ const cardHeight = cardWidth / CARD_ASPECT_RATIO;
       setPage(1);
       dispatch(setChannelsData([]));
       fetchChannels(1);
+      
+      // 🎯 Reset focus to tabs when screen comes into focus
+      if (Platform.isTV) {
+        setRowFocus('tabs');
+        setTabFocusIndex(1); // Focus on channels tab
+        setFocusedTab('channels');
+        setFocusedIndex(0);
+      }
     }, [])
   );
 
@@ -143,30 +156,47 @@ const cardHeight = cardWidth / CARD_ASPECT_RATIO;
     }
   }, [page, totalPages, loading]);
 
+  // 🎯 Smooth Tab Navigation
+  const navigateTabs = useCallback((direction: 'left' | 'right') => {
+    if (direction === 'left') {
+      const newIndex = Math.max(0, tabFocusIndex - 1);
+      setTabFocusIndex(newIndex);
+      setFocusedTab(tabs[newIndex].id);
+    } else {
+      const newIndex = Math.min(tabs.length - 1, tabFocusIndex + 1);
+      setTabFocusIndex(newIndex);
+      setFocusedTab(tabs[newIndex].id);
+    }
+  }, [tabFocusIndex, tabs]);
+
   const renderItem = ({ item, index }: { item: any; index: number }) => {
-    const isFocused = index === focusedIndex;
+    const isFocused = index === focusedIndex && rowFocus === 'content';
 
     return (
       <TouchableOpacity
         onPress={() => handleChannelPress(item)}
-        onFocus={() => setFocusedIndex(index)}
-        hasTVPreferredFocus={index === 0}
-        focusable
-       style={{
-        width: cardWidth,
-        height: cardHeight,
-        marginLeft: itemMargin,
-        marginTop: itemMargin,
-       
-      }}
+        onFocus={() => {
+          if (Platform.isTV) {
+            setFocusedIndex(index);
+            setRowFocus('content');
+          }
+        }}
+        hasTVPreferredFocus={index === 0 && rowFocus === 'content'}
+        focusable={Platform.isTV}
+        style={{
+          width: cardWidth,
+          height: cardHeight,
+          marginLeft: itemMargin,
+          marginTop: itemMargin,
+        }}
       >
         <View
           style={[
             styles.itemContainer,
             isFocused && styles.focusedItemContainer,
-            { width: cardWidth, height: cardHeight ,
+            { width: cardWidth, height: cardHeight,
                borderWidth: isFocused ? scale(1) : 0,
-        borderColor: isFocused ? COLORS.white : 'transparent',
+               borderColor: isFocused ? COLORS.white : 'transparent',
             },
           ]}
         >
@@ -183,7 +213,6 @@ const cardHeight = cardWidth / CARD_ASPECT_RATIO;
           )}
         </View>
       </TouchableOpacity>
-       
     );
   };
 
@@ -192,7 +221,7 @@ const cardHeight = cardWidth / CARD_ASPECT_RATIO;
 
   const gridWidth = NUM_COLUMNS * cardWidth + (NUM_COLUMNS + 1) * itemMargin;
 
-  // ✅ Tab Navigation Handler
+  // ✅ Smooth Tab Navigation Handler
   const handleTabPress = (tabId: string) => {
     setSelectedTab(tabId);
     setFocusedTab(tabId);
@@ -205,7 +234,7 @@ const cardHeight = cardWidth / CARD_ASPECT_RATIO;
         navigation.navigate('Channels');
         break;
       case 'premium':
-         navigation.navigate('PremiumVideos');
+        navigation.navigate('PremiumVideos');
         break;
       case 'featured':
         navigation.navigate('LatestSeason');
@@ -215,7 +244,6 @@ const cardHeight = cardWidth / CARD_ASPECT_RATIO;
     }
   };
 
-    
   const handleRefresh = async () => {
     setRefreshing(true);
     dataFetchedRef.current = false;
@@ -223,13 +251,40 @@ const cardHeight = cardWidth / CARD_ASPECT_RATIO;
     setRefreshing(false);
   };
 
-
-  // 🔁 TV Remote Navigation
+  // 🔁 Smooth TV Remote Navigation
   useTVEventHandler((evt) => {
-    if (evt?.eventType === 'down' && rowFocus === 'tabs') {
-      setRowFocus('content');
-    } else if (evt?.eventType === 'up' && rowFocus === 'content') {
-      setRowFocus('tabs');
+    if (!Platform.isTV || !evt) return;
+
+    switch (evt.eventType) {
+      case 'up':
+        if (rowFocus === 'content') {
+          setRowFocus('tabs');
+          setTabFocusIndex(1); // Focus on channels tab
+        }
+        break;
+      case 'down':
+        if (rowFocus === 'tabs') {
+          setRowFocus('content');
+          setFocusedIndex(0);
+        }
+        break;
+      case 'left':
+        if (rowFocus === 'tabs') {
+          navigateTabs('left');
+        }
+        break;
+      case 'right':
+        if (rowFocus === 'tabs') {
+          navigateTabs('right');
+        }
+        break;
+      case 'select':
+        if (rowFocus === 'tabs') {
+          handleTabPress(focusedTab);
+        } else if (rowFocus === 'content' && channelsData[focusedIndex]) {
+          handleChannelPress(channelsData[focusedIndex]);
+        }
+        break;
     }
   });
 
@@ -245,65 +300,65 @@ const cardHeight = cardWidth / CARD_ASPECT_RATIO;
         onSearchPress={() => navigation.navigate('SearchVideosTV')}
       />
 
-      {/* ✅ Tab Bar at the top */}
+      {/* ✅ Smooth Tab Bar */}
       <View style={styles.tabBarContainer}>
         <TabMenuBar
-        tabs={tabs}
+          tabs={tabs}
           selectedTab={selectedTab}
           focusedTab={focusedTab}
           rowFocus={rowFocus}
-        onTabPress={handleTabPress}
-        onTabFocus={setFocusedTab}
-      />
-      <ProfileSelector
-        onProfileChange={(profile) => {
-          console.log('Profile changed:', profile.name);
-          // You could refresh content based on profile here
-          handleRefresh();
-        }}
-      />
+          onTabPress={handleTabPress}
+          onTabFocus={setFocusedTab}
+          tabFocusIndex={tabFocusIndex}
+          setTabFocusIndex={setTabFocusIndex}
+        />
+        <ProfileSelector
+          onProfileChange={(profile) => {
+            console.log('Profile changed:', profile.name);
+            handleRefresh();
+          }}
+        />
       </View>
       
-<View style={styles.contentContainer}>
-  <View style={styles.contentTitleContainer}>
-    <Text style={styles.contentTitle}>Channels</Text>
-  </View>
-      {loading && page === 1 ? (
-        <View style={styles.loaderContainer}>
-          <ActivityIndicator size="large" color={COLORS.primary} />
+      <View style={styles.contentContainer}>
+        <View style={styles.contentTitleContainer}>
+          <Text style={styles.contentTitle}>Channels</Text>
         </View>
-      ) : channelsData?.length === 0 ? (
-        <View style={styles.noDataContainer}>
-          <Text style={styles.noDataText}>No Channels Found</Text>
-        </View>
-      ) : (
-        <FlatList
-          data={channelsData}
-          renderItem={renderItem}
-          keyExtractor={keyExtractor}
-          numColumns={NUM_COLUMNS}
-          showsVerticalScrollIndicator={false}
-          onEndReached={loadMore}
-          onEndReachedThreshold={0.7}
-          contentContainerStyle={{
-            width: gridWidth,
-            alignSelf: 'center',
-            // paddingBottom: 50,
-          }}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              colors={[COLORS.white]}
-            />
-          }
-          ListFooterComponent={
-            loading && page > 1 ? (
-              <ActivityIndicator size="small" color={COLORS.white} />
-            ) : null
-          }
-        />
-      )}
+        {loading && page === 1 ? (
+          <View style={styles.loaderContainer}>
+            <ActivityIndicator size="large" color={COLORS.primary} />
+          </View>
+        ) : channelsData?.length === 0 ? (
+          <View style={styles.noDataContainer}>
+            <Text style={styles.noDataText}>No Channels Found</Text>
+          </View>
+        ) : (
+          <FlatList
+            data={channelsData}
+            renderItem={renderItem}
+            keyExtractor={keyExtractor}
+            numColumns={NUM_COLUMNS}
+            showsVerticalScrollIndicator={false}
+            onEndReached={loadMore}
+            onEndReachedThreshold={0.7}
+            contentContainerStyle={{
+              width: gridWidth,
+              alignSelf: 'center',
+            }}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                colors={[COLORS.white]}
+              />
+            }
+            ListFooterComponent={
+              loading && page > 1 ? (
+                <ActivityIndicator size="small" color={COLORS.white} />
+              ) : null
+            }
+          />
+        )}
       </View>
     </View>
   );

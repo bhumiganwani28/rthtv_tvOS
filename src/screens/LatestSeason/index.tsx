@@ -8,6 +8,7 @@ import {
   Image,
   TouchableOpacity,
   Dimensions,
+  Platform,
 } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -38,14 +39,18 @@ type Tab = {
   title: string;
 };
 
-type LatestSeasonScreenNavigationProp = any; // adapt this as needed
+// Navigation type
+type NavigationProps = {
+  navigate: (screen: string, params?: any) => void;
+  goBack: () => void;
+};
 
 const NUM_COLUMNS = 5;
 const CARD_ASPECT_RATIO = 16 / 9;
 const ITEM_HORIZONTAL_SPACING = 24;
 
 const LatestSeason: React.FC = () => {
-  const navigation = useNavigation<LatestSeasonScreenNavigationProp>();
+  const navigation = useNavigation<NavigationProps>();
   const dispatch = useDispatch();
   const latestVideosData = useSelector((state: any) => state.latestSeason?.data);
   const dataFetchedRef = useRef(false);
@@ -57,16 +62,17 @@ const LatestSeason: React.FC = () => {
   const [subscriptionData, setSubscriptionData] = useState<any>(null);
   const [focusedIndex, setFocusedIndex] = useState(0);
 
-  // 🟦 Tab menu state
+  // 🟦 Tab menu state with smooth navigation
   const [tabs] = useState<Tab[]>([
     { id: 'home', title: 'Home' },
     { id: 'channels', title: 'Channels' },
     { id: 'premium', title: 'Premium' },
     { id: 'featured', title: 'Featured' },
   ]);
-  const [selectedTab, setSelectedTab] = useState('latestSeason');
-  const [focusedTab, setFocusedTab] = useState('latestSeason');
+  const [selectedTab, setSelectedTab] = useState('featured');
+  const [focusedTab, setFocusedTab] = useState('featured');
   const [rowFocus, setRowFocus] = useState<'tabs' | 'content'>('tabs');
+  const [tabFocusIndex, setTabFocusIndex] = useState<number>(3); // Start with featured tab
 
   const windowWidth = Dimensions.get('window').width;
   const totalSpacing = ITEM_HORIZONTAL_SPACING * (NUM_COLUMNS + 1);
@@ -116,6 +122,14 @@ const LatestSeason: React.FC = () => {
       setPage(1);
       dispatch(setLatestSeasonData([]));
       fetchLatestVideos(1);
+      
+      // 🎯 Reset focus to tabs when screen comes into focus
+      if (Platform.isTV) {
+        setRowFocus('tabs');
+        setTabFocusIndex(3); // Focus on featured tab
+        setFocusedTab('featured');
+        setFocusedIndex(0);
+      }
     }, [])
   );
 
@@ -138,7 +152,20 @@ const LatestSeason: React.FC = () => {
     navigation.navigate('VODScreen', { seasonID: item?._id });
   };
 
-  // ✅ Tab Navigation Handler
+  // 🎯 Smooth Tab Navigation
+  const navigateTabs = useCallback((direction: 'left' | 'right') => {
+    if (direction === 'left') {
+      const newIndex = Math.max(0, tabFocusIndex - 1);
+      setTabFocusIndex(newIndex);
+      setFocusedTab(tabs[newIndex].id);
+    } else {
+      const newIndex = Math.min(tabs.length - 1, tabFocusIndex + 1);
+      setTabFocusIndex(newIndex);
+      setFocusedTab(tabs[newIndex].id);
+    }
+  }, [tabFocusIndex, tabs]);
+
+  // ✅ Smooth Tab Navigation Handler
   const handleTabPress = (tabId: string) => {
     setSelectedTab(tabId);
     setFocusedTab(tabId);
@@ -147,39 +174,71 @@ const LatestSeason: React.FC = () => {
       case 'home':
         navigation.navigate('Home');
         break;
-      case 'latestSeason':
-        navigation.navigate('LatestSeason');
+      case 'channels':
+        navigation.navigate('Channels');
         break;
       case 'premium':
         navigation.navigate('PremiumVideos');
         break;
       case 'featured':
-        navigation.navigate('Featured'); // update route name if required
+        navigation.navigate('LatestSeason');
         break;
-      // navigation.navigate('AllVideosScreen');
       default:
         break;
     }
   };
 
-  // TV Remote navigation
-  useTVEventHandler(evt => {
-    if (evt?.eventType === 'down' && rowFocus === 'tabs') {
-      setRowFocus('content');
-    } else if (evt?.eventType === 'up' && rowFocus === 'content') {
-      setRowFocus('tabs');
+  // 🔁 Smooth TV Remote Navigation
+  useTVEventHandler((evt) => {
+    if (!Platform.isTV || !evt) return;
+
+    switch (evt.eventType) {
+      case 'up':
+        if (rowFocus === 'content') {
+          setRowFocus('tabs');
+          setTabFocusIndex(3); // Focus on featured tab
+        }
+        break;
+      case 'down':
+        if (rowFocus === 'tabs') {
+          setRowFocus('content');
+          setFocusedIndex(0);
+        }
+        break;
+      case 'left':
+        if (rowFocus === 'tabs') {
+          navigateTabs('left');
+        }
+        break;
+      case 'right':
+        if (rowFocus === 'tabs') {
+          navigateTabs('right');
+        }
+        break;
+      case 'select':
+        if (rowFocus === 'tabs') {
+          handleTabPress(focusedTab);
+        } else if (rowFocus === 'content' && latestVideosData[focusedIndex]) {
+          handleSeasonPress(latestVideosData[focusedIndex]);
+        }
+        break;
     }
   });
 
   const renderItem = ({ item, index }: { item: any; index: number }) => {
-    const isFocused = index === focusedIndex;
+    const isFocused = index === focusedIndex && rowFocus === 'content';
 
     return (
       <TouchableOpacity
         onPress={() => handleSeasonPress(item)}
-        onFocus={() => setFocusedIndex(index)}
-        hasTVPreferredFocus={index === 0}
-        focusable
+        onFocus={() => {
+          if (Platform.isTV) {
+            setFocusedIndex(index);
+            setRowFocus('content');
+          }
+        }}
+        hasTVPreferredFocus={index === 0 && rowFocus === 'content'}
+        focusable={Platform.isTV}
         style={{
           width: cardWidth,
           height: cardHeight,
@@ -204,9 +263,6 @@ const LatestSeason: React.FC = () => {
             </View>
           )}
         </View>
-        {/* <Text style={[styles.showTitle, isFocused && styles.focusedShowTitle]} numberOfLines={1}>
-          {item?.title || item?.name || ''}
-        </Text> */}
       </TouchableOpacity>
     );
   };
@@ -227,8 +283,8 @@ const LatestSeason: React.FC = () => {
         onSearchPress={() => navigation.navigate('SearchVideosTV')}
       />
 
-      {/* Tab Bar */}
-      {/* <View style={styles.tabBarContainer}>
+      {/* ✅ Smooth Tab Bar */}
+      <View style={styles.tabBarContainer}>
         <TabMenuBar
           tabs={tabs}
           selectedTab={selectedTab}
@@ -236,13 +292,15 @@ const LatestSeason: React.FC = () => {
           rowFocus={rowFocus}
           onTabPress={handleTabPress}
           onTabFocus={setFocusedTab}
+          tabFocusIndex={tabFocusIndex}
+          setTabFocusIndex={setTabFocusIndex}
         />
         <ProfileSelector
           onProfileChange={() => {
             onRefresh();
           }}
         />
-      </View> */}
+      </View>
 
       <View style={styles.contentContainer}>
         <View style={styles.contentTitleContainer}>
@@ -269,13 +327,18 @@ const LatestSeason: React.FC = () => {
             contentContainerStyle={{
               width: gridWidth,
               alignSelf: 'center',
-              paddingBottom: scale(40),
             }}
             refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[COLORS.primary]} />
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                colors={[COLORS.white]}
+              />
             }
             ListFooterComponent={
-              loading && page > 1 ? <ActivityIndicator size="small" color={COLORS.primary} /> : null
+              loading && page > 1 ? (
+                <ActivityIndicator size="small" color={COLORS.white} />
+              ) : null
             }
           />
         )}
