@@ -7,6 +7,10 @@ interface User {
   email: string;
   avatar: string | null;
   isTablet: boolean;
+  first_name?: string;
+  last_name?: string;
+  firstName?: string;
+  lastName?: string;
 }
 
 interface AuthState {

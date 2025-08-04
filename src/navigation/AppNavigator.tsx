@@ -28,8 +28,7 @@ import SelectAvatar from '../screens/SelectAvtar';
 import AddProfile from '../screens/AddProfile';
 import Details from '../screens/Details';
 import AllVideos from '../screens/AllVideos';
-// import TVGuideScreen from '../screens/TVGuideScreen';
-
+import EditProfile from '../screens/EditProfile';
 
 const Stack = createNativeStackNavigator();
 
@@ -43,43 +42,202 @@ const AppNavigator = () => {
         contentStyle: { backgroundColor: 'transparent' },
         fullScreenGestureEnabled: false,
         gestureEnabled: !Platform.isTV,
-        // TV-specific transition settings
-        animationDuration: Platform.isTV ? 300 : undefined,
+        // TV-specific transition settings for smooth navigation
+        animationDuration: Platform.isTV ? 0 : undefined,
         animationTypeForReplace: Platform.isTV ? 'push' : 'pop',
+        // Better back navigation handling
+        presentation: Platform.isTV ? 'card' : 'modal',
+        // Custom transition for TV - no animation to prevent blinking
+        ...(Platform.isTV && {
+          animation: 'none',
+          animationDuration: 0,
+        }),
       }}
     >
-      <Stack.Screen name="Splash" component={Splash} />
-      <Stack.Screen name="OnBoarding" component={OnBoarding} />
+      {/* Auth Flow */}
+      <Stack.Screen 
+        name="Splash" 
+        component={Splash}
+        options={{
+          gestureEnabled: false,
+        }}
+      />
+      <Stack.Screen 
+        name="OnBoarding" 
+        component={OnBoarding}
+        options={{
+          gestureEnabled: false,
+        }}
+      />
+      <Stack.Screen 
+        name="LoginTV" 
+        component={LoginTV}
+        options={{
+          gestureEnabled: false,
+        }}
+      />
+      <Stack.Screen 
+        name="SignUp" 
+        component={SignUpScreen}
+        options={{
+          gestureEnabled: false,
+        }}
+      />
+      <Stack.Screen 
+        name="ForgotPasswordTV" 
+        component={ForgotPasswordTV}
+        options={{
+          gestureEnabled: false,
+        }}
+      />
+      <Stack.Screen 
+        name="ChangePasswordTV" 
+        component={ChangePasswordTV}
+        options={{
+          gestureEnabled: false,
+        }}
+      />
 
-      <Stack.Screen name="LoginTV" component={LoginTV} />
-      <Stack.Screen name="SignUp" component={SignUpScreen} />
-      <Stack.Screen name="ForgotPasswordTV" component={ForgotPasswordTV} />
-      <Stack.Screen name="ChangePasswordTV" component={ChangePasswordTV} />
+      {/* Profile Management */}
+      <Stack.Screen 
+        name="WhosWatching" 
+        component={WhosWatchingScreen}
+        options={{
+          gestureEnabled: false,
+        }}
+      />
+      <Stack.Screen 
+        name="AddProfile" 
+        component={AddProfile}
+        options={{
+          gestureEnabled: false,
+        }}
+      />
+      
+      <Stack.Screen 
+        name="SelectAvtar" 
+        component={SelectAvatar}
+        options={{
+          gestureEnabled: false,
+        }}
+      />
 
+      {/* Main App Flow */}
+      
+      <Stack.Screen 
+        name="Home" 
+        component={Home}
+        options={{
+          gestureEnabled: false,
+        }}
+      />
+      <Stack.Screen 
+        name="Channels" 
+        component={Channels}
+        options={{
+          gestureEnabled: false,
+        }}
+      />
+         <Stack.Screen 
+        name="EditProfile" 
+        component={EditProfile}
+        options={{
+          gestureEnabled: false,
+        }}
+      />
+      <Stack.Screen 
+        name="ChannelDetailsTV" 
+        component={ChannelDetailsTV}
+        options={{
+          gestureEnabled: false,
+        }}
+      />
+      <Stack.Screen 
+        name="PremiumVideos" 
+        component={PremiumVideos}
+        options={{
+          gestureEnabled: false,
+        }}
+      />
+      <Stack.Screen 
+        name="UpcomingShows" 
+        component={UpcomingShows}
+        options={{
+          gestureEnabled: false,
+        }}
+      />
+      <Stack.Screen 
+        name="TrendingVideos" 
+        component={TrendingVideos}
+        options={{
+          gestureEnabled: false,
+        }}
+      />
+      <Stack.Screen 
+        name="LatestSeason" 
+        component={LatestSeason}
+        options={{
+          gestureEnabled: false,
+        }}
+      />
+      <Stack.Screen 
+        name="Intro" 
+        component={IntroSlider}
+        options={{
+          gestureEnabled: false,
+        }}
+      />
 
-      <Stack.Screen name="WhosWatching" component={WhosWatchingScreen} />
-      <Stack.Screen name="AddProfile" component={AddProfile} />
-      <Stack.Screen name="SelectAvtar" component={SelectAvatar} />
-
-      <Stack.Screen name="Home" component={Home} />
-      <Stack.Screen name="ChannelDetailsTV" component={ChannelDetailsTV} />
-      <Stack.Screen name="Channels" component={Channels} />
-      <Stack.Screen name="PremiumVideos" component={PremiumVideos} />
-      <Stack.Screen name="UpcomingShows" component={UpcomingShows} />
-      <Stack.Screen name="TrendingVideos" component={TrendingVideos} />
-      <Stack.Screen name="LatestSeason" component={LatestSeason} />
-      <Stack.Screen name="Intro" component={IntroSlider} />
-
-      <Stack.Screen name="VODScreen" component={VODScreen} />
-
-      <Stack.Screen name="AllSeasons" component={AllSeasons} />
-      <Stack.Screen name="SearchVideosTV" component={SearchVideosTV} />
-      <Stack.Screen name="SearchScreenTV" component={SearchScreenTV} />
-      <Stack.Screen name="VideoPlayerScreen" component={VideoPlayerScreen} />
-       <Stack.Screen name="Details" component={Details} />
-       <Stack.Screen name="AllVideos" component={AllVideos} />
-      {/* <Stack.Screen name="TVGuideScreen" component={TVGuideScreen} /> */}
-
+      {/* Video and Content Screens */}
+      <Stack.Screen 
+        name="VODScreen" 
+        component={VODScreen}
+        options={{
+          gestureEnabled: false,
+        }}
+      />
+      <Stack.Screen 
+        name="AllSeasons" 
+        component={AllSeasons}
+        options={{
+          gestureEnabled: false,
+        }}
+      />
+      <Stack.Screen 
+        name="SearchVideosTV" 
+        component={SearchVideosTV}
+        options={{
+          gestureEnabled: false,
+        }}
+      />
+      <Stack.Screen 
+        name="SearchScreenTV" 
+        component={SearchScreenTV}
+        options={{
+          gestureEnabled: false,
+        }}
+      />
+      <Stack.Screen 
+        name="VideoPlayerScreen" 
+        component={VideoPlayerScreen}
+        options={{
+          gestureEnabled: false,
+        }}
+      />
+      <Stack.Screen 
+        name="Details" 
+        component={Details}
+        options={{
+          gestureEnabled: false,
+        }}
+      />
+      <Stack.Screen 
+        name="AllVideos" 
+        component={AllVideos}
+        options={{
+          gestureEnabled: false,
+        }}
+      />
     </Stack.Navigator>
   );
 };

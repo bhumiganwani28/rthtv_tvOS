@@ -1,200 +1,151 @@
-import { useState } from 'react';
-import { useTVEventHandler } from 'react-native';
+import { useCallback, useRef, useState } from 'react';
+import { Platform, useTVEventHandler } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
-type Tab = { id: string; title: string };
-
-export function useTVNavigation(
-  tabs: Tab[], 
-  itemCount: number, 
-  numColumns: number
-) {
-  const [rowFocus, setRowFocus] = useState<'tabs' | 'content'>('tabs');
-  const [focusedTab, setFocusedTab] = useState<string>(tabs[0]?.id || '');
-  const [selectedTab, setSelectedTab] = useState<string>(tabs[0]?.id || '');
-  const [focusedIndex, setFocusedIndex] = useState<number>(0);
-
-  useTVEventHandler((evt) => {
-    if (!evt?.eventType) return;
-
-    switch (evt.eventType) {
-    case 'down':
-  if (rowFocus === 'tabs') {
-    setRowFocus('content');
-    setFocusedIndex(0);
-  } else if (rowFocus === 'content') {
-    const nextIndex = focusedIndex + numColumns;
-    if (nextIndex < itemCount) {
-      setFocusedIndex(nextIndex);
-    }
-  }
-  break;
-
-    case 'up':
-  if (rowFocus === 'content') {
-    const prevIndex = focusedIndex - numColumns;
-    if (prevIndex >= 0) {
-      setFocusedIndex(prevIndex);
-    } else {
-      setRowFocus('tabs');
-    }
-  }
-  break;
-
-      case 'right':
-        if (rowFocus === 'tabs') {
-          const currentIndex = tabs.findIndex((t) => t.id === focusedTab);
-          if (currentIndex < tabs.length - 1) {
-            setFocusedTab(tabs[currentIndex + 1].id);
-          }
-        } else if (rowFocus === 'content') {
-          const next = focusedIndex + 1;
-          if (next < itemCount) {
-            setFocusedIndex(next);
-          }
-        }
-        break;
-
-      case 'left':
-        if (rowFocus === 'tabs') {
-          const currentIndex = tabs.findIndex((t) => t.id === focusedTab);
-          if (currentIndex > 0) {
-            setFocusedTab(tabs[currentIndex - 1].id);
-          }
-        } else if (rowFocus === 'content') {
-          const prev = focusedIndex - 1;
-          if (prev >= 0) {
-            setFocusedIndex(prev);
-          }
-        }
-        break;
-
-      case 'select':
-        if (rowFocus === 'tabs') {
-          setSelectedTab(focusedTab);
-        }
-        // content select handled externally
-        break;
-
-      default:
-        break;
-    }
-  });
-
-  return {
-    rowFocus,
-    setRowFocus,
-    focusedTab,
-    setFocusedTab,
-    selectedTab,
-    setSelectedTab,
-    focusedIndex,
-    setFocusedIndex,
-  };
+interface TVNavigationOptions {
+  enableKeyboard?: boolean;
+  enableRemote?: boolean;
+  onBackPress?: () => boolean;
+  onMenuPress?: () => void;
+  onPlayPausePress?: () => void;
 }
 
-// New hook for search screen navigation
-export function useSearchTVNavigation() {
-  const [rowFocus, setRowFocus] = useState<'search' | 'tabs' | 'content'>('search');
-  const [focusedTabIndex, setFocusedTabIndex] = useState<number>(0);
-  const [focusedId, setFocusedId] = useState<string | number | null>(null);
-  const [searchFocused, setSearchFocused] = useState(false);
-  const [clearFocused, setClearFocused] = useState(false);
+export const useTVNavigation = (options: TVNavigationOptions = {}) => {
+  const navigation = useNavigation();
+  const [focusedElement, setFocusedElement] = useState<string | null>(null);
+  const [currentRow, setCurrentRow] = useState<number>(0);
+  const [currentColumn, setCurrentColumn] = useState<number>(0);
+  const focusableElements = useRef<Map<string, any>>(new Map());
+  const gridRef = useRef<{ rows: number; columns: number }>({ rows: 0, columns: 0 });
 
-  const handleNavigation = (
-    evt: any,
-    data: any[],
-    onSearchFocus?: () => void,
-    onClear?: () => void,
-    onTabSwitch?: (index: number) => void,
-    onItemSelect?: (item: any) => void
-  ) => {
-    if (!evt?.eventType) return;
+  const {
+    enableKeyboard = true,
+    enableRemote = true,
+    onBackPress,
+    onMenuPress,
+    onPlayPausePress,
+  } = options;
 
-    switch (evt.eventType) {
-      case 'down':
-        if (rowFocus === 'search') {
-          setRowFocus('tabs');
-          setFocusedTabIndex(0);
-        } else if (rowFocus === 'tabs') {
-          setRowFocus('content');
-          setFocusedId(null);
-        } else if (rowFocus === 'content') {
-          if (data.length > 0) {
-            setFocusedId(data[0]?.id);
-          }
-        }
-        break;
+  // Register a focusable element
+  const registerElement = useCallback((id: string, element: any) => {
+    focusableElements.current.set(id, element);
+  }, []);
 
+  // Unregister a focusable element
+  const unregisterElement = useCallback((id: string) => {
+    focusableElements.current.delete(id);
+  }, []);
+
+  // Set focus to a specific element
+  const setFocus = useCallback((id: string) => {
+    const element = focusableElements.current.get(id);
+    if (element?.ref?.current) {
+      element.ref.current.setNativeProps({
+        hasTVPreferredFocus: true,
+        focusable: true,
+      });
+      setFocusedElement(id);
+      element.onFocus?.();
+    }
+  }, []);
+
+  // Move focus in grid navigation
+  const moveFocus = useCallback((direction: 'up' | 'down' | 'left' | 'right') => {
+    const { rows, columns } = gridRef.current;
+    if (rows === 0 || columns === 0) return;
+
+    let newRow = currentRow;
+    let newColumn = currentColumn;
+
+    switch (direction) {
       case 'up':
-        if (rowFocus === 'content') {
-          setRowFocus('tabs');
-          setFocusedTabIndex(0);
-        } else if (rowFocus === 'tabs') {
-          setRowFocus('search');
-          setSearchFocused(true);
-        }
+        newRow = Math.max(0, currentRow - 1);
         break;
-
-      case 'right':
-        if (rowFocus === 'search') {
-          setSearchFocused(false);
-          setClearFocused(true);
-        } else if (rowFocus === 'tabs') {
-          const nextTab = focusedTabIndex === 0 ? 1 : 0;
-          setFocusedTabIndex(nextTab);
-        } else if (rowFocus === 'content') {
-          const currentIndex = data.findIndex((item: any) => item.id === focusedId);
-          if (currentIndex < data.length - 1) {
-            setFocusedId(data[currentIndex + 1]?.id);
-          }
-        }
+      case 'down':
+        newRow = Math.min(rows - 1, currentRow + 1);
         break;
-
       case 'left':
-        if (rowFocus === 'search') {
-          setSearchFocused(false);
-        } else if (rowFocus === 'tabs') {
-          const prevTab = focusedTabIndex === 1 ? 0 : 1;
-          setFocusedTabIndex(prevTab);
-        } else if (rowFocus === 'content') {
-          const currentIndex = data.findIndex((item: any) => item.id === focusedId);
-          if (currentIndex > 0) {
-            setFocusedId(data[currentIndex - 1]?.id);
-          }
-        }
+        newColumn = Math.max(0, currentColumn - 1);
         break;
-
-      case 'select':
-        if (rowFocus === 'search' && searchFocused) {
-          onSearchFocus?.();
-        } else if (rowFocus === 'search' && clearFocused) {
-          onClear?.();
-        } else if (rowFocus === 'tabs') {
-          onTabSwitch?.(focusedTabIndex || 0);
-        } else if (rowFocus === 'content' && focusedId) {
-          const selectedItem = data.find((item: any) => item.id === focusedId);
-          if (selectedItem) {
-            onItemSelect?.(selectedItem);
-          }
-        }
-        break;
-
-      default:
+      case 'right':
+        newColumn = Math.min(columns - 1, currentColumn + 1);
         break;
     }
-  };
+
+    setCurrentRow(newRow);
+    setCurrentColumn(newColumn);
+
+    // Find element at new position
+    const elementId = `grid-${newRow}-${newColumn}`;
+    const element = focusableElements.current.get(elementId);
+    if (element) {
+      setFocus(elementId);
+    }
+  }, [currentRow, currentColumn, setFocus]);
+
+  // Handle TV remote events
+  useTVEventHandler(
+    useCallback(
+      (evt) => {
+        if (!Platform.isTV || !enableRemote || !evt) return;
+
+        switch (evt.eventType) {
+          case 'up':
+            moveFocus('up');
+            break;
+          case 'down':
+            moveFocus('down');
+            break;
+          case 'left':
+            moveFocus('left');
+            break;
+          case 'right':
+            moveFocus('right');
+            break;
+          case 'select':
+            if (focusedElement) {
+              const element = focusableElements.current.get(focusedElement);
+              element?.onSelect?.() || element?.onPress?.();
+            }
+            break;
+          case 'menu':
+            onMenuPress?.();
+            break;
+          case 'play':
+          case 'pause':
+            onPlayPausePress?.();
+            break;
+          case 'back':
+            if (onBackPress) {
+              const shouldBlock = onBackPress();
+              if (shouldBlock) {
+                console.log('Back press intercepted');
+              }
+            } else {
+              navigation.goBack();
+            }
+            break;
+        }
+      },
+      [moveFocus, focusedElement, onMenuPress, onPlayPausePress, onBackPress, navigation, enableRemote]
+    )
+  );
+
+  // Set grid dimensions
+  const setGridDimensions = useCallback((rows: number, columns: number) => {
+    gridRef.current = { rows, columns };
+  }, []);
 
   return {
-    rowFocus,
-    setRowFocus,
-    focusedTabIndex,
-    setFocusedTabIndex,
-    focusedId,
-    setFocusedId,
-    searchFocused,
-    setSearchFocused,
-    clearFocused,
-    setClearFocused,
-    handleNavigation,
+    registerElement,
+    unregisterElement,
+    setFocus,
+    moveFocus,
+    focusedElement,
+    currentRow,
+    currentColumn,
+    setGridDimensions,
+    setCurrentRow,
+    setCurrentColumn,
   };
-}
+};
