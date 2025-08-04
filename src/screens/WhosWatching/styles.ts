@@ -121,12 +121,14 @@ focusedAddProfileBox: {
     alignItems: 'center',
   },
   editProfilesButton: {
-    width: '20%',
+    width: scale(150),
+    alignSelf: 'center',
   },
   cancelEditButton: {
     borderColor: COLORS.primary,
     borderWidth: 1,
-    width: '20%',
+    width: scale(150),
+    alignSelf: 'center',
   },
   editButtonsRow: {
     flexDirection: 'row',
@@ -134,5 +136,6 @@ focusedAddProfileBox: {
     alignItems: 'center',
     marginTop: verticalScale(10),
     marginBottom: verticalScale(60),
+    width: '100%',
   },
 });

@@ -50,52 +50,62 @@ const CButton: React.FC<CButtonProps> = ({
   size = 'medium',
 }) => {
   return (
-    <TouchableHighlight
-      onPress={onPress}
-      hasTVPreferredFocus={hasTVPreferredFocus}
-      focusable={focusable}
-      accessible={accessible}
-      underlayColor="rgba(255,255,255,0.2)"
-      style={[
-        styles.button,
-        styles[`${size}Button`],
-        {
-          backgroundColor: backgroundColor || (outline ? 'transparent' : COLORS.primary),
-        },
-        outline && styles.outlineButton,
-        isTV && styles.tvButton,
-        hasTVPreferredFocus && isTV && styles.tvFocusedButton,
-        style,
-      ]}
-    >
-      <View style={styles.contentContainer}>
-        {loading ? (
-          <ActivityIndicator size="small" color={COLORS.white} />
-        ) : (
-          <>
-            {icon && <View style={styles.iconContainer}>{icon}</View>}
-            <Text
-              style={[
-                styles.buttonText,
-                styles[`${size}Text`],
-                outline && styles.outlineText,
-                {
-                  color: textColor || (outline ? COLORS.white : COLORS.white),
-                },
-                isTV && styles.tvButtonText,
-                textStyle,
-              ]}
-            >
-              {text}
-            </Text>
-          </>
-        )}
-      </View>
-    </TouchableHighlight>
+    <View style={[styles.buttonWrapper, isTV && styles.tvButtonWrapper]}>
+      <TouchableHighlight
+        onPress={onPress}
+        hasTVPreferredFocus={hasTVPreferredFocus}
+        focusable={focusable}
+        accessible={accessible}
+        underlayColor="rgba(255,255,255,0.2)"
+        style={[
+          styles.button,
+          styles[`${size}Button`],
+          {
+            backgroundColor: backgroundColor || (outline ? 'transparent' : COLORS.primary),
+          },
+          outline && styles.outlineButton,
+          isTV && styles.tvButton,
+          hasTVPreferredFocus && isTV && styles.tvFocusedButton,
+          style,
+        ]}
+      >
+        <View style={styles.contentContainer}>
+          {loading ? (
+            <ActivityIndicator size="small" color={COLORS.white} />
+          ) : (
+            <>
+              {icon && <View style={styles.iconContainer}>{icon}</View>}
+              <Text
+                style={[
+                  styles.buttonText,
+                  styles[`${size}Text`],
+                  outline && styles.outlineText,
+                  {
+                    color: textColor || (outline ? COLORS.white : COLORS.white),
+                  },
+                  isTV && styles.tvButtonText,
+                  textStyle,
+                ]}
+              >
+                {text}
+              </Text>
+            </>
+          )}
+        </View>
+      </TouchableHighlight>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  buttonWrapper: {
+    width: '100%',
+  },
+  tvButtonWrapper: {
+    width: '100%',
+    paddingHorizontal: scale(3),
+    paddingVertical: scale(2),
+  },
   button: {
     borderRadius: 4,
     justifyContent: 'center',
@@ -103,7 +113,7 @@ const styles = StyleSheet.create({
     width: '100%',
     borderColor: 'transparent',
     borderWidth: 0,
-      overflow: 'hidden',
+    overflow: 'hidden',
   },
   smallButton: {
     height: scale(20),
@@ -147,21 +157,21 @@ const styles = StyleSheet.create({
     color: COLORS.white,
   },
   tvButton: {
- height: scale(22),
+    height: scale(22),
     borderRadius: 4,
-     overflow: 'hidden',
+    overflow: 'hidden',
   },
   tvFocusedButton: {
-  transform: [{ scale: 1.02 }],
-  borderColor: COLORS.white,
-  borderWidth: 1,
-  shadowColor: COLORS.primary,
-  shadowOffset: { width: 0, height: 0 },
-  shadowOpacity: 0.3,
-  shadowRadius: 5,
-  backgroundColor: COLORS.primary, // ✅ Add this line
-  zIndex: 10,   
-},
+    transform: [{ scale: 1.02 }],
+    borderColor: COLORS.white,
+    borderWidth: 2,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 8,
+    backgroundColor: COLORS.primary,
+    zIndex: 10,
+  },
   tvButtonText: {
     fontSize: scale(12),
   },
