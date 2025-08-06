@@ -34,6 +34,7 @@ const ProfileMenuTV: React.FC<ProfileMenuTVProps> = ({ onProfileChange }) => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [currentProfile, setCurrentProfile] = useState<Profile | null>(null);
   const [focusedMenuIndex, setFocusedMenuIndex] = useState(0);
+  const [isProfileButtonFocused, setIsProfileButtonFocused] = useState(false);
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -58,6 +59,12 @@ const ProfileMenuTV: React.FC<ProfileMenuTVProps> = ({ onProfileChange }) => {
         break;
       case 'back':
         setShowDropdown(false);
+        break;
+      case 'left':
+        setShowDropdown(false);
+        break;
+      case 'right':
+        // Allow right navigation if needed
         break;
     }
   });
@@ -99,9 +106,19 @@ const ProfileMenuTV: React.FC<ProfileMenuTVProps> = ({ onProfileChange }) => {
   return (
     <View style={styles.profileMenuContainer}>
       <TouchableOpacity
-        style={styles.profileAvatarBtn}
+        style={[
+          styles.profileAvatarBtn,
+          isProfileButtonFocused && styles.profileAvatarBtnFocused,
+        ]}
         onPress={() => { setShowDropdown(true); setFocusedMenuIndex(0); }}
-        focusable
+        focusable={true}
+        hasTVPreferredFocus={false}
+        onFocus={() => {
+          setIsProfileButtonFocused(true);
+        }}
+        onBlur={() => {
+          setIsProfileButtonFocused(false);
+        }}
       >
         <Image
           source={{ uri: `${NEXT_PUBLIC_API_CDN_ENDPOINT}${currentProfile.avatar}` }}
@@ -113,12 +130,9 @@ const ProfileMenuTV: React.FC<ProfileMenuTVProps> = ({ onProfileChange }) => {
         animationType="fade"
         transparent={true}
         onRequestClose={() => setShowDropdown(false)}
+        presentationStyle="overFullScreen"
       >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setShowDropdown(false)}
-        >
+        <View style={styles.modalOverlay}>
           <View style={styles.dropdownMenuBlock}>
             {/* Profile row at the top */}
             <View style={styles.menuProfileRow}>
@@ -141,18 +155,16 @@ const ProfileMenuTV: React.FC<ProfileMenuTVProps> = ({ onProfileChange }) => {
                   style={[
                     styles.menuItem,
                     focusedMenuIndex === index && styles.menuItemFocused,
-                    // item.color === COLORS.primary && styles.menuItemDanger,
                   ]}
                   onFocus={() => setFocusedMenuIndex(index)}
                   onPress={() => handleMenuAction(item.action)}
-                  focusable
-                  hasTVPreferredFocus={index === 0}
+                  focusable={true}
+                  hasTVPreferredFocus={index === 0 && showDropdown}
                 >
                   <Text style={styles.menuItemIcon}>{item.icon}</Text>
                   <Text style={[
                     styles.menuItemLabel,
                     focusedMenuIndex === index && styles.menuItemLabelFocused,
-                    // item.color === 'red' && styles.menuItemLabelDanger,
                   ]}>
                     {item.label}
                   </Text>
@@ -161,7 +173,7 @@ const ProfileMenuTV: React.FC<ProfileMenuTVProps> = ({ onProfileChange }) => {
               showsVerticalScrollIndicator={false}
             />
           </View>
-        </TouchableOpacity>
+        </View>
       </Modal>
     </View>
   );

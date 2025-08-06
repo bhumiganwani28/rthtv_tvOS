@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -42,6 +42,7 @@ const Header: React.FC<HeaderProps> = ({
   onProfilePress,
   onLogoutPress,
 }) => {
+  const [focusedButton, setFocusedButton] = useState<'search' | 'logout' | 'back' | null>(null);
   return (
     <View style={styles.container}>
       <View style={styles.leftContainer}>
@@ -70,8 +71,13 @@ const Header: React.FC<HeaderProps> = ({
         {showSearch && (
           <TouchableOpacity
             onPress={onSearchPress}
-            style={styles.iconButton}
-            focusable
+            style={[
+              styles.iconButton,
+              focusedButton === 'search' && styles.iconButtonFocused,
+            ]}
+            focusable={true}
+            onFocus={() => setFocusedButton('search')}
+            onBlur={() => setFocusedButton(null)}
           >
             <Icon name="search" size={isTV ? scale(16) : scale(18)} color={COLORS.white} />
           </TouchableOpacity>
@@ -92,8 +98,13 @@ const Header: React.FC<HeaderProps> = ({
         {showLogout && (
           <TouchableOpacity
             onPress={onLogoutPress}
-            style={styles.iconButton}
-            focusable
+            style={[
+              styles.iconButton,
+              focusedButton === 'logout' && styles.iconButtonFocused,
+            ]}
+            focusable={true}
+            onFocus={() => setFocusedButton('logout')}
+            onBlur={() => setFocusedButton(null)}
           >
             <Icon name="logout" size={isTV ? scale(16) : scale(18)} color={COLORS.white} />
           </TouchableOpacity>
@@ -142,6 +153,15 @@ marginTop: scale(15),
   iconButton: {
     marginLeft: scale(15),
     padding: scale(4),
+  },
+  iconButtonFocused: {
+    marginLeft: scale(15),
+    padding: scale(4),
+    borderWidth: scale(2),
+    borderColor: COLORS.primary,
+    borderRadius: scale(6),
+    // backgroundColor:COLORS.primary,
+    // backgroundColor: 'rgba(255, 255, 255, 0.1)',
   },
   profileButton: {
     marginLeft: scale(15),

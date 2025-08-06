@@ -20,6 +20,13 @@ export default StyleSheet.create({
     backgroundColor: COLORS.background,
     justifyContent: 'center',
     alignItems: 'center',
+    padding: scale(2),
+  },
+  profileAvatarBtnFocused: {
+    borderWidth: scale(2),
+    borderColor: COLORS.primary,
+    backgroundColor: COLORS.white,
+    padding: scale(3),
   },
   profileAvatar: {
     width: scale(25),
@@ -82,6 +89,11 @@ export default StyleSheet.create({
     backgroundColor: '#292929',
     borderLeftWidth: 4,
     borderLeftColor: COLORS.primary,
+    borderWidth: 2,
+    borderColor: COLORS.white,
+    borderRadius: 6,
+    paddingVertical: scale(10),
+    paddingHorizontal: scale(12),
   },
   menuItemIcon: {
     fontSize: scale(8),
