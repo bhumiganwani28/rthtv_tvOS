@@ -61,14 +61,17 @@ export default StyleSheet.create({
 
   focusedProfileCard: {
     borderColor: COLORS.primary,
-    borderWidth: 2,
+    borderRadius: scale(14),
+    borderWidth: scale(3),
+    backgroundColor:COLORS.white,
     // backgroundColor: 'rgba(255,255,255,0.08)',
   },
 
   profileImage: {
     borderRadius: scale(10),
-    borderWidth: 0.6,
+    borderWidth: scale(1),
     borderColor: COLORS.borderColor,
+    backgroundColor: 'rgba(255,255,255,0.08)',
   },
 
   profileName: {
