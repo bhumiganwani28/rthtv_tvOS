@@ -195,7 +195,7 @@ const Channels: React.FC = () => {
             styles.itemContainer,
             isFocused && styles.focusedItemContainer,
             { width: cardWidth, height: cardHeight,
-               borderWidth: isFocused ? scale(1) : 0,
+               borderWidth: isFocused ? scale(3) : 0,
                borderColor: isFocused ? COLORS.white : 'transparent',
             },
           ]}

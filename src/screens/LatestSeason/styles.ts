@@ -47,7 +47,7 @@ export default StyleSheet.create({
   itemContainer: {
     //  borderRadius: scale(10),
     overflow: 'hidden',
-    borderWidth: 3,
+    // borderWidth: 3,
     borderColor: 'transparent',
     backgroundColor: COLORS.itemContainer,
   },
@@ -55,6 +55,7 @@ export default StyleSheet.create({
     borderColor: COLORS.white,
     backgroundColor: COLORS.focusItem,
     elevation: 8,
+    borderWidth: scale(3),
   },
   image: {
     width: '100%',

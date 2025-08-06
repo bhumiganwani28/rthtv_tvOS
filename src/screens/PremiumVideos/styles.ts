@@ -51,14 +51,16 @@ export default StyleSheet.create({
   itemContainer: {
     //  borderRadius: scale(10),
     // overflow: 'hidden',
-    borderWidth: scale(1),
+    // borderWidth: scale(1),
     borderColor: 'transparent',
     backgroundColor: COLORS.itemContainer,
   },
 
   focusedItemContainer: {
     borderColor: COLORS.white,
-    backgroundColor: 'rgba(255,255,255,0.12)',
+     borderWidth: scale(3),
+    //  overflow: 'hidden',
+    // backgroundColor: 'rgba(255,255,255,0.12)',
   },
 
   image: {
