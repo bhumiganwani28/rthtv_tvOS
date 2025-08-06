@@ -145,8 +145,8 @@ const AllVideos: React.FC = ({route}) => {
             { 
               width: cardWidth, 
               height: cardHeight,
-              borderWidth: isFocused ? scale(1) : 0,
-              borderColor: isFocused ? COLORS.white : 'transparent',
+              // borderWidth: isFocused ? scale(1) : 0,
+              // borderColor: isFocused ? COLORS.white : 'transparent',
             },
           ]}
         >

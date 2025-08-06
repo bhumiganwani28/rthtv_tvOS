@@ -44,9 +44,10 @@ export default StyleSheet.create({
     // backgroundColor: COLORS.itemContainer,
   },
   focusedItemContainer: {
+    borderWidth:scale(3),
     borderColor: COLORS.white,
     backgroundColor: COLORS.focusItem,
-    elevation: 5,
+    // elevation: 5,
   },
   image: {
     width: '100%',
