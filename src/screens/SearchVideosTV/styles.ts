@@ -60,7 +60,7 @@ trendingFocused: {
     overflow: 'hidden',
   },
   focusedItemContainer: {
-    borderWidth: scale(1),
+    borderWidth: scale(3),
     borderColor: COLORS.white,
   },
   posterImage: {

@@ -26,7 +26,7 @@ const tabs = [
   { id: 'channels', title: 'Channels' },
   { id: 'premium', title: 'Premium' },
   { id: 'featured', title: 'Featured' },
-  { id: 'mylist', title: 'My List' },
+  // { id: 'mylist', title: 'My List' },
 ];
 
 const TrendingVideos: React.FC = () => {

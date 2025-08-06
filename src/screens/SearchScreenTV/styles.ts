@@ -77,10 +77,10 @@ const styles = StyleSheet.create({
     itemContainer: {
     },
     focusedItemContainer: {
-        borderWidth: scale(1),
+        borderWidth: scale(3),
         borderColor: COLORS.white,
         backgroundColor: COLORS.focusItem,
-        elevation: 5,
+        // elevation: 5,
     },
     focusedTabItem: {
   borderColor: COLORS.white,
