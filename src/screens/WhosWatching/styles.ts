@@ -56,21 +56,25 @@ export default StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: scale(10),
-    backgroundColor: 'transparent',
+    // overflow:'hidden',
+    // backgroundColor: 'transparent',
   },
 
   focusedProfileCard: {
     borderColor: COLORS.primary,
-    borderRadius: scale(14),
+    borderRadius: scale(8),
     borderWidth: scale(3),
+    overflow: 'hidden',
+    // borderWidth: scale(3),
+
     backgroundColor:COLORS.white,
     // backgroundColor: 'rgba(255,255,255,0.08)',
   },
 
   profileImage: {
-    borderRadius: scale(10),
-    borderWidth: scale(1),
-    borderColor: COLORS.borderColor,
+    borderRadius: scale(6),
+    // borderWidth: scale(0.2),
+    // borderColor: COLORS.borderColor,
     backgroundColor: 'rgba(255,255,255,0.08)',
   },
 
@@ -84,37 +88,42 @@ export default StyleSheet.create({
 
   
   addProfileContainer: {
-    borderRadius: scale(10),
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    // borderRadius: scale(10),
+    // backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    // backgroundColor: COLORS.white,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.3)',
+    // borderWidth: 1,
+    // borderColor: 'rgba(255,255,255,0.3)',
   },
 
 addProfileBox: {
   width: scale(55),
   height: scale(55),
   borderRadius: scale(6),
-  backgroundColor: '#1a1a1a',
-  borderColor: '#333',
-  borderWidth: 1,
+  backgroundColor: 'rgba(255,255,255,0.08)',
+  borderColor: COLORS.borderColor,
+  borderWidth: scale(1),
   justifyContent: 'center',
   alignItems: 'center',
 },
 
 focusedAddProfileBox: {
   borderColor: COLORS.primary, // Highlight color on focus
-  borderWidth: 3,
+  borderWidth: scale(3),
+  
 },
   editOverlay: {
     position: 'absolute',
     top: 0,
     left: 0,
+    right:0,
     backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: scale(10),
+    borderRadius: scale(4),
+    // borderWidth: scale(3),
+    // overflow:'hidden',
   },
 
   headerContainer: {

@@ -152,7 +152,7 @@ const WhosWatchingTVOS: React.FC = () => {
                   { width: PROFILE_IMAGE_SIZE, height: PROFILE_IMAGE_SIZE },
                 ]}
               >
-                <MIcon name="pencil-outline" size={22} color={COLORS.white} />
+                <MIcon name="pencil-outline" size={scale(15)} color={COLORS.white} />
               </View>
             )}
           </View>
