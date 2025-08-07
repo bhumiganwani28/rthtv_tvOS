@@ -64,4 +64,12 @@ export default StyleSheet.create({
     height: '100%',
     resizeMode: 'cover',
   },
+  itemContainer: {
+    overflow: 'hidden',
+  },
+  focusedItemContainer: {
+    borderColor: COLORS.white,
+    backgroundColor: COLORS.focusItem,
+    elevation: 5,
+  },
 });
