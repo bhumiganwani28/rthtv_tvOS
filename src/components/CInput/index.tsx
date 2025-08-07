@@ -109,11 +109,21 @@ const CInput: React.FC<CInputProps> = ({
           {leftComponent && <View style={styles.leftComponent}>{leftComponent}</View>}
           <TextInput
             ref={inputRef}
-            style={[styles.textInput, textStyle, { color: COLORS.white }]}
+            style={[
+              styles.textInput, 
+              textStyle, 
+              { 
+                color: COLORS.white,
+                // Ensure text color is always white, even when focused
+                ...(Platform.isTV && {
+                  color: COLORS.white,
+                })
+              }
+            ]}
             placeholder={placeholder}
             value={value}
             maxLength={maxLength}
-            placeholderTextColor={COLORS.greyText}
+            placeholderTextColor={isFocused ? COLORS.white : COLORS.greyText}
             onChangeText={onChangeText}
             onFocus={handleFocus}
             onBlur={handleBlur}
@@ -127,6 +137,18 @@ const CInput: React.FC<CInputProps> = ({
             autoCapitalize="none"
             autoCorrect={false}
             spellCheck={false}
+            blurOnSubmit={true}
+            multiline={false}
+            returnKeyType="done"
+            enablesReturnKeyAutomatically={true}
+            // TV-specific props for proper keyboard handling
+            {...(isTV && {
+              contextMenuHidden: true,
+              selectTextOnFocus: false,
+              clearButtonMode: 'never',
+              keyboardType: keyboardType,
+              autoFocus: hasTVPreferredFocus,
+            })}
           />
           {secureTextEntry && togglePassword && (
             <TouchableOpacity
@@ -177,6 +199,10 @@ const styles = StyleSheet.create({
     height: '100%',
     color: COLORS.white,
     backgroundColor: 'transparent',
+    // Ensure text color is always white
+    ...(Platform.isTV && {
+      color: COLORS.white,
+    }),
   },
   eyeIcon: { padding: scale(4) },
   eyeIconFocused: { backgroundColor: COLORS.white, borderRadius: 12 },
