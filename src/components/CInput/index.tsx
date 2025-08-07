@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import {
   View,
   TextInput,
@@ -33,12 +33,16 @@ interface CInputProps {
   onPress?: () => void;
   style?: any;
   eyeIconFocused?: boolean;
-  onSubmitEditing?: () => void;
+  onSubmitEditing?: (e?: any) => void;
   onKeyboardShow?: () => void;
   onKeyboardHide?: () => void;
+  autoFocus?: boolean;
+  returnKeyType?: any;
+  blurOnSubmit?: boolean;
+  enablesReturnKeyAutomatically?: boolean;
 }
 
-const CInput: React.FC<CInputProps> = ({
+const CInput: React.FC<CInputProps> = React.memo(({
   icon,
   placeholder,
   secureTextEntry,
@@ -62,119 +66,174 @@ const CInput: React.FC<CInputProps> = ({
   onSubmitEditing,
   onKeyboardShow,
   onKeyboardHide,
+  autoFocus = false,
+  returnKeyType = 'done',
+  blurOnSubmit = true,
+  enablesReturnKeyAutomatically = true,
 }) => {
   const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef<TextInput>(null);
   const isTV = Platform.isTV;
 
-  // Keyboard events (if you need to fire any custom events)
-  const handleFocus = () => {
+  // Memoize TV props to prevent unnecessary re-renders
+  const tvProps = useMemo(() => {
+    if (!isTV) return {};
+    
+    return {
+      // Basic TV props
+      focusable: true,
+      hasTVPreferredFocus: hasTVPreferredFocus && !eyeIconFocused,
+      
+      // Apple TV specific props
+      ...(Platform.OS === 'ios' && {
+        textContentType: 'none' as const,
+        autoComplete: 'off' as const,
+        autoFill: 'off' as const,
+        keyboardAppearance: 'dark' as const,
+        returnKeyLabel: 'done' as const,
+        textAlign: 'left' as const,
+        textAlignVertical: 'center' as const,
+        accessible: true,
+        accessibilityRole: 'text' as const,
+        accessibilityLabel: placeholder,
+        caretHidden: false,
+        selectTextOnFocus: false,
+        // Critical for Apple TV
+        editable: true,
+        multiline: false,
+        // Ensure proper keyboard handling
+        keyboardType: keyboardType,
+        returnKeyType: returnKeyType,
+        blurOnSubmit: blurOnSubmit,
+        enablesReturnKeyAutomatically: enablesReturnKeyAutomatically,
+        // Prevent any interference
+        contextMenuHidden: true,
+        clearButtonMode: 'never' as const,
+      }),
+    };
+  }, [isTV, hasTVPreferredFocus, eyeIconFocused, placeholder, keyboardType, returnKeyType, blurOnSubmit, enablesReturnKeyAutomatically]);
+
+  // Memoize styles to prevent unnecessary re-renders
+  const containerStyles = useMemo(() => [
+    styles.inputContainer,
+    containerStyle,
+    isFocused && styles.focusedContainer,
+    { 
+      backgroundColor: bgColor || COLORS.black,
+      borderColor: isFocused ? COLORS.primary : COLORS.borderColor,
+    },
+  ], [containerStyle, isFocused, bgColor]);
+
+  const textInputStyles = useMemo(() => [
+    styles.textInput, 
+    textStyle, 
+    { 
+      color: COLORS.white,
+      ...(Platform.isTV && {
+        color: COLORS.white,
+      })
+    }
+  ], [textStyle]);
+
+  // Memoize event handlers to prevent unnecessary re-renders
+  const handleFocus = useCallback(() => {
+    console.log('CInput - Input focused');
     setIsFocused(true);
     onKeyboardShow?.();
-    onPress?.(); // TV: opens or highlights input as needed
-  };
+    onPress?.();
+  }, [onKeyboardShow, onPress]);
 
-  const handleBlur = () => {
+  const handleBlur = useCallback(() => {
+    console.log('CInput - Input blurred');
     setIsFocused(false);
     onKeyboardHide?.();
-  };
+  }, [onKeyboardHide]);
 
-  const handleContainerPress = () => {
-    // On TV, make sure TextInput gets focused when Touchable is pressed with remote
-    if (Platform.isTV && inputRef.current) {
-      inputRef.current.focus();
+  const handleTextChange = useCallback((text: string) => {
+    console.log('CInput - Text changed:', text);
+    onChangeText(text);
+  }, [onChangeText]);
+
+  // Auto-focus handling for Apple TV
+  useEffect(() => {
+    if (isTV && (autoFocus || hasTVPreferredFocus) && inputRef.current) {
+      const timer = setTimeout(() => {
+        console.log('CInput - Auto-focusing input for Apple TV');
+        inputRef.current?.focus();
+      }, 200);
+      return () => clearTimeout(timer);
     }
-  };
+  }, [isTV, autoFocus, hasTVPreferredFocus]);
 
   return (
     <View style={[styles.container, style]}>
-      <TouchableOpacity
-        activeOpacity={1}
-        onPress={handleContainerPress}
-        focusable={focusable}
-        hasTVPreferredFocus={hasTVPreferredFocus}
-        onFocus={handleFocus}
-        onBlur={handleBlur}
-      >
-        <View
-          style={[
-            styles.inputContainer,
-            containerStyle,
-            isFocused && styles.focusedContainer,
-            { backgroundColor: bgColor || COLORS.black,
-              borderColor: isFocused ? COLORS.primary : COLORS.borderColor,
-            },
-          ]}
-        >
-          {leftComponent && <View style={styles.leftComponent}>{leftComponent}</View>}
-          <TextInput
-            ref={inputRef}
-            style={[
-              styles.textInput, 
-              textStyle, 
-              { 
-                color: COLORS.white,
-                // Ensure text color is always white, even when focused
-                ...(Platform.isTV && {
-                  color: COLORS.white,
-                })
-              }
-            ]}
-            placeholder={placeholder}
-            value={value}
-            maxLength={maxLength}
-            placeholderTextColor={isFocused ? COLORS.white : COLORS.greyText}
-            onChangeText={onChangeText}
-            onFocus={handleFocus}
-            onBlur={handleBlur}
-            onSubmitEditing={onSubmitEditing}
-            secureTextEntry={secureTextEntry && !isPasswordVisible}
-            keyboardType={keyboardType}
-            editable={true}
-            selectionColor={COLORS.primary}
-            focusable={focusable}
-            hasTVPreferredFocus={hasTVPreferredFocus && !eyeIconFocused}
-            autoCapitalize="none"
-            autoCorrect={false}
-            spellCheck={false}
-            blurOnSubmit={true}
-            multiline={false}
-            returnKeyType="done"
-            enablesReturnKeyAutomatically={true}
-            // TV-specific props for proper keyboard handling
-            {...(isTV && {
-              contextMenuHidden: true,
-              selectTextOnFocus: false,
-              clearButtonMode: 'never',
-              keyboardType: keyboardType,
-              autoFocus: hasTVPreferredFocus,
-            })}
-          />
-          {secureTextEntry && togglePassword && (
-            <TouchableOpacity
-              style={[styles.eyeIcon, eyeIconFocused && styles.eyeIconFocused]}
-              onPress={togglePassword}
-              focusable={Platform.isTV}
-              hasTVPreferredFocus={eyeIconFocused}
-            >
-              <FIcon
-                name={isPasswordVisible ? 'eye' : 'eye-off'}
-                size={scale(14)}
-                color={eyeIconFocused ? COLORS.primary : COLORS.greyText}
-              />
-            </TouchableOpacity>
-          )}
-        </View>
-      </TouchableOpacity>
+      <View style={containerStyles}>
+        {leftComponent && <View style={styles.leftComponent}>{leftComponent}</View>}
+        
+        <TextInput
+          ref={inputRef}
+          style={textInputStyles}
+          placeholder={placeholder}
+          value={value}
+          maxLength={maxLength}
+          placeholderTextColor={isFocused ? COLORS.white : COLORS.greyText}
+          onChangeText={handleTextChange}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+          onSubmitEditing={onSubmitEditing}
+          secureTextEntry={secureTextEntry && !isPasswordVisible}
+          autoCapitalize="none"
+          autoCorrect={false}
+          spellCheck={false}
+          // autoFocus={autoFocus || hasTVPreferredFocus}
+          selectionColor={COLORS.primary}
+          {...tvProps}
+        />
+        
+        {secureTextEntry && togglePassword && (
+          <TouchableOpacity
+            style={[styles.eyeIcon, eyeIconFocused && styles.eyeIconFocused]}
+            onPress={togglePassword}
+            focusable={Platform.isTV}
+            hasTVPreferredFocus={eyeIconFocused}
+          >
+            <FIcon
+              name={isPasswordVisible ? 'eye' : 'eye-off'}
+              size={scale(14)}
+              color={eyeIconFocused ? COLORS.primary : COLORS.greyText}
+            />
+          </TouchableOpacity>
+        )}
+      </View>
+      
       {errorShow && errorText ? (
         <Text style={styles.errorText}>{errorText}</Text>
       ) : null}
     </View>
   );
-};
+}, (prevProps, nextProps) => {
+  // Custom comparison function for React.memo
+  // Only re-render if these critical props change
+  return (
+    prevProps.value === nextProps.value &&
+    prevProps.placeholder === nextProps.placeholder &&
+    prevProps.secureTextEntry === nextProps.secureTextEntry &&
+    prevProps.isPasswordVisible === nextProps.isPasswordVisible &&
+    prevProps.hasTVPreferredFocus === nextProps.hasTVPreferredFocus &&
+    prevProps.eyeIconFocused === nextProps.eyeIconFocused &&
+    prevProps.errorText === nextProps.errorText &&
+    prevProps.autoFocus === nextProps.autoFocus
+  );
+});
 
 const styles = StyleSheet.create({
-  container: { width: '100%', backgroundColor: COLORS.black },
+  container: { 
+    width: '100%', 
+    backgroundColor: COLORS.black,
+    ...(Platform.OS === 'ios' && Platform.isTV && {
+      minHeight: scale(22),
+    }),
+  },
   inputContainer: {
     borderWidth: 1,
     flexDirection: 'row',
@@ -183,6 +242,10 @@ const styles = StyleSheet.create({
     height: scale(22),
     width: '100%',
     backgroundColor: COLORS.lightBlack,
+    ...(Platform.OS === 'ios' && Platform.isTV && {
+      minHeight: scale(22),
+      justifyContent: 'center',
+    }),
   },
   focusedContainer: {
     borderWidth: 1,
@@ -199,9 +262,12 @@ const styles = StyleSheet.create({
     height: '100%',
     color: COLORS.white,
     backgroundColor: 'transparent',
-    // Ensure text color is always white
     ...(Platform.isTV && {
       color: COLORS.white,
+    }),
+    ...(Platform.OS === 'ios' && Platform.isTV && {
+      textAlign: 'left',
+      textAlignVertical: 'center',
     }),
   },
   eyeIcon: { padding: scale(4) },
