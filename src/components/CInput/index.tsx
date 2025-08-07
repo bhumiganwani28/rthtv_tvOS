@@ -155,15 +155,15 @@ const CInput: React.FC<CInputProps> = React.memo(({
   }, [onChangeText]);
 
   // Auto-focus handling for Apple TV
-  useEffect(() => {
-    if (isTV && (autoFocus || hasTVPreferredFocus) && inputRef.current) {
-      const timer = setTimeout(() => {
-        console.log('CInput - Auto-focusing input for Apple TV');
-        inputRef.current?.focus();
-      }, 200);
-      return () => clearTimeout(timer);
-    }
-  }, [isTV, autoFocus, hasTVPreferredFocus]);
+  // useEffect(() => {
+  //   if (isTV && (autoFocus || hasTVPreferredFocus) && inputRef.current) {
+  //     const timer = setTimeout(() => {
+  //       console.log('CInput - Auto-focusing input for Apple TV');
+  //       inputRef.current?.focus();
+  //     }, 200);
+  //     return () => clearTimeout(timer);
+  //   }
+  // }, [isTV, autoFocus, hasTVPreferredFocus]);
 
   return (
     <View style={[styles.container, style]}>
