@@ -250,7 +250,7 @@ style={[
               <Icon
                 name={centerIconType === 'play' ? 'play' : 'pause'}
                 color={COLORS.white}
-                size={scale(60)}
+                size={scale(30)}
               />
             </View>
           </View>
@@ -539,9 +539,9 @@ const styles = StyleSheet.create({
   },
   centerIconBg: {
     backgroundColor: 'rgba(0,0,0,0.42)',
-    borderRadius: scale(70),
-    width: scale(90),
-    height: scale(90),
+    borderRadius: scale(50),
+    width: scale(50),
+    height: scale(50),
     justifyContent: 'center',
     alignItems: 'center',
   },
