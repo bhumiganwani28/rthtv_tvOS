@@ -1,12 +1,12 @@
 {
   "images" : [
     {
-      "filename" : "small_logo.png",
+      "filename" : "logo-small-rthtv.png",
       "idiom" : "tv",
       "scale" : "1x"
     },
     {
-      "filename" : "small_logo 1.png",
+      "filename" : "logo-small-rthtv 1.png",
       "idiom" : "tv",
       "scale" : "2x"
     }

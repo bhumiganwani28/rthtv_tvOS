@@ -1,17 +1,15 @@
 {
   "images" : [
     {
-      "filename" : "logo-big-rthtv@2x.png",
+      "filename" : "logo-big-rthtv.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
-      "filename" : "logo-big-rthtv@2x 1.png",
       "idiom" : "universal",
       "scale" : "2x"
     },
     {
-      "filename" : "logo-big-rthtv@2x 2.png",
       "idiom" : "universal",
       "scale" : "3x"
     }
