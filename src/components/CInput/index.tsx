@@ -128,10 +128,18 @@ const CInput: React.FC<CInputProps> = React.memo(({
     styles.textInput, 
     textStyle, 
     { 
+      // Force white color for all states - this should override any other color
       color: COLORS.white,
       ...(Platform.isTV && {
         color: COLORS.white,
-      })
+      }),
+      // Additional overrides to ensure white text
+      ...(Platform.OS === 'ios' && {
+        color: COLORS.white,
+      }),
+      ...(Platform.OS === 'ios' && Platform.isTV && {
+        color: COLORS.white,
+      }),
     }
   ], [textStyle]);
 
@@ -165,6 +173,21 @@ const CInput: React.FC<CInputProps> = React.memo(({
   //   }
   // }, [isTV, autoFocus, hasTVPreferredFocus]);
 
+  // Force white text color after typing
+  useEffect(() => {
+    if (inputRef.current && Platform.OS === 'ios') {
+      // Force white text color after a short delay
+      const timer = setTimeout(() => {
+        if (inputRef.current) {
+          inputRef.current.setNativeProps({
+            style: { color: COLORS.white }
+          });
+        }
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [value]); // Re-run when value changes
+
   return (
     <View style={[styles.container, style]}>
       <View style={containerStyles}>
@@ -172,7 +195,10 @@ const CInput: React.FC<CInputProps> = React.memo(({
         
         <TextInput
           ref={inputRef}
-          style={textInputStyles}
+          style={[
+            textInputStyles,
+            { color: COLORS.white } // Inline style with highest priority
+          ]}
           placeholder={placeholder}
           value={value}
           maxLength={maxLength}
@@ -187,6 +213,31 @@ const CInput: React.FC<CInputProps> = React.memo(({
           spellCheck={false}
           // autoFocus={autoFocus || hasTVPreferredFocus}
           selectionColor={COLORS.primary}
+          // Force white text color directly on the component
+          {...(Platform.OS === 'ios' && {
+            textContentType: 'none',
+            autoComplete: 'off',
+            autoFill: 'off',
+            keyboardAppearance: 'dark',
+            returnKeyLabel: 'done',
+            textAlign: 'left',
+            textAlignVertical: 'center',
+            accessible: true,
+            accessibilityRole: 'text',
+            accessibilityLabel: placeholder,
+            caretHidden: false,
+            selectTextOnFocus: false,
+            editable: true,
+            multiline: false,
+            keyboardType: keyboardType,
+            returnKeyType: returnKeyType,
+            blurOnSubmit: blurOnSubmit,
+            enablesReturnKeyAutomatically: enablesReturnKeyAutomatically,
+            contextMenuHidden: true,
+            clearButtonMode: 'never',
+            // Force white color for iOS
+            color: COLORS.white,
+          })}
           {...tvProps}
         />
         
@@ -262,12 +313,18 @@ const styles = StyleSheet.create({
     height: '100%',
     color: COLORS.white,
     backgroundColor: 'transparent',
+    // Force white color with high specificity
     ...(Platform.isTV && {
       color: COLORS.white,
     }),
     ...(Platform.OS === 'ios' && Platform.isTV && {
       textAlign: 'left',
       textAlignVertical: 'center',
+      color: COLORS.white,
+    }),
+    // Additional iOS specific styling
+    ...(Platform.OS === 'ios' && {
+      color: COLORS.white,
     }),
   },
   eyeIcon: { padding: scale(4) },
