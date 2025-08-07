@@ -72,9 +72,9 @@ const ChannelDetailsTV = ({route}) => {
   }, []);
   // navigate to particluar image press in VOD screen with seasonID
   const handleTvShowPress = (item: any) => {
-    console.log('item>', item);
+    // console.log('item>', item);
 
-    // navigation.navigate('VODScreen', {seasonID: item?._id});
+    navigation.navigate('VODScreen', {seasonID: item?._id});
   };
   const animateLiveDot = () => {
     Animated.loop(
@@ -250,19 +250,28 @@ const ChannelDetailsTV = ({route}) => {
         onFocus={() => setFocusedIndex(index)}
         focusable
         hasTVPreferredFocus={index === 0 && rowFocus === 'grid'}
-        // onPress={() => navigation.navigate('VODScreen', { seasonID: item?._id })}
+        onPress={() => navigation.navigate('VODScreen', { seasonID: item?._id })}
         style={{
           width: cardWidth,
           height: cardHeight,
           margin: itemMargin,
-          borderWidth: isFocused ? scale(2) : 0,
-          borderColor: isFocused ? COLORS.white : 'transparent',
-          overflow: 'hidden',
         }}>
-        <Image
-          source={{uri: `${NEXT_PUBLIC_API_CDN_ENDPOINT}${item?.mobileBanner}`}}
-          style={styles.gridImage}
-        />
+        <View
+          style={[
+            styles.itemContainer,
+            isFocused && styles.focusedItemContainer,
+            {
+              width: cardWidth,
+              height: cardHeight,
+              borderWidth: isFocused ? scale(3) : 0,
+              borderColor: isFocused ? COLORS.white : 'transparent',
+            },
+          ]}>
+          <Image
+            source={{uri: `${NEXT_PUBLIC_API_CDN_ENDPOINT}${item?.mobileBanner}`}}
+            style={styles.gridImage}
+          />
+        </View>
       </TouchableOpacity>
     );
   };
