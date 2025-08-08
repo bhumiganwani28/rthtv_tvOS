@@ -4,13 +4,12 @@ import {
   Text,
   Image,
   TouchableOpacity,
-  Modal,
-  FlatList,
-  useTVEventHandler,
+  // Modal,
+  // FlatList,
+  // useTVEventHandler,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import styles from './styles';
 import { Profile } from '../../types';
 import { NEXT_PUBLIC_API_CDN_ENDPOINT } from '../../config/apiEndpoints';
 import { COLORS } from '../../theme/colors';
@@ -19,21 +18,22 @@ interface ProfileMenuTVProps {
   onProfileChange?: (profile: Profile) => void;
 }
 
-const MENU_ITEMS = [
-  { key: 'manage', label: 'Manage Watch Profile', icon: '👤', action: 'manageProfile' },
-  // { key: 'editProfile', label: 'Edit Profile', icon: '✏️', action: 'editProfile' },
-  // { key: 'settings', label: 'Account & Settings', icon: '⚙️', action: 'settings' },
-  // { key: 'devices', label: 'Manage Access & Devices', icon: '🖥️', action: 'devices' },
-  // { key: 'subscription', label: 'Subscription', icon: '💳', action: 'subscription' },
-  // { key: 'password', label: 'Change Password', icon: '🔒', action: 'changePassword' },
-  { key: 'signout', label: 'Sign Out', icon: '⏏️', action: 'signout' },
-];
+// Commented out menu items for now
+// const MENU_ITEMS = [
+//   { key: 'manage', label: 'Manage Watch Profile', icon: '👤', action: 'manageProfile' },
+//   // { key: 'editProfile', label: 'Edit Profile', icon: '✏️', action: 'editProfile' },
+//   // { key: 'settings', label: 'Account & Settings', icon: '⚙️', action: 'settings' },
+//   // { key: 'devices', label: 'Manage Access & Devices', icon: '🖥️', action: 'devices' },
+//   // { key: 'subscription', label: 'Subscription', icon: '💳', action: 'subscription' },
+//   // { key: 'password', label: 'Change Password', icon: '🔒', action: 'changePassword' },
+//   { key: 'signout', label: 'Sign Out', icon: '⏏️', action: 'signout' },
+// ];
 
 const ProfileMenuTV: React.FC<ProfileMenuTVProps> = ({ onProfileChange }) => {
   const navigation = useNavigation<any>();
-  const [showDropdown, setShowDropdown] = useState(false);
+  // const [showDropdown, setShowDropdown] = useState(false);
   const [currentProfile, setCurrentProfile] = useState<Profile | null>(null);
-  const [focusedMenuIndex, setFocusedMenuIndex] = useState(0);
+  // const [focusedMenuIndex, setFocusedMenuIndex] = useState(0);
   const [isProfileButtonFocused, setIsProfileButtonFocused] = useState(false);
 
   useEffect(() => {
@@ -44,7 +44,7 @@ const ProfileMenuTV: React.FC<ProfileMenuTVProps> = ({ onProfileChange }) => {
     loadProfile();
   }, []);
 
-  // TV remote menu navigation
+  // Commented out TV remote menu navigation
   // useTVEventHandler((evt) => {
   //   if (!showDropdown) return;
   //   switch (evt.eventType) {
@@ -69,39 +69,40 @@ const ProfileMenuTV: React.FC<ProfileMenuTVProps> = ({ onProfileChange }) => {
   //   }
   // });
 
-  const handleMenuAction = async (action: string) => {
-    setShowDropdown(false);
-    switch (action) {
-      case 'manageProfile':
-        navigation.navigate('WhosWatching');
-        break;
-      case 'editProfile':
-        navigation.navigate('EditProfile');
-        break;
-      // case 'settings':
-      //   // navigation.navigate('Settings'); // adjust as per your navigation
-      //   break;
-      // case 'devices':
-      //   // navigation.navigate('ManageDevices');
-      //   break;
-      // case 'subscription':
-      //   // navigation.navigate('SubscriptionScreen');
-      //   break;
-      case 'changePassword':
-        navigation.navigate('ChangePasswordTV');
-        break;
-      case 'signout':
-        await AsyncStorage.removeItem('accessToken');
-        await AsyncStorage.removeItem('user');
-        // await AsyncStorage.removeItem('selectedProfile'); // clear profile
-        navigation.navigate('LoginTV'); // or your login/landing
-        break;
-      default:
-        break;
-    }
-  };
+  // Commented out menu action handler
+  // const handleMenuAction = async (action: string) => {
+  //   setShowDropdown(false);
+  //   switch (action) {
+  //     case 'manageProfile':
+  //       navigation.navigate('WhosWatching');
+  //       break;
+  //     case 'editProfile':
+  //       navigation.navigate('EditProfile');
+  //       break;
+  //     // case 'settings':
+  //     //   // navigation.navigate('Settings'); // adjust as per your navigation
+  //     //   break;
+  //     // case 'devices':
+  //     //   // navigation.navigate('ManageDevices');
+  //     //   break;
+  //     // case 'subscription':
+  //     //   // navigation.navigate('SubscriptionScreen');
+  //     //   break;
+  //     case 'changePassword':
+  //       navigation.navigate('ChangePasswordTV');
+  //       break;
+  //     case 'signout':
+  //       await AsyncStorage.removeItem('accessToken');
+  //       await AsyncStorage.removeItem('user');
+  //       // await AsyncStorage.removeItem('selectedProfile'); // clear profile
+  //       navigation.navigate('LoginTV'); // or your login/landing
+  //       break;
+  //     default:
+  //       break;
+  //   }
+  // };
 
-  // Handle profile click - navigate directly to WhosWatching
+  // Simple handler to navigate to WhosWatching screen
   const handleProfileClick = () => {
     navigation.navigate('WhosWatching');
   };
@@ -115,7 +116,6 @@ const ProfileMenuTV: React.FC<ProfileMenuTVProps> = ({ onProfileChange }) => {
           styles.profileAvatarBtn,
           isProfileButtonFocused && styles.profileAvatarBtnFocused,
         ]}
-        // onPress={() => { setShowDropdown(true); setFocusedMenuIndex(0); }}
         onPress={handleProfileClick}
         focusable={true}
         hasTVPreferredFocus={false}
@@ -131,6 +131,8 @@ const ProfileMenuTV: React.FC<ProfileMenuTVProps> = ({ onProfileChange }) => {
           style={styles.profileAvatar}
         />
       </TouchableOpacity>
+      
+      {/* Commented out Modal and dropdown functionality
       <Modal
         visible={showDropdown}
         animationType="fade"
@@ -140,7 +142,6 @@ const ProfileMenuTV: React.FC<ProfileMenuTVProps> = ({ onProfileChange }) => {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.dropdownMenuBlock}>
-            {/* Profile row at the top */}
             <View style={styles.menuProfileRow}>
               <Image
                 source={{ uri: `${NEXT_PUBLIC_API_CDN_ENDPOINT}${currentProfile.avatar}` }}
@@ -149,10 +150,8 @@ const ProfileMenuTV: React.FC<ProfileMenuTVProps> = ({ onProfileChange }) => {
               <Text style={styles.menuProfileName}>{currentProfile.name}</Text>
             </View>
 
-            {/* Divider */}
             <View style={styles.menuDivider} />
 
-            {/* Menu items */}
             <FlatList
               data={MENU_ITEMS}
               keyExtractor={item => item.key}
@@ -181,8 +180,35 @@ const ProfileMenuTV: React.FC<ProfileMenuTVProps> = ({ onProfileChange }) => {
           </View>
         </View>
       </Modal>
+      */}
     </View>
   );
+};
+
+// Simple styles for the profile button
+const styles = {
+  profileMenuContainer: {
+    position: 'absolute',
+    top: 20,
+    right: 20,
+    zIndex: 1000,
+  },
+  profileAvatarBtn: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    overflow: 'hidden',
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  profileAvatarBtnFocused: {
+    borderColor: COLORS.primary,
+    borderWidth: 3,
+  },
+  profileAvatar: {
+    width: '100%',
+    height: '100%',
+  },
 };
 
 export default ProfileMenuTV;
