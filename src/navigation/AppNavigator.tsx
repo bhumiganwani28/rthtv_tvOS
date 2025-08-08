@@ -15,7 +15,7 @@ import TrendingVideos from '../screens/TrendingVideos';
 import LatestSeason from '../screens/LatestSeason';
 import IntroSlider from '../screens/IntroScreen';
 import ForgotPasswordTV from '../screens/ForgotPasswordTV';
-import ChangePasswordTV from '../screens/ChangePasswordTV';
+// import ChangePasswordTV from '../screens/ChangePasswordTV';
 import ChannelDetailsTV from '../screens/ChannelDetailsTV';
 import ChannelDetails from '../screens/ChannelDetailsTV';
 import AllSeasons from '../screens/AllSeasons';
@@ -28,14 +28,15 @@ import SelectAvatar from '../screens/SelectAvtar';
 import AddProfile from '../screens/AddProfile';
 import Details from '../screens/Details';
 import AllVideos from '../screens/AllVideos';
-import EditProfile from '../screens/EditProfile';
+import MoreLikeVideos from '../screens/MoreLikeVideos';
+// import EditProfile from '../screens/EditProfile';
 
 const Stack = createNativeStackNavigator();
 
 const AppNavigator = () => {
   return (
     <Stack.Navigator
-      initialRouteName="Splash"
+      initialRouteName="WhosWatching"
       screenOptions={{
         headerShown: false,
         animation: Platform.isTV ? 'none' : 'default',
@@ -90,13 +91,13 @@ const AppNavigator = () => {
           gestureEnabled: false,
         }}
       />
-      <Stack.Screen 
+      {/* <Stack.Screen 
         name="ChangePasswordTV" 
         component={ChangePasswordTV}
         options={{
           gestureEnabled: false,
         }}
-      />
+      /> */}
 
       {/* Profile Management */}
       <Stack.Screen 
@@ -138,13 +139,13 @@ const AppNavigator = () => {
           gestureEnabled: false,
         }}
       />
-         <Stack.Screen 
+         {/* <Stack.Screen 
         name="EditProfile" 
         component={EditProfile}
         options={{
           gestureEnabled: false,
         }}
-      />
+      /> */}
       <Stack.Screen 
         name="ChannelDetailsTV" 
         component={ChannelDetailsTV}
@@ -152,6 +153,7 @@ const AppNavigator = () => {
           gestureEnabled: false,
         }}
       />
+   
       <Stack.Screen 
         name="PremiumVideos" 
         component={PremiumVideos}
@@ -169,6 +171,13 @@ const AppNavigator = () => {
       <Stack.Screen 
         name="TrendingVideos" 
         component={TrendingVideos}
+        options={{
+          gestureEnabled: false,
+        }}
+      />
+             <Stack.Screen 
+        name="MoreLikeVideos" 
+        component={MoreLikeVideos}
         options={{
           gestureEnabled: false,
         }}

@@ -9,22 +9,22 @@ export default StyleSheet.create({
     backgroundColor: COLORS.black,
     paddingTop: scale(10),
   },
-  tabBarContainer:{
-  flexDirection: 'row',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  paddingHorizontal: scale(16),
+  tabBarContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: scale(16),
   },
-  contentContainer:{
-     flex:1,
+  contentContainer: {
+    flex: 1,
     paddingTop: scale(10),
   },
-  contentTitleContainer:{
+  contentTitleContainer: {
     paddingVertical: scale(5),
   },
-  contentTitle:{
+  contentTitle: {
     color: COLORS.white,
-    fontSize:scale(12),
+    fontSize: scale(12),
     fontFamily: FONTS.montSemiBold,
     marginLeft: scale(20),
   },
@@ -54,11 +54,11 @@ export default StyleSheet.create({
     backgroundColor: COLORS.focusItem,
     // elevation: 5,
   },
-image: {
-     width: '100%',
+  image: {
+    width: '100%',
     height: '100%',
     resizeMode: 'cover',
-},
+  },
   subscriptionContainer: {
     position: 'absolute',
     top: scale(6),
