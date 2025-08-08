@@ -36,7 +36,7 @@ const Stack = createNativeStackNavigator();
 const AppNavigator = () => {
   return (
     <Stack.Navigator
-      initialRouteName="WhosWatching"
+      initialRouteName="Splash"
       screenOptions={{
         headerShown: false,
         animation: Platform.isTV ? 'none' : 'default',
@@ -52,6 +52,9 @@ const AppNavigator = () => {
         ...(Platform.isTV && {
           animation: 'none',
           animationDuration: 0,
+          // Prevent screen flipping
+          detachInactiveScreens: false,
+          freezeOnBlur: true,
         }),
       }}
     >
@@ -75,6 +78,10 @@ const AppNavigator = () => {
         component={LoginTV}
         options={{
           gestureEnabled: false,
+          animation: Platform.isTV ? 'none' : 'default',
+          animationDuration: Platform.isTV ? 0 : undefined,
+          detachInactiveScreens: false,
+          freezeOnBlur: true,
         }}
       />
       <Stack.Screen 
@@ -82,6 +89,10 @@ const AppNavigator = () => {
         component={SignUpScreen}
         options={{
           gestureEnabled: false,
+          animation: Platform.isTV ? 'none' : 'default',
+          animationDuration: Platform.isTV ? 0 : undefined,
+          detachInactiveScreens: false,
+          freezeOnBlur: true,
         }}
       />
       <Stack.Screen 
@@ -89,6 +100,10 @@ const AppNavigator = () => {
         component={ForgotPasswordTV}
         options={{
           gestureEnabled: false,
+          animation: Platform.isTV ? 'none' : 'default',
+          animationDuration: Platform.isTV ? 0 : undefined,
+          detachInactiveScreens: false,
+          freezeOnBlur: true,
         }}
       />
       {/* <Stack.Screen 
