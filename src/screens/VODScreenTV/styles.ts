@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
     },
      itemView: {
     backgroundColor: COLORS.black, // or any default background
-    borderRadius: scale(5),
+    // borderRadius: scale(5),
     marginBottom: scale(10),
     paddingHorizontal: scale(10),
     flex: 1,

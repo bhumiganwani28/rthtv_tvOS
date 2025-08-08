@@ -13,6 +13,7 @@ import {
   Dimensions,
   ScrollView,
   Platform,
+  useTVEventHandler,
 } from 'react-native';
 import IIcon from 'react-native-vector-icons/Ionicons';
 import { COLORS } from '../../theme/colors';
@@ -56,7 +57,7 @@ const VODScreen: React.FC = ({ route }) => {
   const [subscriptionData, setSubscriptionData] = useState<any>(null);
   const [longISDescription, setLongISDescription] = useState<any>(null);
   const { seasonID } = route?.params || {};
-  const scrollY = useRef(new Animated.Value(0)).current;
+
   const limitedSeasonsData = Array.isArray(seasonsData)
     ? seasonsData?.slice(0, 6)
     : [];
@@ -74,6 +75,69 @@ const VODScreen: React.FC = ({ route }) => {
 
   const ICON_SIZE = scale(40); // Adjust icon size for tablet/phone (you can tweak these)
   const HALF_ICON_SIZE = ICON_SIZE / 2;
+
+  // TV remote event handler for More Like This section
+  useTVEventHandler((evt: any) => {
+    if (!evt?.eventType || activeTab !== 'Episodes') return;
+
+    switch (evt.eventType) {
+      case 'down':
+        if (rowFocus === null) {
+          setRowFocus('moreLike');
+          setFocusedIndex(0);
+        } else if (rowFocus === 'moreLike' && focusedIndex !== null) {
+          const nextIndex = focusedIndex + 1;
+          if (nextIndex < limitedSeasonsData.length) {
+            setFocusedIndex(nextIndex);
+          }
+        }
+        break;
+
+      case 'up':
+        if (rowFocus === 'moreLike' && focusedIndex !== null) {
+          const prevIndex = focusedIndex - 1;
+          if (prevIndex >= 0) {
+            setFocusedIndex(prevIndex);
+          } else {
+            setRowFocus(null);
+            setFocusedIndex(null);
+          }
+        }
+        break;
+
+      case 'right':
+        if (rowFocus === null) {
+          // From View All to first image
+          setRowFocus('moreLike');
+          setFocusedIndex(0);
+        } else if (rowFocus === 'moreLike' && focusedIndex !== null) {
+          const nextIndex = focusedIndex + 1;
+          if (nextIndex < limitedSeasonsData.length) {
+            setFocusedIndex(nextIndex);
+          }
+        }
+        break;
+
+      case 'left':
+        if (rowFocus === 'moreLike' && focusedIndex !== null) {
+          const prevIndex = focusedIndex - 1;
+          if (prevIndex >= 0) {
+            setFocusedIndex(prevIndex);
+          } else {
+            // From first image to View All
+            setRowFocus(null);
+            setFocusedIndex(null);
+          }
+        }
+        break;
+
+      case 'select':
+        if (rowFocus === 'moreLike' && focusedIndex !== null && limitedSeasonsData[focusedIndex]) {
+          handleSeasonPress(limitedSeasonsData[focusedIndex]);
+        }
+        break;
+    }
+  });
   // Toggle dropdown visibility
   const toggleDropdown = () => {
     setIsDropdownVisible(!isDropdownVisible);
@@ -246,16 +310,21 @@ const VODScreen: React.FC = ({ route }) => {
     }
   }, [channelId]);
 
+  // Ensure screen scrolls to top when it loads
+  useEffect(() => {
+    if (flatListRef.current && !loading) {
+      setTimeout(() => {
+        flatListRef.current?.scrollToOffset({ offset: 0, animated: false });
+      }, 100);
+    }
+  }, [loading]);
+
   const handleBackPress = useCallback(() => {
     navigation.goBack();
     return true;
   }, [navigation]);
 
-  const headerBackgroundColor = scrollY.interpolate({
-    inputRange: [0, 150], // Adjust scroll range for a smoother effect
-    outputRange: ['transparent', 'black'],
-    extrapolate: 'clamp',
-  });
+
 
   const renderEpisodeItem = ({ item }: { item: typeof episodesList }) => (
     <TouchableOpacity
@@ -264,8 +333,9 @@ const VODScreen: React.FC = ({ route }) => {
         styles.itemView,
         {
           paddingVertical: scale(8),
-          //  borderBottomWidth: null,
-          borderBottomColor: COLORS.lightGrey,
+          //borderBottomWidth: null,
+          backgroundColor:COLORS.lightBlack,
+          borderBottomColor: COLORS.white,
         },
       ]}>
       <View style={styles.episodeItem}>
@@ -368,26 +438,62 @@ const VODScreen: React.FC = ({ route }) => {
     </TouchableOpacity>
   );
 
-  const renderSeasonItem = ({ item }: { item: any }) => (
-    <TouchableOpacity
-      onPress={() => handleSeasonPress(item)}
-      style={{
-        width: posterWidth,
-        height: posterHeight,
-        margin: itemMargin / 1.5,
-      }}>
-      <Image
-        source={{
-          uri: `${NEXT_PUBLIC_API_CDN_ENDPOINT}${item?.mobilePosterImage}`,
+  const [rowFocus, setRowFocus] = useState<'moreLike' | null>(null);
+  const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
+  const flatListRef = useRef<FlatList>(null);
+
+  const renderSeasonItem = ({ item, index }: { item: any; index: number }) => {
+    const isFocused = rowFocus === 'moreLike' && focusedIndex === index;
+    
+    return (
+      <TouchableOpacity
+        onPress={() => handleSeasonPress(item)}
+        onFocus={() => {
+          setFocusedIndex(index);
+          setRowFocus('moreLike');
         }}
-        style={{
-          width: '100%',
-          height: '100%',
-        }}
-        resizeMode="contain"
-      />
-    </TouchableOpacity>
-  );
+        focusable={Platform.isTV}
+        hasTVPreferredFocus={rowFocus === 'moreLike' && index === focusedIndex}
+        style={[
+          {
+            width: scale(120),
+            height: scale(80),
+            marginHorizontal: scale(5),
+          },
+          isFocused && {
+            borderWidth: scale(3),
+            borderColor: COLORS.white,
+            // borderRadius: scale(4),
+          },
+        ]}>
+        <Image
+          source={{
+            uri: `${NEXT_PUBLIC_API_CDN_ENDPOINT}${item?.mobilePosterImage}`,
+          }}
+          style={{
+            width: '100%',
+            height: '100%',
+            // borderRadius: scale(4),
+          }}
+          resizeMode="cover"
+        />
+        {!subscriptionData && item?.access === 'Paid' && (
+          <View style={{
+            position: 'absolute',
+            top: scale(4),
+            right: scale(4),
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            borderRadius: scale(2),
+            padding: scale(3),
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+            <FIcon name="crown" size={scale(6)} style={{ color: COLORS.yellow }} />
+          </View>
+        )}
+      </TouchableOpacity>
+    );
+  };
 
   const keyExtractor = (item: any, index: number) =>
     `${item?.id}-${item?.slug}-${index}`;
@@ -596,7 +702,7 @@ const VODScreen: React.FC = ({ route }) => {
   );
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} >
       <BackHandlerComponent onBackPress={handleBackPress} />
       {/*  Header  */}
       <Header
@@ -613,6 +719,7 @@ const VODScreen: React.FC = ({ route }) => {
         ) : (
           <View style={{ flex: 1 }}>
             <FlatList
+              ref={flatListRef}
               data={[]}
               renderItem={() => null}
               ListHeaderComponent={headerComponent}
@@ -721,11 +828,16 @@ const VODScreen: React.FC = ({ route }) => {
                           </Text>
                           <TouchableOpacity
                             style={styles.link}
+                            focusable={Platform.isTV}
                             onPress={() =>
                               navigation.navigate('MoreLikeVideos', {
                                 channelId: channelId,
                               })
-                            }>
+                            }
+                            onFocus={() => {
+                              setRowFocus(null);
+                              setFocusedIndex(null);
+                            }}>
                             <Text
                               style={[
                                 styles.viewAllText,
@@ -744,18 +856,14 @@ const VODScreen: React.FC = ({ route }) => {
                             />
                           </TouchableOpacity>
                         </View>
-                        <FlatList
-                          data={limitedSeasonsData}
-                          renderItem={renderSeasonItem}
-                          keyExtractor={(_, index) => `more-${index}`}
-                          style={{ flex: 1 }}
-                          numColumns={columns}
+                        <ScrollView
+                          horizontal
+                          showsHorizontalScrollIndicator={false}
                           contentContainerStyle={{
-                            flexGrow: 1,
-                          }}
-                          scrollEnabled={false}
-                          showsVerticalScrollIndicator={false}
-                        />
+                            paddingHorizontal: scale(8),
+                          }}>
+                          {limitedSeasonsData.map((item, index) => renderSeasonItem({ item, index }))}
+                        </ScrollView>
                       </View>
                     </View>
                   ) : (
@@ -793,11 +901,9 @@ const VODScreen: React.FC = ({ route }) => {
               }
               keyExtractor={() => 'unique'}
               showsVerticalScrollIndicator={false}
-              onScroll={Animated.event(
-                [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-                { useNativeDriver: false },
-              )}
-              scrollEventThrottle={16}
+              contentContainerStyle={{ paddingBottom: scale(20) }}
+              bounces={false}
+              scrollToTop={true}
             />
           </View>
         )}
