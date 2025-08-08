@@ -170,7 +170,10 @@ const WhosWatchingTVOS: React.FC = () => {
           styles.addProfileBox,
           isAddFocused && styles.focusedAddProfileBox,
         ]}
-        onFocus={() => setIsAddFocused(true)}
+        onFocus={() => {
+          setIsAddFocused(true);
+          setFocusedIndex(-1); // Reset profile focus when Add button is focused
+        }}
         onBlur={() => setIsAddFocused(false)}
         onPress={() => navigation.navigate('AddProfile')}
         hasTVPreferredFocus={profilesData.length === 0}
