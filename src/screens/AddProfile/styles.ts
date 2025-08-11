@@ -63,6 +63,12 @@ const styles = StyleSheet.create({
         marginBottom: verticalScale(15),
         textAlign: 'center',
     },
+      errorText: {
+    color: COLORS.red,
+    fontSize: scale(8),
+    marginTop: scale(2),
+    fontFamily: FONTS.montRegular,
+  },
     inputView: {
         marginBottom: scale(20),
          width: '100%',
