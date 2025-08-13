@@ -52,14 +52,22 @@ const AllSeasons: React.FC<AllSeasonsProps> = ({ route }) => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-const NUM_COLUMNS = 5;
-const CARD_ASPECT_RATIO = 16 / 9;
-const itemHorizontalSpacing = scale(12); // space between cards
-  const windowWidth = Dimensions.get('window').width;
-  const totalSpacing = itemHorizontalSpacing * (NUM_COLUMNS + 1);
+// const NUM_COLUMNS = 5;
+// const CARD_ASPECT_RATIO = 18 / 9;
+// const itemHorizontalSpacing = scale(12); // space between cards
+//   const windowWidth = Dimensions.get('window').width;
+//   const totalSpacing = itemHorizontalSpacing * (NUM_COLUMNS + 1);
+//   const cardWidth = (windowWidth - totalSpacing) / NUM_COLUMNS;
+//   const cardHeight = cardWidth / CARD_ASPECT_RATIO;
+//   const itemMargin = itemHorizontalSpacing / 1.5;
+ const windowWidth = Dimensions.get('window').width;
+  const NUM_COLUMNS = 5;
+  const itemSpacing = scale(12);
+  const CARD_ASPECT_RATIO = 16 / 9;
+  const totalSpacing = itemSpacing * (NUM_COLUMNS + 1);
   const cardWidth = (windowWidth - totalSpacing) / NUM_COLUMNS;
   const cardHeight = cardWidth / CARD_ASPECT_RATIO;
-  const itemMargin = itemHorizontalSpacing / 1.5;
+  const itemMargin = itemSpacing / 2;
   const [focusedIndex, setFocusedIndex] = useState<number>(0);
 
   const handleBackPress = useCallback(() => {
@@ -140,7 +148,7 @@ const itemHorizontalSpacing = scale(12); // space between cards
                       isFocused && styles.focusedItemContainer,
                       { width: cardWidth,
                          height: cardHeight,
-                         borderWidth: isFocused ? scale(1) : 0,
+                         borderWidth: isFocused ? scale(3) : 0,
                        borderColor: isFocused ? COLORS.white : 'transparent',
                        },
                     ]}

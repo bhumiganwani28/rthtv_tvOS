@@ -38,6 +38,7 @@ export default StyleSheet.create({
     fontFamily: FONTS.montSemiBold,
   },
  itemContainer: {
+      overflow: 'hidden',
     // borderWidth: 3,
     // borderColor: 'transparent',
     // backgroundColor: COLORS.itemContainer,
@@ -45,12 +46,15 @@ export default StyleSheet.create({
   focusedItemContainer: {
     borderColor: COLORS.white,
     backgroundColor: COLORS.focusItem,
-    elevation: 5,
+    // elevation: 5,
+    
   },
   image: {
-    width: '100%',
+        width: '100%',
     height: '100%',
-    resizeMode: 'cover',
-    backgroundColor: COLORS.black, // fallback to hide loading gaps
+   resizeMode: 'contain',
+  //  backgroundColor: COLORS.black,
+
   },
+  
 });
