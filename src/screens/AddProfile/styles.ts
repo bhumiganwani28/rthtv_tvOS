@@ -1,4 +1,4 @@
-import { StyleSheet } from "react-native";
+import { StyleSheet, Platform } from "react-native";
 import { scale, verticalScale } from "react-native-size-matters";
 import { COLORS } from "../../theme/colors";
 import { FONTS } from "../../utils/fonts";
@@ -66,15 +66,26 @@ const styles = StyleSheet.create({
       errorText: {
     color: COLORS.red,
     fontSize: scale(8),
-    marginTop: scale(2),
+    marginTop: scale(10),
     fontFamily: FONTS.montRegular,
   },
     inputView: {
         marginBottom: scale(20),
          width: '100%',
     },
-       input: {
+    input: {
         width: '100%',
+        borderWidth: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: scale(0),
+        height: scale(22),
+        backgroundColor: COLORS.lightBlack,
+        borderColor: COLORS.borderColor,
+        ...(Platform.OS === 'ios' && Platform.isTV && {
+            minHeight: scale(22),
+            justifyContent: 'center',
+        }),
     },
     inputLabel: {
         fontSize: scale(10),
@@ -83,7 +94,12 @@ const styles = StyleSheet.create({
         marginBottom: scale(5),
         alignSelf: 'flex-start',
     },
- 
+    focusedHighlight: {
+        // borderWidth: 2,
+        // borderColor: COLORS.primary,
+        borderRadius: scale(8),
+        padding: scale(2),
+    },
 
     avatarWrapper: {
         alignItems: 'center',

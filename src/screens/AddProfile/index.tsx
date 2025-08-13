@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,8 @@ import {
   ImageBackground,
   SafeAreaView,
   StatusBar,
+  TextInput,
+  useTVEventHandler,
 } from 'react-native';
 import {scale, verticalScale} from 'react-native-size-matters';
 import {useDispatch, useSelector} from 'react-redux';
@@ -56,6 +58,9 @@ const AddProfile: React.FC<AddProfileProps> = ({navigation, route}) => {
 console.log("profileId.",profileId);
 
   const [name, setName] = useState<string>(initialName || '');
+  const [focusedField, setFocusedField] = useState<'name' | 'avatar' | 'save' | 'delete'>('name');
+  const [showKeyboard, setShowKeyboard] = useState(false);
+  
   const [isKidsProfile, setIsKidsProfile] = useState<boolean>(
     initialKidsProfile || false,
   );
@@ -73,6 +78,9 @@ console.log("profileId.",profileId);
     type: 'error',
   });
 
+    const draftRef = useRef(name); // holds text while typing
+  
+    
   useEffect(() => {
     // Set default avatar URL when no avatar is provided
     if (initialAvatar) {
@@ -80,6 +88,45 @@ console.log("profileId.",profileId);
       setOriginalProfileData(avatarUrl);
     }
   }, [initialAvatar]);
+
+  // TV Navigation Handler
+  useTVEventHandler(evt => {
+    if (showKeyboard) return;
+
+    if (evt && evt.eventType) {
+      switch (evt.eventType) {
+        case 'down':
+          if (focusedField === 'name') setFocusedField('avatar');
+          else if (focusedField === 'avatar') setFocusedField('save');
+          else if (focusedField === 'save' && profileId && !defaultProfile) setFocusedField('delete');
+          break;
+        case 'up':
+          if (focusedField === 'delete') setFocusedField('save');
+          else if (focusedField === 'save') setFocusedField('avatar');
+          else if (focusedField === 'avatar') setFocusedField('name');
+          break;
+        case 'select':
+          if (focusedField === 'name') {
+            setShowKeyboard(true);
+          } else if (focusedField === 'avatar') {
+            redirectToProfileImageSelector();
+          } else if (focusedField === 'save') {
+            handleAddProfile();
+          } else if (focusedField === 'delete') {
+            showDeleteModal();
+          }
+          break;
+      }
+    }
+  });
+
+  const handleKeyboardVisibility = (visible: boolean) => {
+    setShowKeyboard(visible);
+  };
+
+    const commitDraft = () => {
+    setName(draftRef.current);
+  };
 
   // delete modal
   const showDeleteModal = () => {
@@ -106,6 +153,7 @@ console.log("profileId.",profileId);
             setAvatarError('Please select an avatar before proceeding!');
             return false;
         }
+        setAvatarError('');
         return true;
     };
 
@@ -123,7 +171,7 @@ console.log("profileId.",profileId);
             avatar: initialAvatar,
         };
         try {
-            // setLoading(true);
+            setLoading(true);
             // Determine if it's an edit or add operation
             const response = profileId
                 ? await apiHelper.put(`${EDIT_PROFILE_URL}/${profileId}`, payload)
@@ -199,8 +247,6 @@ console.log("profileId.",profileId);
 
 
   return (
-  
-  
     <SafeAreaView style={styles.container}>
       <StatusBar
         translucent
@@ -227,10 +273,15 @@ console.log("profileId.",profileId);
                  <View style={styles.loginBox}>
               <Text style={styles.heading}>Add Profile</Text>
                 <View style={styles.formContainer}>
-                      <View style={styles.avatarWrapper}>
-                    <TouchableOpacity 
-                     onPress={() => redirectToProfileImageSelector()}
-                    style={{ alignItems: 'center', justifyContent: 'center' }}>
+                      <TouchableOpacity 
+                       onPress={() => redirectToProfileImageSelector()}
+                       onFocus={() => setFocusedField('avatar')}
+                       style={[
+                         styles.avatarWrapper,
+                         focusedField === 'avatar' && styles.focusedHighlight
+                       ]}
+                       focusable={isTV}
+                       hasTVPreferredFocus={focusedField === 'avatar'}>
                         <Image
                           //  source={{
                           //           uri: originalProfileData
@@ -242,22 +293,50 @@ console.log("profileId.",profileId);
                             <MIcon name="pencil-outline" size={scale(18)} color={COLORS.white} />
                         </View>
                     </TouchableOpacity>
-                </View>
+                    
+                    {/* Avatar Error Display */}
+                    {avatarError ? (
+                      <Text style={styles.errorText}>{avatarError}</Text>
+                    ) : null}
+
                 <View style={styles.inputView}>
                   <Text style={styles.inputLabel}>Profile Name</Text>
-                  <View style={styles.inputView}>
-                    <CInput
-                    placeholder="Type here..."
-                    value={name}
-                    onChangeText={setName}
-                    errorShow={!!nameError}
-                    errorText={nameError}
-                    containerStyle={styles.input}
-                    focusable={true}
-                    hasTVPreferredFocus={true} // Use true if this input should get initial focus on modal/screen load
-/>
-
-                    </View>
+                  <View style={styles.input}>
+                    <TextInput
+                      style={{
+                        flex: 1,
+                        fontSize: scale(10),
+                        fontFamily: FONTS.montRegular,
+                        padding: 0,
+                        margin: 0,
+                        height: '100%',
+                        color: COLORS.white,
+                        backgroundColor: 'transparent',
+                        paddingHorizontal: scale(10),
+                      }}
+                      placeholder="Enter profile name"
+                      placeholderTextColor={COLORS.greyText}
+                      defaultValue={name} // show initial value
+                      onChangeText={text => {
+                        draftRef.current = text;
+                      }}
+                      onEndEditing={commitDraft} // commit when user finishes
+                      onSubmitEditing={() => {
+                        commitDraft();
+                        Keyboard.dismiss();
+                      }}
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                      spellCheck={false}
+                      blurOnSubmit
+                      selectionColor={COLORS.primary}
+                      focusable={isTV}
+                      hasTVPreferredFocus={true}
+                    />
+                  </View>
+                  {nameError ? (
+                    <Text style={styles.errorText}>{nameError}</Text>
+                  ) : null}
                 </View>
                 <CButton
                   text="Save"
@@ -266,7 +345,7 @@ console.log("profileId.",profileId);
                   }}
                   style={styles.saveButton}
                   textStyle={styles.saveButtonText}
-                //   hasTVPreferredFocus={focusedField === 'submit'}
+                  hasTVPreferredFocus={focusedField === 'save'}
                   focusable
                   backgroundColor={COLORS.primary}
                   loading={loading}
@@ -278,7 +357,7 @@ console.log("profileId.",profileId);
                   }}
                   style={[styles.DeletButton,{marginTop:scale(10)}]}
                   textStyle={styles.saveButtonText}
-                //   hasTVPreferredFocus={focusedField === 'submit'}
+                  hasTVPreferredFocus={focusedField === 'delete'}
                   focusable
                   outline
                   backgroundColor={COLORS.primary}
