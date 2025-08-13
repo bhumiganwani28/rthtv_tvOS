@@ -121,10 +121,10 @@ const SCALE_STEP = 0.25;
 
     // Slider controls when focused
     if (sliderFocused) {
-      if (evt.eventType === 'right') {
+      if (evt.eventType === 'right' || evt.eventType === 'fastForward' || evt.eventType === 'seekForward' || evt.eventType === 'seekRight' || evt.eventType === 'swipeRight') {
         setSliderValue((v) => Math.min(duration, v + SEEK_STEP));
         setSeeking(true);
-      } else if (evt.eventType === 'left') {
+      } else if (evt.eventType === 'left' || evt.eventType === 'rewind' || evt.eventType === 'seekBackward' || evt.eventType === 'seekLeft' || evt.eventType === 'swipeLeft') {
         setSliderValue((v) => Math.max(0, v - SEEK_STEP));
         setSeeking(true);
       } else if (evt.eventType === 'select') {
@@ -286,6 +286,24 @@ style={[
                   }}
                   style={[styles.progressTouchable, sliderFocused && styles.progressFocused]}
                   activeOpacity={1}
+                    accessible
+                    accessibilityRole="adjustable"
+                    accessibilityHint="Swipe or press right/left to seek"
+                    accessibilityActions={[
+                      { name: 'increment' },
+                      { name: 'decrement' },
+                    ]}
+               onAccessibilityAction={(e) => {
+                const name = e.nativeEvent.actionName;
+                const effDuration = duration > 0 ? duration : Math.max(currentTime + 1, sliderValue + 1);
+                if (name === 'increment') {
+                  setSliderValue(v => Math.min(effDuration, v + SEEK_STEP));
+                  setSeeking(true);
+                } else if (name === 'decrement') {
+                  setSliderValue(v => Math.max(0, v - SEEK_STEP));
+                  setSeeking(true);
+                }
+              }}
                 >
                   <View style={styles.progressTrack}>
                     <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
