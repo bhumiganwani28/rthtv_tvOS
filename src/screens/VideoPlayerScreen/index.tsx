@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,9 @@ import {
   StyleSheet,
   Animated,
   TouchableWithoutFeedback,
+  LayoutChangeEvent,
+  GestureResponderEvent,
+  StyleSheet as RNStyleSheet,
 } from 'react-native';
 import Video, { VideoRef } from 'react-native-video';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -17,7 +20,8 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { useTVEventHandler } from 'react-native';
 import { navigationRef } from '../../App';
 
-const SEEK_STEP = 10; // seconds
+const SEEK_STEP = 10; // seconds for global navigation
+const SWIPE_JUMP = 30; // seconds for swipe gestures
 const CONTROLS_HIDE_TIMEOUT = 5000;
 const SAFE_HORIZONTAL_PADDING = 60;
 
@@ -32,10 +36,8 @@ const VideoPlayerScreen = ({ route }: VideoPlayerScreenProps) => {
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const hideTimeout = useRef<NodeJS.Timeout | null>(null);
 
-  // Properly typed ref for slider
+  // focusable refs
   const sliderRef = useRef<TouchableOpacity | null>(null);
-
-  // Other focusable refs if needed:
   const playRef = useRef<TouchableOpacity | null>(null);
   const rewindRef = useRef<TouchableOpacity | null>(null);
   const forwardRef = useRef<TouchableOpacity | null>(null);
@@ -46,33 +48,42 @@ const VideoPlayerScreen = ({ route }: VideoPlayerScreenProps) => {
   const [paused, setPaused] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [seekableDur, setSeekableDur] = useState(0);
   const [showControls, setShowControls] = useState(true);
   const [focusedControl, setFocusedControl] = useState('');
   const [muted, setMuted] = useState(false);
+
   const [sliderFocused, setSliderFocused] = useState(false);
   const [sliderValue, setSliderValue] = useState(0);
   const [seeking, setSeeking] = useState(false);
+
   const [showBigCenterIcon, setShowBigCenterIcon] = useState(false);
   const [centerIconType, setCenterIconType] = useState<'play' | 'pause'>('pause');
 
   const [videoScale, setVideoScale] = useState(1);
-const MIN_SCALE = 1;
-const MAX_SCALE = 3; // max zoom x3
-const SCALE_STEP = 0.25;
+  const MIN_SCALE = 1;
+  const MAX_SCALE = 3;
+  const SCALE_STEP = 0.25;
 
-  // Format time helper - mm:ss or hh:mm:ss
+  // slider layout width for continuous scrub mapping
+  const sliderWidthRef = useRef(1);
+
+  // robust duration
+  const effectiveDuration = useMemo(
+    () => (duration > 0 ? duration : seekableDur > 0 ? seekableDur : 0),
+    [duration, seekableDur]
+  );
+
   const formatTime = (t: number) => {
     if (!t || isNaN(t)) return '0:00';
-    const hours = Math.floor(t / 3600);
-    const min = Math.floor((t % 3600) / 60);
-    const sec = Math.floor(t % 60);
-    if (hours > 0) {
-      return `${hours}:${min < 10 ? '0' : ''}${min}:${sec < 10 ? '0' : ''}${sec}`;
-    }
-    return `${min}:${sec < 10 ? '0' : ''}${sec}`;
+    const h = Math.floor(t / 3600);
+    const m = Math.floor((t % 3600) / 60);
+    const s = Math.floor(t % 60);
+    return h > 0
+      ? `${h}:${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`
+      : `${m}:${s < 10 ? '0' : ''}${s}`;
   };
 
-  // Show controls and schedule hide
   const showAndScheduleHide = useCallback(() => {
     setShowControls(true);
     fadeAnim.setValue(1);
@@ -86,25 +97,19 @@ const SCALE_STEP = 0.25;
     }, CONTROLS_HIDE_TIMEOUT);
   }, [fadeAnim]);
 
-  // Prevent accidental back navigation when a control is focused
   useEffect(() => {
     const unsubscribe = navigationRef.addListener('beforeRemove', (e) => {
-      if (showControls && focusedControl !== '') {
-        e.preventDefault();
-      }
+      if (showControls && focusedControl !== '') e.preventDefault();
     });
     return unsubscribe;
   }, [showControls, focusedControl]);
 
-  // TV event handler for remote
+  // Continuous sliding TV remote handler - keeps sliding as long as you hold
   useTVEventHandler((evt) => {
-    if (!evt || !evt.eventType) return;
+    if (!evt?.eventType) return;
 
-    // Always show controls and reset hide timer
-    if (!showControls) {
-      showAndScheduleHide();
-    }
-
+    // Show controls on any interaction
+    if (!showControls) showAndScheduleHide();
     if (hideTimeout.current) clearTimeout(hideTimeout.current);
     hideTimeout.current = setTimeout(() => {
       Animated.timing(fadeAnim, {
@@ -114,69 +119,112 @@ const SCALE_STEP = 0.25;
       }).start(() => setShowControls(false));
     }, CONTROLS_HIDE_TIMEOUT);
 
-    // If a control is focused, block select/playPause here so Touchable handles it
+    // Don't handle select/playPause if a control is focused
     if (focusedControl && (evt.eventType === 'select' || evt.eventType === 'playPause')) {
       return true;
     }
 
-    // Slider controls when focused
+    // Handle slider-focused interactions - CONTINUOUS sliding
     if (sliderFocused) {
-      if (evt.eventType === 'right' || evt.eventType === 'fastForward' || evt.eventType === 'seekForward' || evt.eventType === 'seekRight' || evt.eventType === 'swipeRight') {
-        setSliderValue((v) => Math.min(duration, v + SEEK_STEP));
-        setSeeking(true);
-      } else if (evt.eventType === 'left' || evt.eventType === 'rewind' || evt.eventType === 'seekBackward' || evt.eventType === 'seekLeft' || evt.eventType === 'swipeLeft') {
-        setSliderValue((v) => Math.max(0, v - SEEK_STEP));
-        setSeeking(true);
-      } else if (evt.eventType === 'select') {
-        videoRef.current?.seek(sliderValue);
-        setCurrentTime(sliderValue);
-        setSeeking(false);
-        setShowBigCenterIcon(true);
-        setCenterIconType('pause');
-        setTimeout(() => setShowBigCenterIcon(false), 900);
+      const currentSeekTime = sliderValue || currentTime;
+      
+      // Swipe gestures for larger jumps (like YouTube)
+      if (evt.eventType === 'swipeRight' || evt.eventType === 'fastForward' || 
+          evt.eventType === 'seekRight' || evt.eventType === 'seekForward') {
+        const jumpTime = Math.min(effectiveDuration, currentSeekTime + SWIPE_JUMP);
+        instantSeek(jumpTime);
+        return true;
       }
-      return;
+      
+      if (evt.eventType === 'swipeLeft' || evt.eventType === 'rewind' || 
+          evt.eventType === 'seekLeft' || evt.eventType === 'seekBackward') {
+        const jumpTime = Math.max(0, currentSeekTime - SWIPE_JUMP);
+        instantSeek(jumpTime);
+        return true;
+      }
+
+      // D-pad arrows for CONTINUOUS sliding - keeps sliding as long as you hold
+      if (evt.eventType === 'right') {
+        // Small increment for continuous sliding
+        const increment = Math.max(0.5, effectiveDuration / 200); // 0.5% of duration
+        const newTime = Math.min(effectiveDuration, currentSeekTime + increment);
+        instantSeek(newTime);
+        return true;
+      }
+      
+      if (evt.eventType === 'left') {
+        // Small decrement for continuous sliding
+        const decrement = Math.max(0.5, effectiveDuration / 200); // 0.5% of duration
+        const newTime = Math.max(0, currentSeekTime - decrement);
+        instantSeek(newTime);
+        return true;
+      }
+
+      // Commit seek on select
+      if (evt.eventType === 'select') {
+        commitSeek(sliderValue);
+        return true;
+      }
+      
+      return true; // Consume all events when slider is focused
     }
 
-      // Zoom keys when no control or slider focused
+    // Zoom controls when nothing is focused
     if (!focusedControl && !sliderFocused) {
       if (evt.eventType === 'up') {
-        setVideoScale((scale) => Math.min(MAX_SCALE, scale + SCALE_STEP));
+        setVideoScale((s) => Math.min(MAX_SCALE, s + SCALE_STEP));
         showAndScheduleHide();
         return true;
       }
-
       if (evt.eventType === 'down') {
-        setVideoScale((scale) => Math.max(MIN_SCALE, scale - SCALE_STEP));
+        setVideoScale((s) => Math.max(MIN_SCALE, s - SCALE_STEP));
         showAndScheduleHide();
         return true;
       }
     }
-    
 
-    // If no control focused: Left/Right seek, select/playPause toggle
-    if (!focusedControl) {
+    // Global navigation when no control is focused
+    if (!focusedControl && !sliderFocused) {
       if (evt.eventType === 'right') {
-        const newTime = Math.min(duration, currentTime + SEEK_STEP);
-        videoRef.current?.seek(newTime);
-        setCurrentTime(newTime);
-        setShowBigCenterIcon(true);
-        setCenterIconType('pause');
-        setTimeout(() => setShowBigCenterIcon(false), 700);
-      } else if (evt.eventType === 'left') {
+        const newTime = Math.min(effectiveDuration, currentTime + SEEK_STEP);
+        commitSeek(newTime);
+        return true;
+      } 
+      if (evt.eventType === 'left') {
         const newTime = Math.max(0, currentTime - SEEK_STEP);
-        videoRef.current?.seek(newTime);
-        setCurrentTime(newTime);
-        setShowBigCenterIcon(true);
-        setCenterIconType('pause');
-        setTimeout(() => setShowBigCenterIcon(false), 700);
-      } else if (evt.eventType === 'select' || evt.eventType === 'playPause') {
+        commitSeek(newTime);
+        return true;
+      } 
+      if (evt.eventType === 'select' || evt.eventType === 'playPause') {
         handlePlayPause();
+        return true;
       }
     }
   });
 
-  // Sync sliderValue with currentTime when slider not focused
+  // INSTANT seek functions - no throttling, no delays
+  const instantSeek = useCallback((t: number) => {
+    setSliderValue(t);
+    setSeeking(true);
+    setCurrentTime(t);
+    videoRef.current?.seek(t);
+  }, []);
+
+  const commitSeek = useCallback((t: number) => {
+    setSliderValue(t);
+    setSeeking(false);
+    setCurrentTime(t);
+    videoRef.current?.seek(t);
+    
+    // Show feedback
+    setShowBigCenterIcon(true);
+    setCenterIconType('pause');
+    setTimeout(() => setShowBigCenterIcon(false), 700);
+    
+    showAndScheduleHide();
+  }, [showAndScheduleHide]);
+
+  // Keep UI synced when not focused
   useEffect(() => {
     if (!sliderFocused) {
       setSliderValue(currentTime);
@@ -184,22 +232,12 @@ const SCALE_STEP = 0.25;
     }
   }, [currentTime, sliderFocused]);
 
-  // Real-time seek while user is seeking with slider focused
-  useEffect(() => {
-    if (sliderFocused && seeking) {
-      videoRef.current?.seek(sliderValue);
-      setCurrentTime(sliderValue);
-    }
-  }, [sliderValue, seeking, sliderFocused]);
-
-  // Clear timers on component unmount
   useEffect(() => {
     return () => {
       if (hideTimeout.current) clearTimeout(hideTimeout.current);
     };
   }, []);
 
-  // Play/Pause toggle handler with center overlay icon
   const handlePlayPause = useCallback(() => {
     setPaused((prev) => {
       const nowPaused = !prev;
@@ -211,9 +249,44 @@ const SCALE_STEP = 0.25;
     showAndScheduleHide();
   }, [showAndScheduleHide]);
 
-  const progress = duration > 0 ? (sliderFocused ? sliderValue : currentTime) / duration : 0;
+  // progress ratio (avoid NaN/0‑div)
+  const progress = useMemo(() => {
+    const denom = effectiveDuration > 0 ? effectiveDuration : Math.max(sliderValue, currentTime, 1);
+    const num = sliderFocused ? sliderValue : currentTime;
+    return Math.max(0, Math.min(1, num / denom));
+  }, [effectiveDuration, sliderFocused, sliderValue, currentTime]);
 
-  // Handle press anywhere outside controls: toggle play/pause
+  // map touch X -> time - CONTINUOUS smooth mapping
+  const positionFromX = (x: number) => {
+    const w = Math.max(1, sliderWidthRef.current);
+    const ratio = Math.max(0, Math.min(1, x / w));
+    return (effectiveDuration || 0) * ratio;
+  };
+
+  // INSTANT responder handlers for continuous scrubbing
+  const onSliderLayout = (e: LayoutChangeEvent) => {
+    sliderWidthRef.current = e.nativeEvent.layout.width;
+  };
+
+  const onSliderGrant = (e: GestureResponderEvent) => {
+    if (!sliderFocused) setSliderFocused(true);
+    const x = e.nativeEvent.locationX;
+    const t = positionFromX(x);
+    instantSeek(t);
+  };
+
+  const onSliderMove = (e: GestureResponderEvent) => {
+    const x = e.nativeEvent.locationX;
+    const t = positionFromX(x);
+    instantSeek(t);
+  };
+
+  const onSliderRelease = (e: GestureResponderEvent) => {
+    const x = e.nativeEvent.locationX;
+    const t = positionFromX(x);
+    commitSeek(t);
+  };
+
   const handleAnyAreaPress = () => {
     if (!focusedControl && !sliderFocused) {
       handlePlayPause();
@@ -228,22 +301,24 @@ const SCALE_STEP = 0.25;
         <Video
           ref={videoRef}
           source={{ uri: videoUri }}
-          // style={StyleSheet.absoluteFill}
-style={[
-            StyleSheet.absoluteFill,
-            { transform: [{ scale: videoScale }] },  // <-- here zoom applied
+          style={[
+            RNStyleSheet.absoluteFill,
+            { transform: [{ scale: videoScale }] },
           ]}
           paused={paused}
           muted={muted}
           resizeMode="contain"
-          onLoad={(meta) => setDuration(meta.duration)}
-          onProgress={({ currentTime: progTime }) => {
-            if (!seeking) setCurrentTime(progTime);
+          onLoad={(meta) => setDuration(meta.duration || 0)}
+          onProgress={({ currentTime: progTime, seekableDuration }) => {
+            // when scrubbing we drive currentTime locally; otherwise follow player
+            if (!seeking && !sliderFocused) setCurrentTime(progTime);
+            if (!duration && seekableDuration && seekableDuration > 0) {
+              setSeekableDur(seekableDuration);
+            }
           }}
           onEnd={() => setPaused(true)}
         />
 
-        {/* Big center play/pause icon */}
         {showBigCenterIcon && (
           <View style={styles.centerIconWrap}>
             <View style={styles.centerIconBg}>
@@ -256,9 +331,8 @@ style={[
           </View>
         )}
 
-        {/* Controls overlay */}
         {showControls && (
-          <Animated.View style={[styles.overlay, { opacity: fadeAnim }]}>
+          <Animated.View pointerEvents="box-none" style={[styles.overlay, { opacity: fadeAnim }]}>
             <View style={styles.topGradient} />
             <View style={styles.bottomGradient} />
             <View style={styles.titleContainer}>
@@ -266,44 +340,49 @@ style={[
             </View>
 
             <View style={styles.bottomControls}>
-              {/* Progress bar */}
+              {/* Progress bar with CONTINUOUS sliding */}
               <View style={styles.progressContainer}>
                 <TouchableOpacity
                   ref={sliderRef}
                   focusable
+                  onLayout={onSliderLayout}
                   onFocus={() => setSliderFocused(true)}
                   onBlur={() => {
                     setSliderFocused(false);
                     setSeeking(false);
                   }}
+                  // Responder setup for continuous sliding
+                  onStartShouldSetResponder={() => true}
+                  onMoveShouldSetResponder={() => true}
+                  onResponderGrant={onSliderGrant}
+                  onResponderMove={onSliderMove}
+                  onResponderRelease={onSliderRelease}
+                  onResponderTerminationRequest={() => false}
                   onPress={() => {
-                    if (sliderFocused) {
-                      videoRef.current?.seek(sliderValue);
-                      setCurrentTime(sliderValue);
-                      setSeeking(false);
-                      showAndScheduleHide();
-                    }
+                    if (sliderFocused) commitSeek(sliderValue);
                   }}
                   style={[styles.progressTouchable, sliderFocused && styles.progressFocused]}
                   activeOpacity={1}
-                    accessible
-                    accessibilityRole="adjustable"
-                    accessibilityHint="Swipe or press right/left to seek"
-                    accessibilityActions={[
-                      { name: 'increment' },
-                      { name: 'decrement' },
-                    ]}
-               onAccessibilityAction={(e) => {
-                const name = e.nativeEvent.actionName;
-                const effDuration = duration > 0 ? duration : Math.max(currentTime + 1, sliderValue + 1);
-                if (name === 'increment') {
-                  setSliderValue(v => Math.min(effDuration, v + SEEK_STEP));
-                  setSeeking(true);
-                } else if (name === 'decrement') {
-                  setSliderValue(v => Math.max(0, v - SEEK_STEP));
-                  setSeeking(true);
-                }
-              }}
+                  accessible
+                  accessibilityRole="adjustable"
+                  accessibilityHint="Slide continuously - keeps sliding as long as you hold"
+                  accessibilityActions={[{ name: 'increment' }, { name: 'decrement' }]}
+                  onAccessibilityAction={(e) => {
+                    const action = e.nativeEvent.actionName;
+                    const currentSeekTime = sliderValue || currentTime;
+                    
+                    if (action === 'increment') {
+                      // Small increment for continuous sliding
+                      const increment = Math.max(0.5, effectiveDuration / 200);
+                      const newTime = Math.min(effectiveDuration, currentSeekTime + increment);
+                      instantSeek(newTime);
+                    } else if (action === 'decrement') {
+                      // Small decrement for continuous sliding
+                      const decrement = Math.max(0.5, effectiveDuration / 200);
+                      const newTime = Math.max(0, currentSeekTime - decrement);
+                      instantSeek(newTime);
+                    }
+                  }}
                 >
                   <View style={styles.progressTrack}>
                     <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
@@ -337,12 +416,7 @@ style={[
                     focusable
                     onPress={() => {
                       const newTime = Math.max(0, currentTime - SEEK_STEP);
-                      videoRef.current?.seek(newTime);
-                      setCurrentTime(newTime);
-                      setShowBigCenterIcon(true);
-                      setCenterIconType('pause');
-                      setTimeout(() => setShowBigCenterIcon(false), 700);
-                      showAndScheduleHide();
+                      commitSeek(newTime);
                     }}
                     onFocus={() => setFocusedControl('rewind')}
                     onBlur={() => setFocusedControl('')}
@@ -356,13 +430,9 @@ style={[
                     ref={forwardRef}
                     focusable
                     onPress={() => {
-                      const newTime = Math.min(duration, currentTime + SEEK_STEP);
-                      videoRef.current?.seek(newTime);
-                      setCurrentTime(newTime);
-                      setShowBigCenterIcon(true);
-                      setCenterIconType('pause');
-                      setTimeout(() => setShowBigCenterIcon(false), 700);
-                      showAndScheduleHide();
+                      const cap = effectiveDuration || Number.MAX_SAFE_INTEGER;
+                      const newTime = Math.min(cap, currentTime + SEEK_STEP);
+                      commitSeek(newTime);
                     }}
                     onFocus={() => setFocusedControl('forward')}
                     onBlur={() => setFocusedControl('')}
@@ -373,7 +443,7 @@ style={[
                   </TouchableOpacity>
 
                   <Text style={styles.timeText}>
-                    {formatTime(sliderFocused ? sliderValue : currentTime)} / {formatTime(duration)}
+                    {formatTime(sliderFocused ? sliderValue : currentTime)} / {formatTime(effectiveDuration)}
                   </Text>
                 </View>
 
@@ -397,9 +467,7 @@ style={[
                   <TouchableOpacity
                     ref={fullscreenRef}
                     focusable
-                    onPress={() => {
-                      // Handle fullscreen toggle if needed
-                    }}
+                    onPress={() => {}}
                     onFocus={() => setFocusedControl('fullscreen')}
                     onBlur={() => setFocusedControl('')}
                     style={[styles.controlButton, focusedControl === 'fullscreen' && styles.focusedButton]}
@@ -418,151 +486,59 @@ style={[
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.black,
-  },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    justifyContent: 'space-between',
-  },
+  container: { flex: 1, backgroundColor: COLORS.black },
+  overlay: { ...StyleSheet.absoluteFillObject, justifyContent: 'space-between' },
   topGradient: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: scale(30),
+    position: 'absolute', top: 0, left: 0, right: 0, height: scale(30),
     backgroundColor: 'rgba(0,0,0,0.6)',
   },
   bottomGradient: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 200,
+    position: 'absolute', bottom: 0, left: 0, right: 0, height: 200,
     backgroundColor: 'rgba(0,0,0,0.8)',
   },
-  titleContainer: {
-    position: 'absolute',
-    top: 30,
-    left: SAFE_HORIZONTAL_PADDING,
-    right: SAFE_HORIZONTAL_PADDING,
-  },
+  titleContainer: { position: 'absolute', top: 30, left: SAFE_HORIZONTAL_PADDING, right: SAFE_HORIZONTAL_PADDING },
   titleText: {
-    color: COLORS.white,
-    fontSize: scale(10),
-    textAlign: 'center',
-    textShadowColor: 'rgba(0,0,0,0.9)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
+    color: COLORS.white, fontSize: scale(10), textAlign: 'center',
+    textShadowColor: 'rgba(0,0,0,0.9)', textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 4,
   },
-  bottomControls: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    paddingBottom: scale(10),
-    paddingHorizontal: SAFE_HORIZONTAL_PADDING,
-  },
-  progressContainer: {
-    marginBottom: scale(8),
-    paddingVertical: scale(5),
-  },
-  progressTouchable: {
-    height: scale(5),
-    justifyContent: 'center',
-  },
+  bottomControls: { position: 'absolute', bottom: 0, left: 0, right: 0, paddingBottom: scale(10), paddingHorizontal: SAFE_HORIZONTAL_PADDING },
+  progressContainer: { marginBottom: scale(8), paddingVertical: scale(5) },
+  // Focus target large; visual track thin
+  progressTouchable: { height: 50, justifyContent: 'center' },
   progressFocused: {},
   progressTrack: {
     height: scale(5),
     backgroundColor: 'rgba(255,255,255,0.25)',
     borderRadius: scale(5),
     position: 'relative',
+    overflow: 'hidden',
   },
-  progressFill: {
-    height: scale(5),
-    backgroundColor: COLORS.primary,
-    borderRadius: scale(5),
-  },
+  progressFill: { height: scale(5), backgroundColor: COLORS.primary, borderRadius: scale(5) },
   progressThumb: {
-    position: 'absolute',
-    top: -7,
-    width: scale(8),
-    height: scale(8),
-    backgroundColor: COLORS.primary,
-    borderRadius: scale(25),
-    marginLeft: -10,
-    borderWidth: 3,
-    borderColor: COLORS.white,
-    shadowColor: COLORS.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
+    position: 'absolute', top: -7, width: scale(8), height: scale(8),
+    backgroundColor: COLORS.primary, borderRadius: scale(25), marginLeft: -10,
+    borderWidth: 3, borderColor: COLORS.white,
+    shadowColor: COLORS.black, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 4,
   },
   progressThumbFocused: {
-    // transform: [{ scale: 1.2 }],
-    backgroundColor: COLORS.white,
-    borderColor: COLORS.primary,
-    shadowOpacity: 0.6,
-    shadowRadius: 8,
-    borderRadius:scale(25),
-    width: scale(8),
-    height: scale(8),
-    
+    backgroundColor: COLORS.white, borderColor: COLORS.primary, shadowOpacity: 0.6, shadowRadius: 8,
+    borderRadius: scale(25), width: scale(8), height: scale(8),
   },
-  controlsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  leftControls: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  rightControls: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  playButton: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 20,
-  },
-  controlButton: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginHorizontal: 10,
-  },
+  controlsContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  leftControls: { flexDirection: 'row', alignItems: 'center' },
+  rightControls: { flexDirection: 'row', alignItems: 'center' },
+  playButton: { justifyContent: 'center', alignItems: 'center', marginRight: 20 },
+  controlButton: { justifyContent: 'center', alignItems: 'center', marginHorizontal: 10 },
   focusedButton: {
-    backgroundColor: 'rgba(255,255,255,0.25)',
-    transform: [{ scale: 1.15 }],
-    shadowColor: COLORS.white,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.5,
-    shadowRadius: 10,
+    backgroundColor: 'rgba(255,255,255,0.25)', transform: [{ scale: 1.15 }],
+    shadowColor: COLORS.white, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.5, shadowRadius: 10,
   },
   timeText: {
-    color: COLORS.white,
-    fontSize: scale(12),
-    marginLeft: scale(20),
-    textShadowColor: 'rgba(0,0,0,0.8)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
+    color: COLORS.white, fontSize: scale(12), marginLeft: scale(20),
+    textShadowColor: 'rgba(0,0,0,0.8)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3,
   },
-  centerIconWrap: {
-    ...StyleSheet.absoluteFillObject,
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 30,
-  },
-  centerIconBg: {
-    backgroundColor: 'rgba(0,0,0,0.42)',
-    borderRadius: scale(50),
-    width: scale(50),
-    height: scale(50),
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+  centerIconWrap: { ...StyleSheet.absoluteFillObject, justifyContent: 'center', alignItems: 'center', zIndex: 30 },
+  centerIconBg: { backgroundColor: 'rgba(0,0,0,0.42)', borderRadius: scale(50), width: scale(50), height: scale(50), justifyContent: 'center', alignItems: 'center' },
 });
 
 export default VideoPlayerScreen;
