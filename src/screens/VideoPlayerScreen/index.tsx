@@ -145,16 +145,16 @@ const VideoPlayerScreen = ({ route }: VideoPlayerScreenProps) => {
 
       // D-pad arrows for CONTINUOUS sliding - keeps sliding as long as you hold
       if (evt.eventType === 'right') {
-        // Small increment for continuous sliding
-        const increment = Math.max(0.5, effectiveDuration / 200); // 0.5% of duration
+        // Ultra small increment for super smooth sliding
+        const increment = Math.max(0.1, effectiveDuration / 10000); // 0.01% of duration
         const newTime = Math.min(effectiveDuration, currentSeekTime + increment);
         instantSeek(newTime);
         return true;
       }
       
       if (evt.eventType === 'left') {
-        // Small decrement for continuous sliding
-        const decrement = Math.max(0.5, effectiveDuration / 200); // 0.5% of duration
+        // Ultra small decrement for super smooth sliding
+        const decrement = Math.max(0.1, effectiveDuration / 10000); // 0.01% of duration
         const newTime = Math.max(0, currentSeekTime - decrement);
         instantSeek(newTime);
         return true;
@@ -202,19 +202,25 @@ const VideoPlayerScreen = ({ route }: VideoPlayerScreenProps) => {
     }
   });
 
-  // INSTANT seek functions - no throttling, no delays
+  // INSTANT seek functions - immediate smooth playback
   const instantSeek = useCallback((t: number) => {
     setSliderValue(t);
     setSeeking(true);
     setCurrentTime(t);
-    videoRef.current?.seek(t);
+    // Immediate seek without any delays
+    videoRef.current?.seek(t, 0); // 0 tolerance for immediate seek
+    // Always keep video playing for smooth experience
+    setPaused(false);
   }, []);
 
   const commitSeek = useCallback((t: number) => {
     setSliderValue(t);
     setSeeking(false);
     setCurrentTime(t);
-    videoRef.current?.seek(t);
+    // Immediate seek without any delays
+    videoRef.current?.seek(t, 0); // 0 tolerance for immediate seek
+    // Always keep video playing for smooth experience
+    setPaused(false);
     
     // Show feedback
     setShowBigCenterIcon(true);
@@ -372,13 +378,13 @@ const VideoPlayerScreen = ({ route }: VideoPlayerScreenProps) => {
                     const currentSeekTime = sliderValue || currentTime;
                     
                     if (action === 'increment') {
-                      // Small increment for continuous sliding
-                      const increment = Math.max(0.5, effectiveDuration / 200);
+                      // Ultra small increment for super smooth sliding
+                      const increment = Math.max(0.1, effectiveDuration / 10000);
                       const newTime = Math.min(effectiveDuration, currentSeekTime + increment);
                       instantSeek(newTime);
                     } else if (action === 'decrement') {
-                      // Small decrement for continuous sliding
-                      const decrement = Math.max(0.5, effectiveDuration / 200);
+                      // Ultra small decrement for super smooth sliding
+                      const decrement = Math.max(0.1, effectiveDuration / 10000);
                       const newTime = Math.max(0, currentSeekTime - decrement);
                       instantSeek(newTime);
                     }
@@ -507,15 +513,15 @@ const styles = StyleSheet.create({
   progressTouchable: { height: 50, justifyContent: 'center' },
   progressFocused: {},
   progressTrack: {
-    height: scale(5),
+    height: scale(7),
     backgroundColor: 'rgba(255,255,255,0.25)',
     borderRadius: scale(5),
     position: 'relative',
     overflow: 'hidden',
   },
-  progressFill: { height: scale(5), backgroundColor: COLORS.primary, borderRadius: scale(5) },
+  progressFill: { height: scale(7), backgroundColor: COLORS.primary, borderRadius: scale(5) },
   progressThumb: {
-    position: 'absolute', top: -7, width: scale(8), height: scale(8),
+    position: 'absolute', top: -2, width: scale(12), height: scale(1),
     backgroundColor: COLORS.primary, borderRadius: scale(25), marginLeft: -10,
     borderWidth: 3, borderColor: COLORS.white,
     shadowColor: COLORS.black, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 4,
