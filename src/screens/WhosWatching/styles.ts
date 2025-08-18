@@ -150,4 +150,36 @@ focusedAddProfileBox: {
     marginBottom: verticalScale(60),
     width: '100%',
   },
+  focusedEditButton: {
+    borderColor: COLORS.primary,
+    borderWidth: scale(2),
+    backgroundColor: 'rgba(255,255,255,0.1)',
+  },
+  focusIndicator: {
+    position: 'absolute',
+    top: -5,
+    left: -5,
+    borderColor: COLORS.primary,
+    borderWidth: scale(3),
+    borderRadius: scale(8),
+    backgroundColor: 'transparent',
+  },
+  focusedProfileName: {
+    color: COLORS.primary,
+    fontWeight: 'bold',
+  },
+  debugPanel: {
+    position: 'absolute',
+    bottom: 20,
+    left: 20,
+    right: 20,
+    backgroundColor: 'rgba(0,0,0,0.8)',
+    padding: scale(10),
+    borderRadius: scale(5),
+  },
+  debugText: {
+    color: COLORS.white,
+    fontSize: scale(12),
+    fontFamily: FONTS.montRegular,
+  },
 });

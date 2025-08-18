@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   ScrollView,
   ActivityIndicator,
   BackHandler,
+  Platform,
 } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -49,17 +50,15 @@ const WhosWatchingTVOS: React.FC = () => {
   const [profilesData, setProfilesData] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [focusedIndex, setFocusedIndex] = useState(0);
   const [modalVisible, setModalVisible] = useState(false);
   const [modalMessage, setModalMessage] = useState('');
   const [modalType, setModalType] = useState<'success' | 'error'>('error');
-  const [isAddFocused, setIsAddFocused] = useState(false);
+  // Focus-only state for showing borders
+  const [focusedIndex, setFocusedIndex] = useState<number>(0);
+  const [isAddFocused, setIsAddFocused] = useState<boolean>(false);
+
   const dataFetchedRef = useRef(false);
   const PROFILE_IMAGE_SIZE = scale(55);
-
-  // Refs for TV Focus
-  const profileRefs = useRef<{ [key: number]: any }>({});
-  const addProfileRef = useRef<any>(null);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -67,24 +66,14 @@ const WhosWatchingTVOS: React.FC = () => {
     }, [])
   );
 
-   // Auto-focus on profile or Add profile on screen load
-  // React.useEffect(() => {
-  //   if (!loading) {
-  //     if (profilesData?.length > 0) {
-  //       setTimeout(() => {
-  //         profileRefs?.current[0]?.focus && profileRefs?.current[0]?.focus();
-  //       }, 100); // slight delay for TV reliability
-  //       setFocusedIndex(0);
-  //       setIsAddFocused(false);
-  //     } else {
-  //       setTimeout(() => {
-  //         addProfileRef.current?.focus && addProfileRef.current.focus();
-  //       }, 100);
-  //       setIsAddFocused(true);
-  //       setFocusedIndex(-1);
-  //     }
-  //   }
-  // }, [loading, profilesData.length]);
+  const handleBackPress = () => {
+    if (isEditMode) {
+      toggleEditMode();
+      return true;
+    }
+    BackHandler.exitApp();
+    return true;
+  };
 
   const fetchProfiles = async () => {
     if (dataFetchedRef.current) return;
@@ -123,18 +112,22 @@ const WhosWatchingTVOS: React.FC = () => {
   const toggleEditMode = () => setIsEditMode(prev => !prev);
 
   const renderProfile = (profile: Profile, index: number) => {
-    const isFocused = focusedIndex === index;
+    const isFocused = focusedIndex === index && !isAddFocused;
+
     return (
       <View key={profile.id} style={styles.profileWrapper}>
         <TouchableOpacity
-          ref={el => {
-            if (el) profileRefs.current[index] = el;
-          }}
           style={[styles.profileCard, isFocused && styles.focusedProfileCard]}
-          onFocus={() => setFocusedIndex(index)}
+          onFocus={() => {
+            setFocusedIndex(index);
+            setIsAddFocused(false);
+          }}
           onPress={() => handleProfileSelect(profile.id)}
-          hasTVPreferredFocus={index === 0 && !isAddFocused}
+          hasTVPreferredFocus={index === 0}
           focusable={true}
+          accessible={true}
+          accessibilityRole="button"
+          accessibilityLabel={`Profile ${profile.name}`}
         >
           <View>
             <Image
@@ -157,7 +150,9 @@ const WhosWatchingTVOS: React.FC = () => {
             )}
           </View>
         </TouchableOpacity>
-        <Text style={styles.profileName}>{profile.name}</Text>
+        <Text style={styles.profileName}>
+          {profile.name}
+        </Text>
       </View>
     );
   };
@@ -165,35 +160,33 @@ const WhosWatchingTVOS: React.FC = () => {
   const renderAddProfile = () => (
     <View style={styles.profileWrapper}>
       <TouchableOpacity
-        ref={addProfileRef}
-        style={[
-          styles.addProfileBox,
-          isAddFocused && styles.focusedAddProfileBox,
-        ]}
+        style={[styles.addProfileBox, isAddFocused && styles.focusedAddProfileBox]}
         onFocus={() => {
           setIsAddFocused(true);
-          setFocusedIndex(-1); // Reset profile focus when Add button is focused
+          setFocusedIndex(-1);
         }}
         onBlur={() => setIsAddFocused(false)}
         onPress={() => navigation.navigate('AddProfile')}
         hasTVPreferredFocus={profilesData.length === 0}
         focusable={true}
+        accessible={true}
+        accessibilityRole="button"
+        accessibilityLabel="Add new profile"
       >
         <View>
           <AIcon name="plus" size={28} color={COLORS.white} />
         </View>
       </TouchableOpacity>
-      <Text style={styles.profileName}>Add</Text>
+      <Text style={styles.profileName}>
+        Add
+      </Text>
     </View>
   );
 
   return (
     <View style={styles.centerWrapper}>
       <BackHandlerComponent
-        onBackPress={() => {
-          BackHandler.exitApp();
-          return true;
-        }}
+        onBackPress={handleBackPress}
       />
       <Header logoSource={IMAGES.logo} editIconPress={toggleEditMode} />
       <View style={styles.titleContainer}>
@@ -209,6 +202,7 @@ const WhosWatchingTVOS: React.FC = () => {
             contentContainerStyle={styles.profilesScroll}
             horizontal
             showsHorizontalScrollIndicator={false}
+            focusable={false}
           >
             {profilesData.map(renderProfile)}
             {profilesData.length < MAX_PROFILES && renderAddProfile()}
@@ -221,6 +215,7 @@ const WhosWatchingTVOS: React.FC = () => {
                 style={styles.editProfilesButton}
                 icon={<MIcon name="pencil-outline" size={22} color={COLORS.white} />}
                 focusable={true}
+                accessible={true}
               />
             ) : (
               <CButton
@@ -229,6 +224,7 @@ const WhosWatchingTVOS: React.FC = () => {
                 style={styles.cancelEditButton}
                 outline
                 focusable={true}
+                accessible={true}
               />
             )}
           </View>

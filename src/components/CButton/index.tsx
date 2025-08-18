@@ -32,6 +32,8 @@ interface CButtonProps {
   focusable?: boolean;
   accessible?: boolean;
   size?: 'small' | 'medium' | 'large';
+  onFocus?: () => void;
+  onBlur?: () => void;
 }
 
 const CButton: React.FC<CButtonProps> = ({
@@ -48,11 +50,15 @@ const CButton: React.FC<CButtonProps> = ({
   focusable = true,
   accessible = true,
   size = 'medium',
+  onFocus,
+  onBlur,
 }) => {
   return (
     <View style={[styles.buttonWrapper, isTV && styles.tvButtonWrapper]}>
       <TouchableHighlight
         onPress={onPress}
+        onFocus={onFocus}
+        onBlur={onBlur}
         hasTVPreferredFocus={hasTVPreferredFocus}
         focusable={focusable}
         accessible={accessible}
