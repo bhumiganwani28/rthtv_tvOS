@@ -14,6 +14,7 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import FIcon from 'react-native-vector-icons/FontAwesome6';
+import KeyEvent from 'react-native-keyevent';
 import styles from './styles';
 import apiHelper from '../../config/apiHelper';
 import {
@@ -74,6 +75,10 @@ const LatestSeason: React.FC = () => {
   const [rowFocus, setRowFocus] = useState<'tabs' | 'content'>('tabs');
   const [tabFocusIndex, setTabFocusIndex] = useState<number>(3); // Start with featured tab
 
+  // 🔧 Focus Management
+  const lastKeyPressTime = useRef<number>(0);
+  const keyPressDebounceTime = 200;
+
   const windowWidth = Dimensions.get('window').width;
   const totalSpacing = ITEM_HORIZONTAL_SPACING * (NUM_COLUMNS + 1);
   const cardWidth = (windowWidth - totalSpacing) / NUM_COLUMNS;
@@ -125,10 +130,17 @@ const LatestSeason: React.FC = () => {
       
       // 🎯 Reset focus to tabs when screen comes into focus
       if (Platform.isTV) {
+        console.log('LatestSeason screen focused - resetting navigation state');
         setRowFocus('tabs');
         setTabFocusIndex(3); // Focus on featured tab
         setFocusedTab('featured');
         setFocusedIndex(0);
+        lastKeyPressTime.current = 0;
+        
+        // Add a small delay to ensure proper focus
+        setTimeout(() => {
+          console.log('LatestSeason - Focus reset completed');
+        }, 100);
       }
     }, [])
   );
@@ -154,6 +166,14 @@ const LatestSeason: React.FC = () => {
 
   // 🎯 Smooth Tab Navigation
   const navigateTabs = useCallback((direction: 'left' | 'right') => {
+    const currentTime = Date.now();
+    if (currentTime - lastKeyPressTime.current < keyPressDebounceTime) {
+      return;
+    }
+    lastKeyPressTime.current = currentTime;
+    
+    console.log('Navigating tabs:', direction, 'Current index:', tabFocusIndex);
+    
     if (direction === 'left') {
       const newIndex = Math.max(0, tabFocusIndex - 1);
       setTabFocusIndex(newIndex);
@@ -190,7 +210,13 @@ const LatestSeason: React.FC = () => {
 
   // 🔁 Smooth TV Remote Navigation
   useTVEventHandler((evt) => {
-    if (!Platform.isTV || !evt) return;
+    if (!Platform.isTV || !evt || Platform.OS === 'android') return;
+
+    const currentTime = Date.now();
+    if (currentTime - lastKeyPressTime.current < keyPressDebounceTime) {
+      return;
+    }
+    lastKeyPressTime.current = currentTime;
 
     switch (evt.eventType) {
       case 'up':
@@ -225,6 +251,118 @@ const LatestSeason: React.FC = () => {
     }
   });
 
+  // Android TV Key Event Handler - Fixed for focus issues
+  useEffect(() => {
+    if (Platform.isTV && Platform.OS === 'android') {
+      console.log('LatestSeason - Setting up Android TV KeyEvent listener');
+      KeyEvent.onKeyDownListener((keyEvent: any) => {
+        console.log('LatestSeason - Android TV Key:', keyEvent.keyCode);
+        handleAndroidTVKey(keyEvent.keyCode);
+      });
+
+      return () => {
+        console.log('LatestSeason - Removing Android TV KeyEvent listener');
+        KeyEvent.removeKeyDownListener();
+      };
+    }
+  }, [rowFocus, focusedIndex, tabFocusIndex, focusedTab, latestVideosData]);
+
+  const handleAndroidTVKey = (keyCode: number) => {
+    const currentTime = Date.now();
+    if (currentTime - lastKeyPressTime.current < keyPressDebounceTime) {
+      return;
+    }
+    lastKeyPressTime.current = currentTime;
+    
+    console.log('LatestSeason - Android TV Key Pressed:', keyCode, 'Row Focus:', rowFocus, 'Focus Index:', focusedIndex);
+    
+    switch (keyCode) {
+      case 19: // KEYCODE_DPAD_UP
+        console.log('⬆️ LatestSeason - UP pressed');
+        if (rowFocus === 'content') {
+          // Calculate previous row in grid
+          const currentRow = Math.floor(focusedIndex / NUM_COLUMNS);
+          if (currentRow > 0) {
+            // Move up within content grid
+            const newIndex = Math.max(0, focusedIndex - NUM_COLUMNS);
+            setFocusedIndex(newIndex);
+            console.log('Moving up in grid from', focusedIndex, 'to', newIndex);
+          } else {
+            // Move to tabs
+            setRowFocus('tabs');
+            setTabFocusIndex(3); // Focus on featured tab
+            setFocusedTab('featured');
+            console.log('Moving from content to tabs');
+          }
+        }
+        break;
+      case 20: // KEYCODE_DPAD_DOWN
+        console.log('⬇️ LatestSeason - DOWN pressed');
+        if (rowFocus === 'tabs') {
+          setRowFocus('content');
+          setFocusedIndex(0);
+          console.log('Moving from tabs to content');
+        } else if (rowFocus === 'content') {
+          // Calculate next row in grid
+          const totalItems = latestVideosData?.length || 0;
+          const newIndex = Math.min(totalItems - 1, focusedIndex + NUM_COLUMNS);
+          if (newIndex !== focusedIndex && newIndex < totalItems) {
+            setFocusedIndex(newIndex);
+            console.log('Moving down in grid from', focusedIndex, 'to', newIndex);
+          }
+        }
+        break;
+      case 21: // KEYCODE_DPAD_LEFT
+        console.log('⬅️ LatestSeason - LEFT pressed');
+        if (rowFocus === 'tabs') {
+          navigateTabs('left');
+        } else if (rowFocus === 'content') {
+          // Navigate left in content grid
+          const newIndex = Math.max(0, focusedIndex - 1);
+          setFocusedIndex(newIndex);
+          console.log('Moving left in grid from', focusedIndex, 'to', newIndex);
+        }
+        break;
+      case 22: // KEYCODE_DPAD_RIGHT
+        console.log('➡️ LatestSeason - RIGHT pressed');
+        if (rowFocus === 'tabs') {
+          navigateTabs('right');
+        } else if (rowFocus === 'content') {
+          // Navigate right in content grid
+          const totalItems = latestVideosData?.length || 0;
+          const newIndex = Math.min(totalItems - 1, focusedIndex + 1);
+          setFocusedIndex(newIndex);
+          console.log('Moving right in grid from', focusedIndex, 'to', newIndex);
+        }
+        break;
+      case 23: // KEYCODE_DPAD_CENTER or KEYCODE_ENTER
+        console.log('✅ LatestSeason - SELECT pressed');
+        if (rowFocus === 'tabs') {
+          handleTabPress(focusedTab);
+        } else if (rowFocus === 'content' && latestVideosData && latestVideosData[focusedIndex]) {
+          handleSeasonPress(latestVideosData[focusedIndex]);
+        }
+        break;
+      case 4: // KEYCODE_BACK
+        console.log('🔙 LatestSeason - BACK pressed');
+        navigation.goBack();
+        break;
+      default:
+        console.log('LatestSeason - Unknown Android TV key:', keyCode);
+        break;
+    }
+  };
+
+  // Handle data changes and maintain focus
+  useEffect(() => {
+    if (latestVideosData && latestVideosData.length > 0 && rowFocus === 'content') {
+      // Ensure focusedIndex is within bounds
+      if (focusedIndex >= latestVideosData.length) {
+        setFocusedIndex(0);
+      }
+    }
+  }, [latestVideosData, focusedIndex, rowFocus]);
+
   const renderItem = ({ item, index }: { item: any; index: number }) => {
     const isFocused = index === focusedIndex && rowFocus === 'content';
 
@@ -233,6 +371,13 @@ const LatestSeason: React.FC = () => {
         onPress={() => handleSeasonPress(item)}
         onFocus={() => {
           if (Platform.isTV) {
+            const currentTime = Date.now();
+            if (currentTime - lastKeyPressTime.current < keyPressDebounceTime) {
+              return;
+            }
+            lastKeyPressTime.current = currentTime;
+            
+            console.log('Season focused:', index, item?.name);
             setFocusedIndex(index);
             setRowFocus('content');
           }

@@ -14,6 +14,17 @@ LogBox.ignoreLogs([
   'ColorPropType will be removed',
 ]);
 
+// Disable debugging overlays in production
+if (__DEV__) {
+  // Only show debugging in development
+  console.log('Development mode - debugging enabled');
+} else {
+  // Disable all debugging in production
+  console.log = () => {};
+  console.warn = () => {};
+  console.error = () => {};
+}
+
 export const navigationRef = createNavigationContainerRef();
 
 // Custom theme for navigation
