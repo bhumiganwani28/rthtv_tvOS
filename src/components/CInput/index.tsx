@@ -16,6 +16,7 @@ interface CInputProps {
   icon?: string;
   placeholder: string;
   secureTextEntry?: boolean;
+  value: string;
   maxLength?: number;
   onChangeText: (text: string) => void;
   togglePassword?: () => void;
@@ -45,6 +46,7 @@ const CInput: React.FC<CInputProps> = React.memo(({
   icon,
   placeholder,
   secureTextEntry,
+  value,
   maxLength,
   onChangeText,
   togglePassword,
@@ -184,7 +186,7 @@ const CInput: React.FC<CInputProps> = React.memo(({
       }, 100);
       return () => clearTimeout(timer);
     }
-  }, []); // Re-run when value changes
+  }, [value]); // Re-run when value changes
 
   return (
     <View style={[styles.container, style]}>
@@ -198,6 +200,7 @@ const CInput: React.FC<CInputProps> = React.memo(({
             { color: COLORS.white } // Inline style with highest priority
           ]}
           placeholder={placeholder}
+          value={value}
           maxLength={maxLength}
           placeholderTextColor={isFocused ? COLORS.white : COLORS.greyText}
           onChangeText={handleTextChange}
@@ -263,6 +266,7 @@ const CInput: React.FC<CInputProps> = React.memo(({
   // Custom comparison function for React.memo
   // Only re-render if these critical props change
   return (
+    prevProps.value === nextProps.value &&
     prevProps.placeholder === nextProps.placeholder &&
     prevProps.secureTextEntry === nextProps.secureTextEntry &&
     prevProps.isPasswordVisible === nextProps.isPasswordVisible &&
@@ -324,9 +328,7 @@ const styles = StyleSheet.create({
     }),
   },
   eyeIcon: { padding: scale(4) },
-  eyeIconFocused: { backgroundColor: COLORS.white, 
-    // borderRadius: 12 
-  },
+  eyeIconFocused: { backgroundColor: COLORS.white, borderRadius: 12 },
   errorText: {
     color: COLORS.red,
     fontSize: scale(10),
