@@ -14,6 +14,7 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import FIcon from 'react-native-vector-icons/FontAwesome6';
+import KeyEvent from 'react-native-keyevent';
 import styles from './styles';
 import apiHelper from '../../config/apiHelper';
 import {
@@ -133,10 +134,16 @@ const Channels: React.FC = () => {
       
       // 🎯 Reset focus to tabs when screen comes into focus
       if (Platform.isTV) {
+        console.log('Channels screen focused - resetting navigation state');
         setRowFocus('tabs');
         setTabFocusIndex(1); // Focus on channels tab
         setFocusedTab('channels');
         setFocusedIndex(0);
+        
+        // Add a small delay to ensure proper focus
+        setTimeout(() => {
+          console.log('Channels - Focus reset completed');
+        }, 100);
       }
     }, [])
   );
@@ -158,14 +165,18 @@ const Channels: React.FC = () => {
 
   // 🎯 Smooth Tab Navigation
   const navigateTabs = useCallback((direction: 'left' | 'right') => {
+    console.log('Navigating tabs:', direction, 'Current index:', tabFocusIndex);
+    
     if (direction === 'left') {
       const newIndex = Math.max(0, tabFocusIndex - 1);
       setTabFocusIndex(newIndex);
       setFocusedTab(tabs[newIndex].id);
+      console.log('Tab navigation left - new index:', newIndex, 'new tab:', tabs[newIndex].id);
     } else {
       const newIndex = Math.min(tabs.length - 1, tabFocusIndex + 1);
       setTabFocusIndex(newIndex);
       setFocusedTab(tabs[newIndex].id);
+      console.log('Tab navigation right - new index:', newIndex, 'new tab:', tabs[newIndex].id);
     }
   }, [tabFocusIndex, tabs]);
 
@@ -177,12 +188,21 @@ const Channels: React.FC = () => {
         onPress={() => handleChannelPress(item)}
         onFocus={() => {
           if (Platform.isTV) {
+            console.log('Channel focused:', index, item?.name);
             setFocusedIndex(index);
             setRowFocus('content');
           }
         }}
+        onBlur={() => {
+          if (Platform.isTV) {
+            console.log('Channel unfocused:', index);
+          }
+        }}
         hasTVPreferredFocus={index === 0 && rowFocus === 'content'}
         focusable={Platform.isTV}
+        accessible={Platform.isTV}
+        accessibilityRole="button"
+        accessibilityLabel={`Channel ${item?.name || 'Unknown'}`}
         style={{
           width: cardWidth,
           height: cardHeight,
@@ -253,40 +273,177 @@ const Channels: React.FC = () => {
 
   // 🔁 Smooth TV Remote Navigation
   useTVEventHandler((evt) => {
-    if (!Platform.isTV || !evt) return;
+    if (!Platform.isTV || !evt || Platform.OS === 'android') return;
 
     switch (evt.eventType) {
       case 'up':
         if (rowFocus === 'content') {
-          setRowFocus('tabs');
-          setTabFocusIndex(1); // Focus on channels tab
+          // Calculate previous row in grid
+          const currentRow = Math.floor(focusedIndex / NUM_COLUMNS);
+          if (currentRow > 0) {
+            // Move up within content grid
+            const newIndex = Math.max(0, focusedIndex - NUM_COLUMNS);
+            setFocusedIndex(newIndex);
+          } else {
+            // Move to tabs
+            setRowFocus('tabs');
+            setTabFocusIndex(1); // Focus on channels tab
+          }
         }
         break;
       case 'down':
         if (rowFocus === 'tabs') {
           setRowFocus('content');
           setFocusedIndex(0);
+        } else if (rowFocus === 'content') {
+          // Calculate next row in grid
+          const totalItems = channelsData?.length || 0;
+          const newIndex = Math.min(totalItems - 1, focusedIndex + NUM_COLUMNS);
+          if (newIndex !== focusedIndex && newIndex < totalItems) {
+            setFocusedIndex(newIndex);
+          }
         }
         break;
       case 'left':
         if (rowFocus === 'tabs') {
           navigateTabs('left');
+        } else if (rowFocus === 'content') {
+          const newIndex = Math.max(0, focusedIndex - 1);
+          setFocusedIndex(newIndex);
         }
         break;
       case 'right':
         if (rowFocus === 'tabs') {
           navigateTabs('right');
+        } else if (rowFocus === 'content') {
+          const totalItems = channelsData?.length || 0;
+          const newIndex = Math.min(totalItems - 1, focusedIndex + 1);
+          setFocusedIndex(newIndex);
         }
         break;
       case 'select':
         if (rowFocus === 'tabs') {
           handleTabPress(focusedTab);
-        } else if (rowFocus === 'content' && channelsData[focusedIndex]) {
+        } else if (rowFocus === 'content' && channelsData && channelsData[focusedIndex]) {
           handleChannelPress(channelsData[focusedIndex]);
         }
         break;
     }
   });
+
+  // Android TV Key Event Handler - Same pattern as Home screen
+  useEffect(() => {
+    if (Platform.isTV && Platform.OS === 'android') {
+      KeyEvent.onKeyDownListener((keyEvent: any) => {
+        console.log('Channels - Android TV Key:', keyEvent.keyCode);
+        handleAndroidTVKey(keyEvent.keyCode);
+      });
+
+      return () => {
+        KeyEvent.removeKeyDownListener();
+      };
+    }
+  }, [rowFocus, focusedIndex, tabFocusIndex, focusedTab, channelsData]);
+
+  const handleAndroidTVKey = (keyCode: number) => {
+    console.log('Channels - Android TV Key Pressed:', keyCode, 'Row Focus:', rowFocus, 'Focus Index:', focusedIndex);
+    
+    // Add small delay to prevent rapid key presses
+    const currentTime = Date.now();
+    if (currentTime - (handleAndroidTVKey as any).lastKeyPressTime < 150) {
+      return;
+    }
+    (handleAndroidTVKey as any).lastKeyPressTime = currentTime;
+    
+    switch (keyCode) {
+      case 19: // KEYCODE_DPAD_UP
+        console.log('⬆️ Channels - UP pressed');
+        if (rowFocus === 'content') {
+          // Calculate previous row in grid
+          const currentRow = Math.floor(focusedIndex / NUM_COLUMNS);
+          if (currentRow > 0) {
+            // Move up within content grid
+            const newIndex = Math.max(0, focusedIndex - NUM_COLUMNS);
+            setFocusedIndex(newIndex);
+            console.log('Moving up in grid from', focusedIndex, 'to', newIndex);
+          } else {
+            // Move to tabs
+            setRowFocus('tabs');
+            setTabFocusIndex(1); // Focus on channels tab
+            setFocusedTab('channels');
+            console.log('Moving from content to tabs');
+          }
+        }
+        break;
+      case 20: // KEYCODE_DPAD_DOWN
+        console.log('⬇️ Channels - DOWN pressed');
+        if (rowFocus === 'tabs') {
+          setRowFocus('content');
+          setFocusedIndex(0);
+          console.log('Moving from tabs to content');
+        } else if (rowFocus === 'content') {
+          // Calculate next row in grid
+          const totalItems = channelsData?.length || 0;
+          const newIndex = Math.min(totalItems - 1, focusedIndex + NUM_COLUMNS);
+          if (newIndex !== focusedIndex && newIndex < totalItems) {
+            setFocusedIndex(newIndex);
+            console.log('Moving down in grid from', focusedIndex, 'to', newIndex);
+          }
+        }
+        break;
+      case 21: // KEYCODE_DPAD_LEFT
+        console.log('⬅️ Channels - LEFT pressed');
+        if (rowFocus === 'tabs') {
+          navigateTabs('left');
+        } else if (rowFocus === 'content') {
+          // Navigate left in content grid
+          const newIndex = Math.max(0, focusedIndex - 1);
+          setFocusedIndex(newIndex);
+          console.log('Moving left in grid from', focusedIndex, 'to', newIndex);
+        }
+        break;
+      case 22: // KEYCODE_DPAD_RIGHT
+        console.log('➡️ Channels - RIGHT pressed');
+        if (rowFocus === 'tabs') {
+          navigateTabs('right');
+        } else if (rowFocus === 'content') {
+          // Navigate right in content grid
+          const totalItems = channelsData?.length || 0;
+          const newIndex = Math.min(totalItems - 1, focusedIndex + 1);
+          setFocusedIndex(newIndex);
+          console.log('Moving right in grid from', focusedIndex, 'to', newIndex);
+        }
+        break;
+      case 23: // KEYCODE_DPAD_CENTER or KEYCODE_ENTER
+        console.log('✅ Channels - SELECT pressed');
+        if (rowFocus === 'tabs') {
+          handleTabPress(focusedTab);
+        } else if (rowFocus === 'content' && channelsData && channelsData[focusedIndex]) {
+          handleChannelPress(channelsData[focusedIndex]);
+        }
+        break;
+      case 4: // KEYCODE_BACK
+        console.log('🔙 Channels - BACK pressed');
+        handleBackPress();
+        break;
+      default:
+        console.log('Channels - Unknown Android TV key:', keyCode);
+        break;
+    }
+  };
+
+  // Initialize lastKeyPressTime
+  (handleAndroidTVKey as any).lastKeyPressTime = 0;
+
+  // Handle data changes and maintain focus
+  useEffect(() => {
+    if (channelsData && channelsData.length > 0 && rowFocus === 'content') {
+      // Ensure focusedIndex is within bounds
+      if (focusedIndex >= channelsData.length) {
+        setFocusedIndex(0);
+      }
+    }
+  }, [channelsData, focusedIndex, rowFocus]);
 
   return (
     <View style={styles.container}>
