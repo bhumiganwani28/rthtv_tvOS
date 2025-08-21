@@ -501,6 +501,7 @@ const Channels: React.FC = () => {
             contentContainerStyle={{
               width: gridWidth,
               alignSelf: 'center',
+              paddingBottom: scale(40),
             }}
             refreshControl={
               <RefreshControl

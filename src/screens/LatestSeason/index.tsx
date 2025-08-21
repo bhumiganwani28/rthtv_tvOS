@@ -270,6 +270,7 @@ const LatestSeason: React.FC = () => {
   const handleAndroidTVKey = (keyCode: number) => {
     const currentTime = Date.now();
     if (currentTime - lastKeyPressTime.current < keyPressDebounceTime) {
+      console.log('LatestSeason - Debouncing key press:', keyCode);
       return;
     }
     lastKeyPressTime.current = currentTime;
@@ -285,8 +286,10 @@ const LatestSeason: React.FC = () => {
           if (currentRow > 0) {
             // Move up within content grid
             const newIndex = Math.max(0, focusedIndex - NUM_COLUMNS);
-            setFocusedIndex(newIndex);
-            console.log('Moving up in grid from', focusedIndex, 'to', newIndex);
+            if (newIndex !== focusedIndex) {
+              setFocusedIndex(newIndex);
+              console.log('Moving up in grid from', focusedIndex, 'to', newIndex);
+            }
           } else {
             // Move to tabs
             setRowFocus('tabs');
@@ -305,10 +308,16 @@ const LatestSeason: React.FC = () => {
         } else if (rowFocus === 'content') {
           // Calculate next row in grid
           const totalItems = latestVideosData?.length || 0;
-          const newIndex = Math.min(totalItems - 1, focusedIndex + NUM_COLUMNS);
-          if (newIndex !== focusedIndex && newIndex < totalItems) {
-            setFocusedIndex(newIndex);
-            console.log('Moving down in grid from', focusedIndex, 'to', newIndex);
+          const currentRow = Math.floor(focusedIndex / NUM_COLUMNS);
+          const maxRow = Math.floor((totalItems - 1) / NUM_COLUMNS);
+          
+          if (currentRow < maxRow) {
+            // Move down within content grid
+            const newIndex = Math.min(totalItems - 1, focusedIndex + NUM_COLUMNS);
+            if (newIndex !== focusedIndex && newIndex < totalItems) {
+              setFocusedIndex(newIndex);
+              console.log('Moving down in grid from', focusedIndex, 'to', newIndex);
+            }
           }
         }
         break;
@@ -318,9 +327,15 @@ const LatestSeason: React.FC = () => {
           navigateTabs('left');
         } else if (rowFocus === 'content') {
           // Navigate left in content grid
-          const newIndex = Math.max(0, focusedIndex - 1);
-          setFocusedIndex(newIndex);
-          console.log('Moving left in grid from', focusedIndex, 'to', newIndex);
+          const currentRow = Math.floor(focusedIndex / NUM_COLUMNS);
+          const currentCol = focusedIndex % NUM_COLUMNS;
+          
+          if (currentCol > 0) {
+            // Move left within same row
+            const newIndex = focusedIndex - 1;
+            setFocusedIndex(newIndex);
+            console.log('Moving left in grid from', focusedIndex, 'to', newIndex);
+          }
         }
         break;
       case 22: // KEYCODE_DPAD_RIGHT
@@ -330,9 +345,15 @@ const LatestSeason: React.FC = () => {
         } else if (rowFocus === 'content') {
           // Navigate right in content grid
           const totalItems = latestVideosData?.length || 0;
-          const newIndex = Math.min(totalItems - 1, focusedIndex + 1);
-          setFocusedIndex(newIndex);
-          console.log('Moving right in grid from', focusedIndex, 'to', newIndex);
+          const currentRow = Math.floor(focusedIndex / NUM_COLUMNS);
+          const currentCol = focusedIndex % NUM_COLUMNS;
+          
+          if (currentCol < NUM_COLUMNS - 1 && focusedIndex + 1 < totalItems) {
+            // Move right within same row
+            const newIndex = focusedIndex + 1;
+            setFocusedIndex(newIndex);
+            console.log('Moving right in grid from', focusedIndex, 'to', newIndex);
+          }
         }
         break;
       case 23: // KEYCODE_DPAD_CENTER or KEYCODE_ENTER
@@ -373,13 +394,16 @@ const LatestSeason: React.FC = () => {
           if (Platform.isTV) {
             const currentTime = Date.now();
             if (currentTime - lastKeyPressTime.current < keyPressDebounceTime) {
+              console.log('Season focus debounced:', index);
               return;
             }
             lastKeyPressTime.current = currentTime;
             
             console.log('Season focused:', index, item?.name);
-            setFocusedIndex(index);
-            setRowFocus('content');
+            if (index !== focusedIndex) {
+              setFocusedIndex(index);
+              setRowFocus('content');
+            }
           }
         }}
         hasTVPreferredFocus={index === 0 && rowFocus === 'content'}
@@ -472,7 +496,9 @@ const LatestSeason: React.FC = () => {
             contentContainerStyle={{
               width: gridWidth,
               alignSelf: 'center',
+              paddingBottom: scale(40), 
             }}
+            
             refreshControl={
               <RefreshControl
                 refreshing={refreshing}
