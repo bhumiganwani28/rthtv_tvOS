@@ -13,6 +13,7 @@ import {
   RefreshControl,
   useTVEventHandler,
 } from 'react-native';
+import KeyEvent from 'react-native-keyevent';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {scale, verticalScale} from 'react-native-size-matters';
@@ -80,6 +81,7 @@ interface RootState {
 const HomeScreen: React.FC = () => {
   const navigation = useNavigation<HomeScreenNavigationProp>();
   const dispatch = useDispatch();
+  
   // States for API data
   const [sliderData, setSliderData] = useState<any[]>([]);
   const [trendingVideos, setTrendingVideos] = useState<any[]>([]);
@@ -88,7 +90,6 @@ const HomeScreen: React.FC = () => {
   const [featuredSeasons, setFeaturedSeasons] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [refreshing, setRefreshing] = useState<boolean>(false);
-// const screenKey  = 'homeScreen'; // or 'channelScreen', etc.
 
   // 🟦 Tab menu state
   const [tabs] = useState<Tab[]>([
@@ -100,15 +101,72 @@ const HomeScreen: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState<string>('home');
   const [focusedTab, setFocusedTab] = useState<string>('home');
 
-  // Focus management for TV remote
-  const [rowFocus, setRowFocus] = useState<'tabs' | 'slider' | 'content'>(
-    'tabs',
-  );
-  const [contentRowFocus, setContentRowFocus] = useState<number>(0);
+  // TV Navigation State - Simple and effective like Apple TV
+  const [currentSection, setCurrentSection] = useState<'tabs' | 'slider' | 'content'>('tabs');
+  const [currentRow, setCurrentRow] = useState<number>(0);
+  const [currentItem, setCurrentItem] = useState<number>(-1); // -1 means "View All" is focused
+
+  // Get available content rows (rows that have data)
+  const getAvailableRows = () => {
+    const availableRows: number[] = [];
+    if (upcomingShows && upcomingShows.length > 0) availableRows.push(0);
+    if (featuredSeasons && featuredSeasons.length > 0) availableRows.push(1);
+    if (channelsVideos && channelsVideos.length > 0) availableRows.push(2);
+    if (trendingVideos && trendingVideos.length > 0) availableRows.push(3);
+    return availableRows;
+  };
 
   // Use ref to prevent multiple API calls
   const dataFetchedRef = useRef(false);
   const isTablet = useSelector((state: RootState) => state.auth.isTablet);
+
+  // Android TV Key Event Handler
+  useEffect(() => {
+    if (Platform.isTV && Platform.OS === 'android') {
+      KeyEvent.onKeyDownListener((keyEvent) => {
+        console.log('Android TV Key:', keyEvent.keyCode);
+        handleAndroidTVKey(keyEvent.keyCode);
+      });
+
+      return () => {
+        KeyEvent.removeKeyDownListener();
+      };
+    }
+  }, [currentSection, currentRow, currentItem, focusedTab]);
+
+  const handleAndroidTVKey = (keyCode: number) => {
+    console.log('Android TV Key Pressed:', keyCode, 'Current Section:', currentSection, 'Row:', currentRow);
+    
+    switch (keyCode) {
+      case 19: // KEYCODE_DPAD_UP
+        console.log('⬆️ Android TV UP pressed');
+        handleUpNavigation();
+        break;
+      case 20: // KEYCODE_DPAD_DOWN
+        console.log('⬇️ Android TV DOWN pressed');
+        handleDownNavigation();
+        break;
+      case 21: // KEYCODE_DPAD_LEFT
+        console.log('⬅️ Android TV LEFT pressed');
+        handleLeftNavigation();
+        break;
+      case 22: // KEYCODE_DPAD_RIGHT
+        console.log('➡️ Android TV RIGHT pressed');
+        handleRightNavigation();
+        break;
+      case 23: // KEYCODE_DPAD_CENTER or KEYCODE_ENTER
+        console.log('✅ Android TV SELECT pressed');
+        handleSelectNavigation();
+        break;
+      case 4: // KEYCODE_BACK
+        console.log('🔙 Android TV BACK pressed');
+        BackHandler.exitApp();
+        break;
+      default:
+        console.log('Unknown Android TV key:', keyCode);
+        break;
+    }
+  };
 
   useEffect(() => {
     const checkProfile = async () => {
@@ -141,82 +199,128 @@ const HomeScreen: React.FC = () => {
         navigation.navigate('Channels');
         break;
       case 'premium':
-        navigation.navigate('PremiumVideos'); // Change as per your route names
+        navigation.navigate('PremiumVideos');
         break;
       case 'featured':
         navigation.navigate('LatestSeason');
         break;
-      // case 'tvGuide':
-      //   navigation.navigate('TVGuideScreen');
-      //   break;
       default:
         break;
     }
   };
-  // TV remote navigation handler
+
+  // 🎮 TV Remote Navigation Handler - Only for Apple TV
   useTVEventHandler(evt => {
-    if (evt && evt.eventType) {
-      switch (evt.eventType) {
-        case 'down':
-          if (rowFocus === 'tabs') {
-            setRowFocus('slider');
-          } else if (rowFocus === 'slider') {
-            setRowFocus('content');
-            setContentRowFocus(0);
-          } else if (rowFocus === 'content') {
-            if (contentRowFocus < 3) {
-              // Assuming 4 content rows
-              setContentRowFocus(contentRowFocus + 1);
-            }
-          }
-          break;
-        case 'up':
-          if (rowFocus === 'content') {
-            if (contentRowFocus > 0) {
-              setContentRowFocus(contentRowFocus - 1);
-            } else {
-              setRowFocus('slider');
-            }
-          } else if (rowFocus === 'slider') {
-            setRowFocus('tabs');
-          }
-          break;
-        case 'right':
-          if (rowFocus === 'tabs') {
-            const currentIndex = tabs.findIndex(tab => tab.id === focusedTab);
-            if (currentIndex < tabs.length - 1) {
-              setFocusedTab(tabs[currentIndex + 1].id);
-            }
-          }
-          break;
-        case 'left':
-          if (rowFocus === 'tabs') {
-            const currentIndex = tabs.findIndex(tab => tab.id === focusedTab);
-            if (currentIndex > 0) {
-              setFocusedTab(tabs[currentIndex - 1].id);
-            }
-          }
-          break;
-        case 'select':
-          if (rowFocus === 'tabs') {
-            setSelectedTab(focusedTab);
-          }
-          break;
-      }
+    if (!isTV || !evt || !evt.eventType || Platform.OS === 'android') return;
+
+    switch (evt.eventType) {
+      case 'up':
+        handleUpNavigation();
+        break;
+      case 'down':
+        handleDownNavigation();
+        break;
+      case 'left':
+        handleLeftNavigation();
+        break;
+      case 'right':
+        handleRightNavigation();
+        break;
+      case 'select':
+        handleSelectNavigation();
+        break;
+      case 'back':
+        BackHandler.exitApp();
+        break;
     }
   });
 
+  // Navigation handlers
+  const handleUpNavigation = () => {
+    if (currentSection === 'content') {
+      const availableRows = getAvailableRows();
+      const currentIndex = availableRows.indexOf(currentRow);
+      if (currentIndex > 0) {
+        const prevRow = availableRows[currentIndex - 1];
+        setCurrentRow(prevRow);
+        setCurrentItem(-1); // Reset to "View All"
+      } else {
+        setCurrentSection('slider');
+      }
+    } else if (currentSection === 'slider') {
+      setCurrentSection('tabs');
+    }
+  };
+
+  const handleDownNavigation = () => {
+    if (currentSection === 'tabs') {
+      setCurrentSection('slider');
+    } else if (currentSection === 'slider') {
+      setCurrentSection('content');
+      const availableRows = getAvailableRows();
+      if (availableRows.length > 0) {
+        setCurrentRow(availableRows[0]);
+        setCurrentItem(-1);
+      }
+    } else if (currentSection === 'content') {
+      const availableRows = getAvailableRows();
+      const currentIndex = availableRows.indexOf(currentRow);
+      if (currentIndex < availableRows.length - 1) {
+        const nextRow = availableRows[currentIndex + 1];
+        setCurrentRow(nextRow);
+        setCurrentItem(-1);
+      }
+    }
+  };
+
+  const handleLeftNavigation = () => {
+    if (currentSection === 'tabs') {
+      const currentIndex = tabs.findIndex(tab => tab.id === focusedTab);
+      if (currentIndex > 0) {
+        setFocusedTab(tabs[currentIndex - 1].id);
+      }
+    } else if (currentSection === 'content') {
+      if (currentItem > -1) {
+        const prevItem = currentItem - 1;
+        setCurrentItem(prevItem);
+      }
+    }
+  };
+
+  const handleRightNavigation = () => {
+    if (currentSection === 'tabs') {
+      const currentIndex = tabs.findIndex(tab => tab.id === focusedTab);
+      if (currentIndex < tabs.length - 1) {
+        setFocusedTab(tabs[currentIndex + 1].id);
+      }
+    } else if (currentSection === 'content') {
+      if (currentItem < 9) { // Max 10 items per row
+        const nextItem = currentItem + 1;
+        setCurrentItem(nextItem);
+      }
+    }
+  };
+
+  const handleSelectNavigation = () => {
+    if (currentSection === 'tabs') {
+      handleTabPress(focusedTab);
+    } else if (currentSection === 'slider') {
+      // Handle slider selection
+      console.log('Slider selected');
+    } else if (currentSection === 'content') {
+      // Handle content selection
+      console.log('Content selected:', currentRow, currentItem);
+    }
+  };
+
   // channels
   const handleChannelPress = (item: any) => {
-      // console.log("handleChannelPress>",item);
-    
     navigation.navigate('ChannelDetailsTV', {channelId: item?.id});
   };
 
   // navigate to particluar image press in VOD screen with seasonID
   const handleTvShowPress = (item: any) => {
     console.log("item>",item);
-    
     navigation.navigate('VODScreen', {seasonID: item?._id});
   };
 
@@ -305,6 +409,7 @@ const HomeScreen: React.FC = () => {
     await fetchData();
     setRefreshing(false);
   };
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -373,11 +478,10 @@ const HomeScreen: React.FC = () => {
           <View style={styles.topSpaceShowsContainer}>
             {upcomingShows && upcomingShows.length > 0 && (
               <CTrendingVideos
-              // screenKey={screenKey}
-              // currentScreenKey={screenKey} 
-              rowIndex={0}
-              rowFocus={rowFocus}
-              contentRowFocus={contentRowFocus}
+                rowIndex={0}
+                rowFocus={currentSection}
+                contentRowFocus={currentRow}
+                focusedItemIndex={currentItem}
                 trendingVideosData={upcomingShows}
                 title="Live & Upcoming Shows"
                 imageKey="banner"
@@ -395,11 +499,10 @@ const HomeScreen: React.FC = () => {
           <View style={styles.topSpaceShowsContainer}>
             {featuredSeasons && featuredSeasons.length > 0 && (
               <CTrendingVideos
-              // screenKey={screenKey}
-              // currentScreenKey={screenKey} 
-               rowIndex={1}
-              rowFocus={rowFocus}
-              contentRowFocus={contentRowFocus}
+                rowIndex={1}
+                rowFocus={currentSection}
+                contentRowFocus={currentRow}
+                focusedItemIndex={currentItem}
                 trendingVideosData={featuredSeasons}
                 title="Featured Seasons"
                 imageKey="mobilePosterImage"
@@ -418,11 +521,10 @@ const HomeScreen: React.FC = () => {
           <View style={styles.topSpaceShowsContainer}>
             {channelsVideos && channelsVideos.length > 0 && (
               <CTrendingVideos
-              // screenKey={screenKey}
-              // currentScreenKey={screenKey} 
-               rowIndex={2}
-              rowFocus={rowFocus}
-              contentRowFocus={contentRowFocus}
+                rowIndex={2}
+                rowFocus={currentSection}
+                contentRowFocus={currentRow}
+                focusedItemIndex={currentItem}
                 trendingVideosData={channelsVideos}
                 title="Channels"
                 imageKey="coverImage"
@@ -441,10 +543,10 @@ const HomeScreen: React.FC = () => {
           <View style={styles.topSpaceShowsContainer}>
             {trendingVideos && trendingVideos.length > 0 && (
               <CTrendingVideos
-              // screenKey={screenKey}
-               rowIndex={3}
-              rowFocus={rowFocus}
-              contentRowFocus={contentRowFocus}
+                rowIndex={3}
+                rowFocus={currentSection}
+                contentRowFocus={currentRow}
+                focusedItemIndex={currentItem}
                 trendingVideosData={trendingVideos}
                 title="Latest Seasons"
                 imageKey="mobileBanner"
@@ -472,6 +574,8 @@ const HomeScreen: React.FC = () => {
         }}
       />
 
+
+
       <Header
         title=""
         showLogo={true}
@@ -488,9 +592,11 @@ const HomeScreen: React.FC = () => {
           tabs={tabs}
           selectedTab={selectedTab}
           focusedTab={focusedTab}
-          rowFocus={rowFocus}
+          rowFocus={currentSection}
           onTabPress={handleTabPress}
           onTabFocus={setFocusedTab}
+          tabFocusIndex={tabs.findIndex(tab => tab.id === focusedTab)}
+          setTabFocusIndex={(index) => setFocusedTab(tabs[index]?.id || 'home')}
         />
         <ProfileSelector
           onProfileChange={profile => {

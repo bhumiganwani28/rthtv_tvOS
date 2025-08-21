@@ -57,6 +57,8 @@ const TabMenuBar: React.FC<TabMenuBarProps> = ({
               }}
               hasTVPreferredFocus={index === tabFocusIndex && rowFocus === 'tabs'}
               focusable={Platform.isTV}
+              accessible={Platform.isTV}
+              accessibilityRole="button"
             >
               <Text
                 style={[

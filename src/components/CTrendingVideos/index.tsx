@@ -57,9 +57,10 @@ interface TrendingVideoProps {
   imageKey?: string;
 
   // 🚨 Added for TV focus tracking
-  rowFocus?: 'tabs' | 'slider' | 'content';
+  rowFocus?: 'tabs' | 'slider' | 'content' | 'header';
   rowIndex?: number;
   contentRowFocus?: number;
+  focusedItemIndex?: number;
 }
 
 export default function CTrendingVideos(props: TrendingVideoProps) {
@@ -87,55 +88,45 @@ export default function CTrendingVideos(props: TrendingVideoProps) {
     rowFocus,
     contentRowFocus,
     rowIndex,
+    focusedItemIndex: externalFocusedItemIndex,
   } = props;
 
   const isRowFocused = rowFocus === 'content' && contentRowFocus === rowIndex;
+  const isItemFocused = isRowFocused && (externalFocusedItemIndex !== undefined && externalFocusedItemIndex >= 0);
+  const isViewAllFocused = isRowFocused && (externalFocusedItemIndex === -1 || externalFocusedItemIndex === undefined);
 
-  useTVEventHandler(evt => {
-    if (!isRowFocused) return;
+  // Normal focus detection
+  const showFocus = isRowFocused && trendingVideosData && trendingVideosData.length > 0;
 
-    switch (evt.eventType) {
-      case 'down':
-        setFocusedIndex(null); // Focus back to View All
-        break;
+  // Debug logging for Channels row (only when needed)
+  // if (rowIndex === 2 && isRowFocused) {
+  //   console.log('📺 CHANNELS ROW FOCUSED!', {
+  //     rowFocus,
+  //     contentRowFocus,
+  //     rowIndex,
+  //     externalFocusedItemIndex,
+  //     isRowFocused,
+  //     isItemFocused,
+  //     isViewAllFocused
+  //   });
+  // }
 
-      case 'up':
-        setFocusedIndex(null); // Prevent from going above
-        break;
-
-      case 'left':
-        if (focusedIndex === 0 || focusedIndex === null) {
-          setFocusedIndex(null); // Keep focus on View All
-        } else {
-          setFocusedIndex(prev => (prev ?? 0) - 1);
-        }
-        break;
-
-      case 'right':
-        if (focusedIndex === null) {
-          setFocusedIndex(0); // From View All to first item
-        } else if (focusedIndex < trendingVideosData.length - 1) {
-          setFocusedIndex(prev => (prev ?? 0) + 1); // Move to next
-        }
-        break;
-
-      case 'select': {
-        if (focusedIndex === null) {
-          handleViewAllPress();
-        } else {
-          const item = trendingVideosData?.[focusedIndex];
-          if (item) onImagePress?.(item);
-        }
-        break;
-      }
-    }
-  });
+  // Remove the old TV event handler since we're using the centralized navigation system
+  // useTVEventHandler(evt => {
+  //   if (!isRowFocused) return;
+  //   // This is now handled by the parent component
+  // });
 
   useEffect(() => {
     if (isRowFocused) {
-      setFocusedIndex(null); // View All will be focused
+      // Use external focus index if provided, otherwise default to View All
+      if (externalFocusedItemIndex !== undefined) {
+        setFocusedIndex(externalFocusedItemIndex >= 0 ? externalFocusedItemIndex : null);
+      } else {
+        setFocusedIndex(null); // View All will be focused
+      }
     }
-  }, [isRowFocused]);
+  }, [isRowFocused, externalFocusedItemIndex]);
 
   useEffect(() => {
     const fetchSubscriptionData = async () => {
@@ -173,9 +164,9 @@ export default function CTrendingVideos(props: TrendingVideoProps) {
           <TouchableOpacity
             ref={viewAllRef}
             onPress={handleViewAllPress}
-            focusable={Platform.isTV && isRowFocused}
+            focusable={Platform.isTV}
             hasTVPreferredFocus={
-              Platform.isTV && isRowFocused && focusedIndex === null
+              Platform.isTV && showFocus && isViewAllFocused
             }
             onFocus={() => {
               if (isRowFocused) {
@@ -184,15 +175,14 @@ export default function CTrendingVideos(props: TrendingVideoProps) {
             }}
             style={[
               styles.link,
-              isRowFocused && focusedIndex === null && styles.focusedLink,
+              isViewAllFocused && styles.focusedLink,
+
             ]}>
             {showViewAllText && (
               <Text style={styles.viewAllText}>{viewText}</Text>
             )}
             <FFIcon name="chevron-right" size={20} color={'#fff'} />
           </TouchableOpacity>
-
-
         )}
       </View>
 
@@ -205,36 +195,29 @@ export default function CTrendingVideos(props: TrendingVideoProps) {
           marginHorizontal: isTablet ? scale(2) : scale(8),
         }}>
         {trendingVideosData?.slice(0, 10).map((item, index) => {
-          const isFocused = isRowFocused && focusedIndex === index;
+          const itemIsFocused = showFocus && (externalFocusedItemIndex === index || focusedIndex === index);
           return (
             <TouchableOpacity
               key={item._id || `item-${index}`}
               onPress={() => onImagePress?.(item)}
               onFocus={() => isRowFocused && setFocusedIndex(index)}
-              focusable={Platform.isTV && isRowFocused}
-              hasTVPreferredFocus={Platform.isTV && isRowFocused && index === 0}
+              focusable={Platform.isTV}
+              hasTVPreferredFocus={Platform.isTV && showFocus && (externalFocusedItemIndex === index || (externalFocusedItemIndex === undefined && index === 0))}
               style={[
                 styles.itemContainer,
-                isFocused && styles.focusedImageWrapper,
-
-                //  isFocused && styles.highlighted,
                 {
                   width: itemWidth,
                   height: itemHeight + (showStreamName ? scale(20) : 0),
                   marginHorizontal: scale(5),
-                 
-                  // overflow: 'hidden',
                 },
                 customStyles.itemContainer,
               ]}>
               <View
                 style={[
                   styles.imageWrapper,
-                  //
-                  {width: itemWidth,
-                     height: itemHeight,
-                     borderWidth: isFocused ? scale(1) : 0,
-                  borderColor: isFocused ? COLORS.white : 'transparent',},
+                  {width: itemWidth, height: itemHeight},
+                  itemIsFocused && styles.focusedImageWrapper,
+
                 ]}>
                 <Image
                   source={{
@@ -326,6 +309,11 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     // borderRadius: scale(6),
+  },
+  focusedImageWrapper: {
+    borderWidth: scale(2),
+    borderColor: COLORS.white,
+    borderRadius: scale(4),
   },
   streamName: {
     marginTop: scale(6),
