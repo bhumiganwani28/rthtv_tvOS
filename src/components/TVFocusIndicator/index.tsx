@@ -1,54 +1,61 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { scale } from 'react-native-size-matters';
+import { View, Text, StyleSheet, Platform } from 'react-native';
 import { COLORS } from '../../theme/colors';
-import { FONTS } from '../../utils/fonts';
+import { scale } from 'react-native-size-matters';
 
 interface TVFocusIndicatorProps {
-  currentFocusArea: string;
-  focusedTabIndex: number;
-  focusedContentRow: number;
-  focusedItemIndex: number;
+  isFocused: boolean;
+  children: React.ReactNode;
+  label?: string;
+  showDebugInfo?: boolean;
 }
 
 const TVFocusIndicator: React.FC<TVFocusIndicatorProps> = ({
-  currentFocusArea,
-  focusedTabIndex,
-  focusedContentRow,
-  focusedItemIndex,
+  isFocused,
+  children,
+  label,
+  showDebugInfo = false,
 }) => {
+  if (!Platform.isTV) {
+    return <>{children}</>;
+  }
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>TV Focus Debug</Text>
-      <Text style={styles.info}>Focus Area: {currentFocusArea}</Text>
-      <Text style={styles.info}>Tab Index: {focusedTabIndex}</Text>
-      <Text style={styles.info}>Content Row: {focusedContentRow}</Text>
-      <Text style={styles.info}>Item Index: {focusedItemIndex}</Text>
+    <View style={[styles.container, isFocused && styles.focusedContainer]}>
+      {children}
+      {isFocused && showDebugInfo && label && (
+        <View style={styles.debugLabel}>
+          <Text style={styles.debugText}>{label}</Text>
+        </View>
+      )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
+    position: 'relative',
+  },
+  focusedContainer: {
+    borderWidth: scale(3),
+    borderColor: COLORS.white,
+    borderRadius: scale(8),
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  debugLabel: {
     position: 'absolute',
-    top: scale(100),
-    right: scale(20),
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-    padding: scale(10),
-    borderRadius: scale(5),
+    top: -scale(25),
+    left: 0,
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: scale(8),
+    paddingVertical: scale(2),
+    borderRadius: scale(4),
     zIndex: 1000,
   },
-  title: {
+  debugText: {
     color: COLORS.white,
-    fontFamily: FONTS.montBold,
-    fontSize: scale(12),
-    marginBottom: scale(5),
-  },
-  info: {
-    color: COLORS.white,
-    fontFamily: FONTS.montRegular,
     fontSize: scale(10),
-    marginBottom: scale(2),
+    fontFamily: 'monospace',
   },
 });
 

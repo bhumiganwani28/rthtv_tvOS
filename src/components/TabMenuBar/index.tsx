@@ -31,6 +31,48 @@ const TabMenuBar: React.FC<TabMenuBarProps> = ({
   tabFocusIndex,
   setTabFocusIndex,
 }) => {
+  const renderTabItem = ({ item, index }: { item: Tab; index: number }) => {
+    const isSelected = selectedTab === item.id;
+    const isFocused = focusedTab === item.id && rowFocus === 'tabs';
+    const isTabFocused = tabFocusIndex === index && rowFocus === 'tabs';
+
+    return (
+      <TouchableOpacity
+        style={[
+          styles.tabItem,
+          isSelected && styles.selectedTab,
+          (isFocused || isTabFocused) && styles.focusedTab,
+        ]}
+        onPress={() => onTabPress(item.id)}
+        onFocus={() => {
+          if (Platform.isTV) {
+            onTabFocus(item.id);
+            setTabFocusIndex?.(index);
+          }
+        }}
+        hasTVPreferredFocus={index === tabFocusIndex && rowFocus === 'tabs'}
+        focusable={Platform.isTV}
+        accessible={Platform.isTV}
+        accessibilityRole="button"
+        accessibilityLabel={`${item.title} tab`}
+        accessibilityState={{
+          selected: isSelected,
+          focused: isFocused || isTabFocused,
+        }}
+      >
+        <Text
+          style={[
+            styles.tabText,
+            isSelected && styles.selectedTabText,
+            (isFocused || isTabFocused) && styles.focusedTabText,
+          ]}
+        >
+          {item.title}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
+
   return (
     <View style={styles.tabBarContainer}>
       <FlatList
@@ -38,40 +80,9 @@ const TabMenuBar: React.FC<TabMenuBarProps> = ({
         data={tabs}
         keyExtractor={(item) => item.id}
         showsHorizontalScrollIndicator={false}
-        renderItem={({ item, index }) => {
-          const isSelected = selectedTab === item.id;
-          const isFocused = focusedTab === item.id && rowFocus === 'tabs';
-          const isTabFocused = tabFocusIndex === index && rowFocus === 'tabs';
-
-          return (
-            <TouchableOpacity
-              style={[
-                styles.tabItem,
-                isSelected && styles.selectedTab,
-                (isFocused || isTabFocused) && styles.focusedTab,
-              ]}
-              onPress={() => onTabPress(item.id)}
-              onFocus={() => {
-                onTabFocus(item.id);
-                setTabFocusIndex?.(index);
-              }}
-              hasTVPreferredFocus={index === tabFocusIndex && rowFocus === 'tabs'}
-              focusable={Platform.isTV}
-              accessible={Platform.isTV}
-              accessibilityRole="button"
-            >
-              <Text
-                style={[
-                  styles.tabText,
-                  isSelected && styles.selectedTabText,
-                  (isFocused || isTabFocused) && styles.focusedTabText,
-                ]}
-              >
-                {item.title}
-              </Text>
-            </TouchableOpacity>
-          );
-        }}
+        renderItem={renderTabItem}
+        contentContainerStyle={styles.tabListContainer}
+        scrollEnabled={false} // Disable scroll for TV navigation
       />
     </View>
   );

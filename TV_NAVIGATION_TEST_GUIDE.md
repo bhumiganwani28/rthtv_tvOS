@@ -1,136 +1,125 @@
-# Android TV Navigation Test Guide
+# Android TV Navigation Test Guide - LatestSeason Screen
 
-## 🎮 How to Test TV Navigation
+## Overview
+This guide helps test the Android TV remote control navigation for the LatestSeason screen after implementing the fixes.
 
-### Prerequisites
-1. Make sure you're running the app on an Android TV device or emulator
-2. Have an Android TV remote control connected
-3. Check that `Platform.isTV` returns `true`
+## Test Environment Setup
+1. **Device**: Android TV device or Android TV emulator
+2. **Remote**: Android TV remote control or keyboard
+3. **App**: LatestSeason screen should be accessible via navigation
 
-### Testing Steps
+## Key Navigation Features to Test
 
-#### 1. Basic Navigation Test
-- **Start the app** and navigate to the Home screen
-- **Look for the TV Focus Test panel** in the top-right corner
-- **Use the remote control** to navigate:
-  - ⬆️ **UP**: Move between sections (Tabs → Slider → Content)
-  - ⬇️ **DOWN**: Move between sections (Content → Slider → Tabs)
-  - ⬅️ **LEFT**: Navigate within current section
-  - ➡️ **RIGHT**: Navigate within current section
-  - ✅ **SELECT**: Select current item
-  - 🔙 **BACK**: Exit the app
+### 1. Tab Navigation (Top Row)
+- **Focus**: Should start on "Featured" tab when screen loads
+- **Left/Right**: Navigate between Home, Channels, Premium, Featured tabs
+- **Visual Feedback**: Focused tab should have white border and primary background
+- **Select**: Should navigate to respective screens
 
-#### 2. Console Logging
-- **Open developer console** to see navigation logs
-- **Look for these log messages**:
-  ```
-  🎮 TV Event: up Current Section: tabs
-  ⬆️ UP pressed
-  🔄 UP Navigation - Current: tabs 0
-  📱 Moved to tabs
-  ```
+### 2. Content Grid Navigation (5-column layout)
+- **Focus**: Should move to first item when pressing DOWN from tabs
+- **Grid Movement**: 
+  - UP: Move to previous row or back to tabs if on first row
+  - DOWN: Move to next row
+  - LEFT: Move to previous item in same row
+  - RIGHT: Move to next item in same row
+- **Visual Feedback**: Focused item should have white border
+- **Select**: Should navigate to VODScreen with season ID
 
-#### 3. Visual Indicators
-- **Focused tabs** should have a white border and glow effect
-- **Focused content items** should have a white border and scale up
-- **Focused "View All" buttons** should have a white border and glow
+### 3. Key Codes to Test
+```
+19 - KEYCODE_DPAD_UP
+20 - KEYCODE_DPAD_DOWN  
+21 - KEYCODE_DPAD_LEFT
+22 - KEYCODE_DPAD_RIGHT
+23 - KEYCODE_DPAD_CENTER / KEYCODE_ENTER
+4  - KEYCODE_BACK
+```
 
-#### 4. Navigation Flow Test
+## Test Scenarios
 
-##### Tab Navigation:
-1. **Start on tabs section** (default)
-2. **Press LEFT/RIGHT** to move between tabs
-3. **Press DOWN** to move to slider
-4. **Press UP** to return to tabs
+### Scenario 1: Basic Navigation Flow
+1. Navigate to LatestSeason screen
+2. Verify focus starts on "Featured" tab
+3. Press RIGHT → should move to "Home" tab
+4. Press LEFT → should move back to "Featured" tab
+5. Press DOWN → should move to first content item
+6. Press UP → should move back to "Featured" tab
 
-##### Content Navigation:
-1. **Press DOWN** from tabs to reach content
-2. **Press LEFT/RIGHT** to move between items in a row
-3. **Press UP/DOWN** to move between content rows
-4. **Press SELECT** to select items
+### Scenario 2: Grid Navigation
+1. Press DOWN from tabs to enter content grid
+2. Press RIGHT → should move to next item in same row
+3. Press DOWN → should move to item below (next row)
+4. Press LEFT → should move to previous item in same row
+5. Press UP → should move to item above (previous row)
 
-##### Slider Navigation:
-1. **Navigate to slider section**
-2. **Press LEFT/RIGHT** to navigate slider items
-3. **Press SELECT** to select slider items
+### Scenario 3: Edge Cases
+1. **First Row**: Press UP from first row → should go to tabs
+2. **Last Row**: Press DOWN from last row → should stay in place
+3. **First Column**: Press LEFT from first column → should stay in place
+4. **Last Column**: Press RIGHT from last column → should stay in place
+5. **Empty Grid**: If no content, navigation should be disabled
 
-### Expected Behavior
+### Scenario 4: Selection
+1. Focus on a tab and press ENTER → should navigate to that screen
+2. Focus on a content item and press ENTER → should navigate to VODScreen
+3. Press BACK from anywhere → should go back to previous screen
 
-#### ✅ Working Features:
-- [ ] **Directional navigation** between sections
-- [ ] **Tab navigation** with visual focus
-- [ ] **Content row navigation** with item selection
-- [ ] **Visual focus indicators** on all elements
-- [ ] **Console logging** for all navigation events
-- [ ] **Back button** exits the app
+## Debug Information
 
-#### 🔧 Debug Information:
-The TV Focus Test panel shows:
-- **Current Section**: tabs, slider, or content
-- **Current Row**: 0-3 for content rows
-- **Current Item**: -1 for "View All", 0-9 for items
-- **Current Tab**: Selected tab name
+### Console Logs to Monitor
+Look for these log messages in the console:
+```
+LatestSeason - Android TV Key Pressed: [keyCode] Row Focus: [focus] Focus Index: [index]
+LatestSeason - Moving [direction] in grid from [oldIndex] to [newIndex]
+LatestSeason - Moving from [area] to [area]
+```
 
-### Troubleshooting
+### Visual Indicators
+- **Tab Focus**: White border + primary background color
+- **Content Focus**: White border around item
+- **Debug Mode**: Enable `showDebugInfo` prop to see focus labels
 
-#### Issue: Remote not responding
-**Solution:**
-1. Check if `Platform.isTV` is true
-2. Verify remote is connected
-3. Check console for KeyEvent logs
-4. Restart the app
+## Common Issues and Solutions
 
-#### Issue: Focus not visible
-**Solution:**
-1. Check if focus styles are applied
-2. Verify `focusable` and `hasTVPreferredFocus` props
-3. Check if current section matches component expectations
+### Issue 1: Focus not moving properly
+**Solution**: Check if KeyEvent listener is properly set up and not conflicting with useTVEventHandler
 
-#### Issue: Navigation stuck
-**Solution:**
-1. Check console logs for navigation state
-2. Verify section transitions are working
-3. Reset navigation state by restarting app
+### Issue 2: Grid navigation jumping incorrectly
+**Solution**: Verify NUM_COLUMNS constant matches actual layout (should be 5)
 
-### Key Code Reference
+### Issue 3: Debouncing too aggressive
+**Solution**: Adjust `keyPressDebounceTime` from 150ms to 100ms if needed
 
-#### Android TV Remote Key Codes:
-- `19` - KEYCODE_DPAD_UP
-- `20` - KEYCODE_DPAD_DOWN
-- `21` - KEYCODE_DPAD_LEFT
-- `22` - KEYCODE_DPAD_RIGHT
-- `23` - KEYCODE_DPAD_CENTER
-- `4` - KEYCODE_BACK
+### Issue 4: Focus getting stuck
+**Solution**: Ensure proper cleanup of event listeners in useEffect
 
-#### Navigation States:
-- `currentSection`: 'tabs' | 'slider' | 'content'
-- `currentRow`: 0-3 (content rows)
-- `currentItem`: -1 (View All) or 0-9 (items)
-- `focusedTab`: Current tab ID
+## Performance Considerations
+- Debouncing prevents rapid key presses from causing issues
+- Focus state updates are optimized with useCallback
+- Event listeners are properly cleaned up to prevent memory leaks
 
-### Testing Checklist
+## Accessibility Features
+- All focusable elements have proper accessibility labels
+- Screen reader support for tab navigation
+- Visual focus indicators for users with visual impairments
 
-- [ ] Remote responds to all directional keys
-- [ ] Visual focus indicators appear correctly
-- [ ] Navigation flows smoothly between sections
-- [ ] Console logs show all navigation events
-- [ ] Back button exits the app
-- [ ] Tab selection works properly
-- [ ] Content item selection works
-- [ ] Focus resets appropriately when changing sections
+## Testing Checklist
+- [ ] Tab navigation works smoothly
+- [ ] Grid navigation follows 5-column layout
+- [ ] Focus indicators are visible
+- [ ] Selection works for both tabs and content
+- [ ] Back button works from any focus state
+- [ ] No focus getting stuck or jumping
+- [ ] Performance is smooth without lag
+- [ ] Console logs show proper key handling
+- [ ] Edge cases handled correctly
+- [ ] Accessibility features working
 
-### Performance Notes
-
-- Navigation should be **responsive** (no lag)
-- Focus transitions should be **smooth**
-- Console logging should be **minimal** in production
-- Visual effects should be **subtle** but visible
-
-### Next Steps
-
-After testing, you can:
-1. **Remove debug components** for production
-2. **Optimize focus styles** for better UX
-3. **Add haptic feedback** for focus changes
-4. **Implement smooth transitions** between focus states
-5. **Add accessibility support** for screen readers
+## Troubleshooting
+If navigation is still not working:
+1. Check if `Platform.isTV` is returning true
+2. Verify `react-native-keyevent` is properly installed
+3. Ensure Android TV permissions are granted
+4. Check console for any error messages
+5. Test with different Android TV devices/emulators

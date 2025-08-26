@@ -9,6 +9,12 @@ export default StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.5)',
     zIndex: 10,
   },
+  tabListContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    paddingHorizontal: scale(16),
+  },
    tabItem: {
     paddingVertical: verticalScale(5),
     paddingHorizontal: scale(10),
