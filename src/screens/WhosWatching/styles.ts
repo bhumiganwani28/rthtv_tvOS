@@ -111,7 +111,7 @@ addProfileBox: {
 focusedAddProfileBox: {
   borderColor: COLORS.primary, // Highlight color on focus
   borderWidth: scale(3),
-  
+  backgroundColor: 'rgba(255,255,255,0.1)',
 },
   editOverlay: {
     position: 'absolute',
