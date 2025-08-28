@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,8 @@ import {
   TouchableOpacity,
   Dimensions,
   Platform,
+  useTVEventHandler,
+  BackHandler,
 } from 'react-native';
 import {
   useFocusEffect,
@@ -38,10 +40,11 @@ import FIcon from 'react-native-vector-icons/FontAwesome6';
 import styles from './styles';
 import { s, scale } from 'react-native-size-matters';
 import CInput from '../../components/CInput';
+import KeyEvent from 'react-native-keyevent';
 
 const SearchScreen: React.FC = () => {
   const dispatch = useDispatch();
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   const channelsData = useSelector((state: any) => state.channels?.data);
   const trendingVideosData = useSelector(
     (state: any) => state.trendingVideos?.data,
@@ -55,8 +58,15 @@ const SearchScreen: React.FC = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [activeTab, setActiveTab] = useState(0);
   const [subscriptionData, setSubscriptionData] = useState<any>(null);
-  const [focusedId, setFocusedId] = useState<string | number | null>(null);
-  const [focusedTabIndex, setFocusedTabIndex] = useState<number | null>(null);
+  
+  // TV Navigation States
+  const [currentSection, setCurrentSection] = useState<'search' | 'clear' | 'tabs' | 'content'>('search');
+  const [focusedTabIndex, setFocusedTabIndex] = useState<number>(0);
+  const [focusedItemIndex, setFocusedItemIndex] = useState<number>(0);
+  const [searchInputFocused, setSearchInputFocused] = useState(false);
+  const [clearButtonFocused, setClearButtonFocused] = useState(false);
+
+  const isKeyEventEnabled = useRef<boolean>(false);
 
   // ✅ Responsive spacing logic
   const NUM_COLUMNS = 5;
@@ -118,9 +128,6 @@ const SearchScreen: React.FC = () => {
      navigation.goBack();
   };
 
-
-
-
   const handleSearch = useCallback(() => {
     setPage(1);
     fetchData(1, true);
@@ -147,11 +154,249 @@ const SearchScreen: React.FC = () => {
     setActiveTab(tabIndex);
     setPage(1);
     setSearchText('');
+    setFocusedItemIndex(0);
+    setCurrentSection('content');
     tabIndex === 0
       ? dispatch(resetChannelsData())
       : dispatch(resetTrendingVideosData());
     fetchData(1, true);
   };
+
+  // TV Navigation Functions
+  const handleUpNavigation = useCallback(() => {
+    console.log('SearchScreenTV - UP pressed, Current section:', currentSection);
+    
+    switch (currentSection) {
+      case 'search':
+        // Stay on search input
+        break;
+      case 'clear':
+        // Move to search input
+        setCurrentSection('search');
+        setSearchInputFocused(true);
+        break;
+      case 'tabs':
+        // Move to clear button
+        setCurrentSection('clear');
+        setClearButtonFocused(true);
+        break;
+      case 'content':
+        // Move to tabs
+        setCurrentSection('tabs');
+        setFocusedTabIndex(activeTab);
+        break;
+    }
+  }, [currentSection, activeTab]);
+
+  const handleDownNavigation = useCallback(() => {
+    console.log('SearchScreenTV - DOWN pressed, Current section:', currentSection);
+    
+    switch (currentSection) {
+      case 'search':
+        // Move to clear button
+        setCurrentSection('clear');
+        setClearButtonFocused(true);
+        break;
+      case 'clear':
+        // Move to tabs
+        setCurrentSection('tabs');
+        setFocusedTabIndex(activeTab);
+        break;
+      case 'tabs':
+        // Move to content
+        setCurrentSection('content');
+        setFocusedItemIndex(0);
+        break;
+      case 'content':
+        // Stay in content, move down in grid
+        const currentData = activeTab === 0 ? channelsData : trendingVideosData;
+        const nextRow = focusedItemIndex + NUM_COLUMNS;
+        if (nextRow < currentData.length) {
+          setFocusedItemIndex(nextRow);
+        }
+        break;
+    }
+  }, [currentSection, activeTab, focusedItemIndex, channelsData.length, trendingVideosData.length]);
+
+  const handleLeftNavigation = useCallback(() => {
+    console.log('SearchScreenTV - LEFT pressed, Current section:', currentSection);
+    
+    switch (currentSection) {
+      case 'search':
+        // Stay on search input
+        break;
+      case 'clear':
+        // Move to search input
+        setCurrentSection('search');
+        setSearchInputFocused(true);
+        break;
+      case 'tabs':
+        // Move left in tabs
+        if (focusedTabIndex > 0) {
+          setFocusedTabIndex(focusedTabIndex - 1);
+        }
+        break;
+      case 'content':
+        // Move left in grid
+        if (focusedItemIndex % NUM_COLUMNS > 0) {
+          setFocusedItemIndex(focusedItemIndex - 1);
+        }
+        break;
+    }
+  }, [currentSection, focusedTabIndex, focusedItemIndex]);
+
+  const handleRightNavigation = useCallback(() => {
+    console.log('SearchScreenTV - RIGHT pressed, Current section:', currentSection);
+    
+    switch (currentSection) {
+      case 'search':
+        // Move to clear button
+        setCurrentSection('clear');
+        setClearButtonFocused(true);
+        break;
+      case 'clear':
+        // Move to tabs
+        setCurrentSection('tabs');
+        setFocusedTabIndex(0);
+        break;
+      case 'tabs':
+        // Move right in tabs
+        if (focusedTabIndex < 1) {
+          setFocusedTabIndex(focusedTabIndex + 1);
+        }
+        break;
+      case 'content':
+        // Move right in grid
+        const currentData = activeTab === 0 ? channelsData : trendingVideosData;
+        if (focusedItemIndex % NUM_COLUMNS < NUM_COLUMNS - 1 && focusedItemIndex < currentData.length - 1) {
+          setFocusedItemIndex(focusedItemIndex + 1);
+        }
+        break;
+    }
+  }, [currentSection, focusedTabIndex, focusedItemIndex, activeTab, channelsData.length, trendingVideosData.length]);
+
+  const handleSelectNavigation = useCallback(() => {
+    console.log('SearchScreenTV - SELECT pressed, Current section:', currentSection);
+    
+    switch (currentSection) {
+      case 'search':
+        // Focus search input for typing
+        setSearchInputFocused(true);
+        break;
+      case 'clear':
+        handleClear();
+        break;
+      case 'tabs':
+        // Switch to focused tab
+        switchTab(focusedTabIndex);
+        break;
+      case 'content':
+        // Select current item
+        const currentData = activeTab === 0 ? channelsData : trendingVideosData;
+        if (currentData[focusedItemIndex]) {
+          handlePress(currentData[focusedItemIndex]);
+        }
+        break;
+    }
+  }, [currentSection, focusedTabIndex, focusedItemIndex, activeTab, channelsData, trendingVideosData]);
+
+  const handleBackPress = useCallback(() => {
+    console.log('SearchScreenTV - BACK pressed');
+    navigation.goBack();
+    return true;
+  }, [navigation]);
+
+  // Android TV Key Event Handler
+  useEffect(() => {
+    if (Platform.isTV && Platform.OS === 'android') {
+      KeyEvent.onKeyDownListener((keyEvent: any) => {
+        console.log('SearchScreenTV - KeyEvent:', keyEvent);
+        handleAndroidTVKey(keyEvent.keyCode);
+      });
+      isKeyEventEnabled.current = true;
+    }
+
+    return () => {
+      if (isKeyEventEnabled.current) {
+        KeyEvent.removeKeyDownListener();
+      }
+    };
+  }, []);
+
+  const handleAndroidTVKey = useCallback((keyCode: number) => {
+    switch (keyCode) {
+      case 19: // KEYCODE_DPAD_UP
+        handleUpNavigation();
+        break;
+      case 20: // KEYCODE_DPAD_DOWN
+        handleDownNavigation();
+        break;
+      case 21: // KEYCODE_DPAD_LEFT
+        handleLeftNavigation();
+        break;
+      case 22: // KEYCODE_DPAD_RIGHT
+        handleRightNavigation();
+        break;
+      case 23: // KEYCODE_DPAD_CENTER or KEYCODE_ENTER
+        handleSelectNavigation();
+        break;
+      case 4: // KEYCODE_BACK
+        handleBackPress();
+        break;
+    }
+  }, [handleUpNavigation, handleDownNavigation, handleLeftNavigation, handleRightNavigation, handleSelectNavigation, handleBackPress]);
+
+  // Apple TV Event Handler
+  useTVEventHandler(
+    useCallback(
+      (evt) => {
+        if (!Platform.isTV || !evt || Platform.OS === 'android') return;
+
+        console.log('SearchScreenTV - TV Event:', evt.eventType);
+        
+        switch (evt.eventType) {
+          case 'up':
+            handleUpNavigation();
+            break;
+          case 'down':
+            handleDownNavigation();
+            break;
+          case 'left':
+            handleLeftNavigation();
+            break;
+          case 'right':
+            handleRightNavigation();
+            break;
+          case 'select':
+            handleSelectNavigation();
+            break;
+          case 'back':
+            handleBackPress();
+            break;
+        }
+      },
+      [handleUpNavigation, handleDownNavigation, handleLeftNavigation, handleRightNavigation, handleSelectNavigation, handleBackPress]
+    )
+  );
+
+  // Android Back Handler
+  useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => {
+        if (Platform.OS === 'android' && Platform.isTV) {
+          handleBackPress();
+          return true;
+        }
+        return false;
+      };
+
+      BackHandler.addEventListener('hardwareBackPress', onBackPress);
+      return () => {
+        // Note: BackHandler.removeEventListener might not be available in all React Native versions
+        // The event listener will be cleaned up when the component unmounts
+      };
+    }, [handleBackPress])
+  );
 
   useFocusEffect(
     useCallback(() => {
@@ -174,7 +419,7 @@ const SearchScreen: React.FC = () => {
   const keyExtractor = (item: any, index: number) => `${item?.id}-${index}`;
 
   const renderChannelItem = ({ item, index }: { item: any, index: number }) => {
-    const isFocused = focusedId === item.id && activeTab === 0;
+    const isFocused = currentSection === 'content' && focusedItemIndex === index && activeTab === 0;
     const isLastColumn = (index + 1) % NUM_COLUMNS === 0;
 
     return (
@@ -186,9 +431,14 @@ const SearchScreen: React.FC = () => {
           marginRight: isLastColumn ? 0 : CARD_GAP,
         }}
         onPress={() => handlePress(item)}
-        focusable
-        onFocus={() => setFocusedId(item.id)}
-        hasTVPreferredFocus={isFocused}>
+        focusable={Platform.isTV}
+        hasTVPreferredFocus={isFocused}
+        onFocus={() => {
+          if (Platform.isTV) {
+            setCurrentSection('content');
+            setFocusedItemIndex(index);
+          }
+        }}>
         <View
           style={[
             styles.itemContainer,
@@ -217,7 +467,7 @@ const SearchScreen: React.FC = () => {
   };
 
   const renderTrendingItem = ({ item, index }: { item: any, index: number }) => {
-    const isFocused = focusedId === item.id && activeTab === 1;
+    const isFocused = currentSection === 'content' && focusedItemIndex === index && activeTab === 1;
     const isLastColumn = (index + 1) % NUM_COLUMNS === 0;
 
     return (
@@ -229,9 +479,14 @@ const SearchScreen: React.FC = () => {
           marginRight: isLastColumn ? 0 : CARD_GAP,
         }}
         onPress={() => handlePress(item)}
-        focusable
-        onFocus={() => setFocusedId(item.id)}
-        hasTVPreferredFocus={isFocused}>
+        focusable={Platform.isTV}
+        hasTVPreferredFocus={isFocused}
+        onFocus={() => {
+          if (Platform.isTV) {
+            setCurrentSection('content');
+            setFocusedItemIndex(index);
+          }
+        }}>
         <View
           style={[
             styles.itemContainer,
@@ -279,8 +534,15 @@ const SearchScreen: React.FC = () => {
             width: '95%'
           }}
            onSubmitEditing={handleSearch} 
-          focusable={true}
-          hasTVPreferredFocus={true}
+          focusable={Platform.isTV}
+          hasTVPreferredFocus={currentSection === 'search'}
+          onFocus={() => {
+            if (Platform.isTV) {
+              setCurrentSection('search');
+              setSearchInputFocused(true);
+            }
+          }}
+          onBlur={() => setSearchInputFocused(false)}
         />
         <View style={{
           flexDirection: 'row',
@@ -289,32 +551,48 @@ const SearchScreen: React.FC = () => {
         }}>
           <TouchableOpacity
             onPress={handleClear}
-            focusable
-            style={[styles.clearIcon, { width: scale(25), height: scale(25), borderRadius: scale(5) }]}
+            focusable={Platform.isTV}
+            hasTVPreferredFocus={currentSection === 'clear'}
+            onFocus={() => {
+              if (Platform.isTV) {
+                setCurrentSection('clear');
+                setClearButtonFocused(true);
+              }
+            }}
+            onBlur={() => setClearButtonFocused(false)}
+            style={[
+              styles.clearIcon, 
+              { width: scale(25), height: scale(25), borderRadius: scale(5) },
+              clearButtonFocused && styles.focusedTabItem
+            ]}
           >
             <FIcon name="x" size={scale(15)} color={COLORS.white} />
           </TouchableOpacity>
         </View>
       </View>
 
-
       <View style={styles.tabBar}>
         <TouchableOpacity
           style={[
             styles.tabItem,
             activeTab === 0 && styles.activeTab,
-            focusedTabIndex === 0 && styles.focusedTabItem,
+            currentSection === 'tabs' && focusedTabIndex === 0 && styles.focusedTabItem,
           ]}
           onPress={() => switchTab(0)}
-          focusable
-          onFocus={() => setFocusedTabIndex(0)}
-          onBlur={() => setFocusedTabIndex(null)}
+          focusable={Platform.isTV}
+          hasTVPreferredFocus={currentSection === 'tabs' && focusedTabIndex === 0}
+          onFocus={() => {
+            if (Platform.isTV) {
+              setCurrentSection('tabs');
+              setFocusedTabIndex(0);
+            }
+          }}
         >
           <Text
             style={[
               styles.tabLabel,
               activeTab === 0 && styles.activeText,
-              focusedTabIndex === 0 && styles.focusedTabText,
+              currentSection === 'tabs' && focusedTabIndex === 0 && styles.focusedTabText,
             ]}
           >
             Channels
@@ -325,18 +603,23 @@ const SearchScreen: React.FC = () => {
           style={[
             styles.tabItem,
             activeTab === 1 && styles.activeTab,
-            focusedTabIndex === 1 && styles.focusedTabItem,
+            currentSection === 'tabs' && focusedTabIndex === 1 && styles.focusedTabItem,
           ]}
           onPress={() => switchTab(1)}
-          focusable
-          onFocus={() => setFocusedTabIndex(1)}
-          onBlur={() => setFocusedTabIndex(null)}
+          focusable={Platform.isTV}
+          hasTVPreferredFocus={currentSection === 'tabs' && focusedTabIndex === 1}
+          onFocus={() => {
+            if (Platform.isTV) {
+              setCurrentSection('tabs');
+              setFocusedTabIndex(1);
+            }
+          }}
         >
           <Text
             style={[
               styles.tabLabel,
               activeTab === 1 && styles.activeText,
-              focusedTabIndex === 1 && styles.focusedTabText,
+              currentSection === 'tabs' && focusedTabIndex === 1 && styles.focusedTabText,
             ]}
           >
             Trending Videos
