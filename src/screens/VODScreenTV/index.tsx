@@ -685,7 +685,7 @@ const VODScreen: React.FC = ({ route }) => {
               Watch Now
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={[
               styles.circleButton,
               {
@@ -695,7 +695,7 @@ const VODScreen: React.FC = ({ route }) => {
               },
             ]}>
             <FFIcon name="share-2" size={scale(10)} color={COLORS.white} />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
       </View>
     </View>
